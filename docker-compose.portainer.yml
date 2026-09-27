@@ -1,0 +1,241 @@
+# Portainer-ready stack: PicPeak from the pre-built multi-arch GHCR images.
+#
+# Works on x86 AND arm64 hosts — the images are built for both platforms by
+# .github/workflows/docker-build.yml and published on every push to `main`.
+#
+# Portainer deployment (two options):
+#
+#   A) Git deploy (recommended — updates are one click):
+#       1. Stacks → Add stack → Name: picpeak
+#       2. Build method: Repository
+#       3. Repository URL:  https://github.com/antonmoenninger/picpeak
+#       4. Compose path:    docker-compose.portainer.yml
+#       5. Enable "Load variables from .env file" and upload your .env
+#       6. Deploy the stack
+#       After updating the repo (git pull / redeploy) enable
+#       "Always pull the image" in the stack settings so :main refreshes.
+#
+#   B) Web editor:
+#       1. Stacks → Add stack → Web editor
+#       2. Paste this whole file
+#       3. Environment variables: load your .env (button below the editor)
+#       4. Deploy the stack
+#
+# Required .env entries (see .env.example for the rest):
+#   DB_USER / DB_NAME          database user + name
+#   FRONTEND_URL               https://your-domain.example  (links in mails, Snipcart)
+#   SNIPCART_API_KEY           photo sales (public key)
+#   SNIPCART_SECRET_API_KEY    photo sales (webhook verification, promo codes, refunds)
+#   SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / EMAIL_FROM   (emails)
+#
+# Data lands on the host below ${PICPEAK_DATA_DIR:-/opt/picpeak} — create it
+# first: mkdir -p /opt/picpeak/{events,data,logs,backup,storage}
+# (or point PICPEAK_DATA_DIR somewhere else via the stack environment).
+
+services:
+  # Generates machine secrets (JWT/DB/Redis) on first run when they aren't set
+  # in .env, so a fresh install needs zero secret management.
+  secrets-init:
+    image: alpine:3.20
+    container_name: picpeak-secrets-init
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -e
+        mkdir -p /run/secrets
+        if [ ! -s /run/secrets/jwt_secret ]; then
+          if [ -n "$$JWT_SECRET" ]; then printf '%s' "$$JWT_SECRET" > /run/secrets/jwt_secret;
+          else tr -dc A-Za-z0-9 < /dev/urandom | head -c 48 > /run/secrets/jwt_secret; fi
+        fi
+        if [ ! -s /run/secrets/db_password ]; then
+          if [ -n "$$DB_PASSWORD" ]; then printf '%s' "$$DB_PASSWORD" > /run/secrets/db_password;
+          else tr -dc A-Za-z0-9 < /dev/urandom | head -c 48 > /run/secrets/db_password; fi
+        fi
+        if [ ! -s /run/secrets/redis_password ]; then
+          if [ -n "$$REDIS_PASSWORD" ]; then printf '%s' "$$REDIS_PASSWORD" > /run/secrets/redis_password;
+          else tr -dc A-Za-z0-9 < /dev/urandom | head -c 48 > /run/secrets/redis_password; fi
+        fi
+        chmod 644 /run/secrets/jwt_secret /run/secrets/db_password /run/secrets/redis_password
+        mkdir -p /run/db-secret /run/redis-secret
+        cp /run/secrets/db_password /run/db-secret/db_password
+        cp /run/secrets/redis_password /run/redis-secret/redis_password
+        chmod 644 /run/db-secret/db_password /run/redis-secret/redis_password
+    volumes:
+      - picpeak-secrets:/run/secrets
+      - picpeak-db-secret:/run/db-secret
+      - picpeak-redis-secret:/run/redis-secret
+    restart: "no"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: picpeak-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-picpeak}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: ${DB_NAME:-picpeak_prod}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - picpeak-db-secret:/run/secrets:ro
+    depends_on:
+      secrets-init:
+        condition: service_completed_successfully
+    networks:
+      - picpeak-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-picpeak} -d ${DB_NAME:-picpeak_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: picpeak-redis
+    command: sh -c 'exec redis-server --requirepass "$(cat /run/secrets/redis_password)"'
+    volumes:
+      - redis-data:/data
+      - picpeak-redis-secret:/run/secrets:ro
+    depends_on:
+      secrets-init:
+        condition: service_completed_successfully
+    networks:
+      - picpeak-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    # PHOTO-SALES fork images — override GH_IMAGE_REPO in the stack env if you
+    # fork further. Tag :main follows this repo's default branch.
+    image: ghcr.io/${GH_IMAGE_REPO:-antonmoenninger/picpeak}/backend:${GH_IMAGE_TAG:-main}
+    container_name: picpeak-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - GUEST_TOKEN_TTL=${GUEST_TOKEN_TTL:-}
+      - DATABASE_CLIENT=pg
+      - DB_TYPE=postgresql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-picpeak}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_NAME=${DB_NAME:-picpeak_prod}
+      - EXTERNAL_MEDIA_ROOT=${EXTERNAL_MEDIA_ROOT:-/app/storage/external-media}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@picpeak.local}
+      - EMAIL_WEBHOOK_URL=${EMAIL_WEBHOOK_URL:-}
+      - EMAIL_WEBHOOK_SECRET=${EMAIL_WEBHOOK_SECRET:-}
+      - EMAIL_WEBHOOK_ALLOW_PRIVATE_URLS=${EMAIL_WEBHOOK_ALLOW_PRIVATE_URLS:-false}
+      # PHOTO-SALES-EXTENSION
+      - SNIPCART_API_KEY=${SNIPCART_API_KEY:-}
+      - SNIPCART_WEBHOOK_SECRET=${SNIPCART_WEBHOOK_SECRET:-}
+      - SNIPCART_SECRET_API_KEY=${SNIPCART_SECRET_API_KEY:-}
+      # PHOTO-SALES-EXTENSION END
+      - FRONTEND_URL=${FRONTEND_URL:-}
+      - API_URL=${API_URL:-}
+      - OIDC_ENCRYPTION_KEY=${OIDC_ENCRYPTION_KEY:-}
+      - PICPEAK_EVIDENCE_KEY=${PICPEAK_EVIDENCE_KEY:-}
+      - PICPEAK_EVIDENCE_KEYS_OLD=${PICPEAK_EVIDENCE_KEYS_OLD:-}
+      - USAGE_COLLECTOR_URL=${USAGE_COLLECTOR_URL:-https://usage.picpeak.app}
+      - USAGE_ENCRYPTION_KEY=${USAGE_ENCRYPTION_KEY:-}
+      - OIDC_BREAK_GLASS=${OIDC_BREAK_GLASS:-}
+      - INTEGRATION_PRIVATE_ORIGINS=${INTEGRATION_PRIVATE_ORIGINS:-}
+      - ADMIN_URL=${ADMIN_URL:-}
+      - TZ=${TZ:-UTC}
+      - STORAGE_PATH=/app/storage
+      - BACKUP_DIR=/backup
+      - FILE_WATCHER_CONCURRENCY=${FILE_WATCHER_CONCURRENCY:-2}
+      - EXTERNAL_MEDIA_WATCH=${EXTERNAL_MEDIA_WATCH:-true}
+      - EXTERNAL_MEDIA_WATCH_POLLING=${EXTERNAL_MEDIA_WATCH_POLLING:-false}
+      - EXTERNAL_MEDIA_WATCH_POLL_INTERVAL_MS=${EXTERNAL_MEDIA_WATCH_POLL_INTERVAL_MS:-5000}
+      - EXTERNAL_MEDIA_WATCH_SWEEP_INTERVAL_MS=${EXTERNAL_MEDIA_WATCH_SWEEP_INTERVAL_MS:-900000}
+      - EXTERNAL_MEDIA_WATCH_DEBOUNCE_MS=${EXTERNAL_MEDIA_WATCH_DEBOUNCE_MS:-10000}
+      - EXTERNAL_MEDIA_WATCH_STABILITY_MS=${EXTERNAL_MEDIA_WATCH_STABILITY_MS:-5000}
+      - FACE_ML_URL=${FACE_ML_URL:-http://picpeak-ml:8000}
+      - FACE_ML_TOKEN=${FACE_ML_TOKEN:-}
+      - FACE_PROCESSOR_CONCURRENCY=${FACE_PROCESSOR_CONCURRENCY:-}
+      - CLAMAV_HOST=${CLAMAV_HOST:-}
+      - CLAMAV_PORT=${CLAMAV_PORT:-3310}
+      - CLAMAV_TIMEOUT_MS=${CLAMAV_TIMEOUT_MS:-30000}
+      - CLAMAV_MAX_BYTES=${CLAMAV_MAX_BYTES:-26214400}
+      - RATE_LIMIT_NETWORK_MULTIPLIER=${RATE_LIMIT_NETWORK_MULTIPLIER:-}
+    volumes:
+      # Absolute host paths — safe under Portainer (relative ./ paths would
+      # land at the host's /). Create the directory once:
+      #   mkdir -p /opt/picpeak/{events,data,logs,backup,storage}
+      - ${PICPEAK_DATA_DIR:-/opt/picpeak}/events:/app/events
+      - ${PICPEAK_DATA_DIR:-/opt/picpeak}/data:/app/data
+      - ${PICPEAK_DATA_DIR:-/opt/picpeak}/logs:/app/logs
+      - ${PICPEAK_DATA_DIR:-/opt/picpeak}/backup:/backup
+      - ${PICPEAK_DATA_DIR:-/opt/picpeak}/storage:/app/storage
+      - picpeak-secrets:/run/secrets:ro
+    ports:
+      - "${BACKEND_PORT:-3001}:3000"
+    depends_on:
+      secrets-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - picpeak-network
+
+  frontend:
+    image: ghcr.io/${GH_IMAGE_REPO:-antonmoenninger/picpeak}/frontend:${GH_IMAGE_TAG:-main}
+    container_name: picpeak-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - BRAND_TITLE=${BRAND_TITLE:-PicPeak}
+      - BRAND_DESCRIPTION=${BRAND_DESCRIPTION:-Photo gallery shared with PicPeak.}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - picpeak-network
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  # Auto-generated machine secrets (jwt/db/redis). Keep them — deleting
+  # orphans the DB password from the Postgres volume.
+  picpeak-secrets:
+    driver: local
+  picpeak-db-secret:
+    driver: local
+  picpeak-redis-secret:
+    driver: local
+
+networks:
+  picpeak-network:
+    driver: bridge
