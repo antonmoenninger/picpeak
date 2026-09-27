@@ -1,5 +1,9 @@
 # Portainer-ready stack: PicPeak from the pre-built multi-arch GHCR images.
 #
+# NOTE: GitHub forks start with Actions DISABLED — enable them once in the
+# fork (Settings → Actions → General → "Allow all actions and reusable
+# workflows"), then run "Build and Push Docker Images" manually or push again.
+#
 # Works on x86 AND arm64 hosts — the images are built for both platforms by
 # .github/workflows/docker-build.yml and published on every push to `main`.
 #
