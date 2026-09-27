@@ -1,0 +1,26 @@
+# Run PicPeak from the pre-built multi-arch images on GitHub Container
+# Registry instead of building locally — works on amd64 (x86) AND arm64
+# servers (Raspberry Pi, Apple Silicon, ARM VPS, …).
+#
+# The images are built and published automatically by
+# .github/workflows/docker-build.yml on every push to `main` (:main tag) and
+# on stable releases (:latest / :stable). Backend + frontend are always
+# published; the AIO single-container image is published as `.../aio`.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.published.yml pull
+#   docker compose -f docker-compose.yml -f docker-compose.published.yml up -d
+#
+# Optional overrides in your .env:
+#   GH_IMAGE_REPO=your-github-user/picpeak   # defaults to this fork
+#   GH_IMAGE_TAG=main                        # or latest / stable / sha-xxxx
+services:
+  backend:
+    image: ghcr.io/${GH_IMAGE_REPO:-antonmoenninger/picpeak}/backend:${GH_IMAGE_TAG:-main}
+  frontend:
+    image: ghcr.io/${GH_IMAGE_REPO:-antonmoenninger/picpeak}/frontend:${GH_IMAGE_TAG:-main}
+  # Face-detection sidecar (profile "faces"). Its image is only published when
+  # the repository variable FACENET_ONNX_URL is set — otherwise build it
+  # locally with: docker compose build picpeak-ml
+  picpeak-ml:
+    image: ghcr.io/${GH_IMAGE_REPO:-antonmoenninger/picpeak}/ml:${GH_IMAGE_TAG:-main}

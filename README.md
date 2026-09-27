@@ -130,6 +130,19 @@ The compose stack above is still the right choice for anything busier — SQLite
 
 Both registries get the same digests and the same tags — `stable`/`latest`, a pinned `x.y.z`, and `beta`/`main` for the active development channel — for `linux/amd64` and `linux/arm64`. Keep every image in one install on the **same** tag.
 
+> **Fork note (this repository):** this fork publishes its own multi-arch images to
+> `ghcr.io/antonmoenninger/picpeak/{backend,frontend,aio,ml}` on every push to
+> `main` (tag `:main`) — including all photo-sales changes, which are NOT in the
+> upstream images above. To run a server without building locally (works on
+> x86 **and** ARM):
+>
+> ```bash
+> docker compose -f docker-compose.yml -f docker-compose.published.yml pull
+> docker compose -f docker-compose.yml -f docker-compose.published.yml up -d
+> ```
+>
+> The single-container variant is `ghcr.io/antonmoenninger/picpeak/aio:main`.
+
 ## 🌟 Why PicPeak?
 
 Unlike expensive SaaS solutions, PicPeak gives you:
