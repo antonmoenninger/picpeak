@@ -82,6 +82,39 @@ No environment variables to set — the JWT secret is generated on first start a
 
 Then open **http://localhost:3000/admin** and read the setup token with `docker exec picpeak cat /data/db/SETUP_TOKEN`, or open `db/SETUP_TOKEN` on the volume with any file manager if the host has no shell.
 
+### Snipcart for paid photo galleries
+
+PicPeak can sell individual photo downloads through a gallery-level pricing toggle. Enable it in the admin event form and set:
+
+- `is_priced` = `true`
+- `free_photo_count`
+- `photo_price`
+- `purchase_access_days`
+
+To activate the checkout flow, add the following variables to your environment:
+
+```env
+SNIPCART_API_KEY=your_snipcart_public_api_key
+SNIPCART_SECRET_API_KEY=your_snipcart_secret_api_key
+```
+
+For a working production setup:
+
+1. Create a Snipcart account and enable the store for your site.
+2. Put the public key in `SNIPCART_API_KEY` so the gallery can show add-to-cart buttons.
+3. Put the Snipcart SECRET key in `SNIPCART_SECRET_API_KEY`. The backend uses it to (a) verify every incoming webhook through Snipcart's request-token handshake, (b) create/update the one-time promo-code discounts, and (c) refund an order automatically if its total doesn't match the server-side price check.
+4. In Snipcart, configure ONE webhook for the whole site (Dashboard → Store Configurations → Webhooks):
+   `https://your-domain.example.com/api/gallery/snipcart-webhook`
+   The gallery is derived from the order's items — no per-gallery URL entry needed.
+5. Keep the gallery itself unpriced unless you explicitly turn on the pricing flag; otherwise the default behavior stays identical to the upstream PicPeak code.
+
+Pricing model: the first order of a priced gallery gets `free_photo_count` photos free via a one-time promo code (auto-generated, shown at the top of the gallery). Each photo costs `photo_price` (or its per-photo override). All photos in a priced gallery are watermarked until checkout.
+
+The webhook is idempotent by Snipcart order ID, re-verifies the promo-code discount against the database, and sends the buyer a purchased-download link using the existing PicPeak email pipeline.
+
+Full details — pricing rules, one-time promo code, watermark pre-generation,
+security model and operations — are documented in **[docs/PHOTO_SALES.md](docs/PHOTO_SALES.md)**.
+
 `:main` is the active-development tag, and today it is the only one the all-in-one image has — `Dockerfile.aio` landed after the current stable release, so `:stable` and `:latest` first appear for this image once the aio build reaches the `stable` branch. Switch to `:stable` then, or pin a published version tag if you would rather not track `main`.
 
 The compose stack above is still the right choice for anything busier — SQLite takes one writer at a time, and Postgres is what scales. You can move to it later without reinstalling: take a `.picpeak` backup and restore it into the full stack. See **[Single-container install](https://docs.picpeak.app/deployment/single-container)** for the volume layout, the external-Postgres variant, TLS, and the limits.

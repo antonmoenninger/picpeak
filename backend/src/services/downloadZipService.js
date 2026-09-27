@@ -24,7 +24,10 @@ const watermarkService = require('./watermarkService');
 const { resolvePhotoStorageKey, resolvePhotoFilePath } = require('./photoResolver');
 const { getStorage } = require('./storage');
 const { getUseOriginalFilenames, getZipEntryNames } = require('./downloadFilenameService');
-const { renderPhotoForDownload } = require('./downloadRendition');
+const { renderPhotoForDownload, renderPreviewForDownload, previewDownloadName, isVideo } = require('./downloadRendition');
+// PHOTO-SALES-EXTENSION START
+const { isGalleryPriced, resolveForcedWatermarkSettingsForPhoto } = require('../modules/photoSales/priceRules');
+// PHOTO-SALES-EXTENSION END
 const { resolveEventDownloadPolicy } = require('../utils/downloadResolutions');
 const logger = require('../utils/logger');
 
@@ -313,7 +316,24 @@ class DownloadZipService {
             // from storage with nothing buffered.
             let rendered = null;
             try {
-              rendered = await renderPhotoForDownload(event, photo, standardBox, effectiveSettings);
+              // PHOTO-SALES-EXTENSION START — before the checkout every
+              // photo of a priced gallery ships only as the watermarked
+              // low-quality preview; free photos and non-priced galleries
+              // keep the historical build unchanged. Videos have no preview
+              // tier and stay untouched.
+              let photoSettings = effectiveSettings;
+              if (isGalleryPriced(event) && !isVideo(photo)) {
+                photoSettings = await resolveForcedWatermarkSettingsForPhoto(event, photo);
+                const preview = await renderPreviewForDownload(photo, photoSettings);
+                if (preview) {
+                  archive.append(preview.buffer, {
+                    name: previewDownloadName(archiveName, preview.extension),
+                  });
+                  continue;
+                }
+              }
+              // PHOTO-SALES-EXTENSION END
+              rendered = await renderPhotoForDownload(event, photo, standardBox, photoSettings);
             } catch (err) {
               logger.warn('Skipping photo in pre-zip', { photoId: photo.id, error: err.message });
               continue;

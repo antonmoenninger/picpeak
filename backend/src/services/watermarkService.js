@@ -175,26 +175,30 @@ class WatermarkService {
 
       // If no logo or logo failed, create text watermark
       if (!watermarkBuffer) {
+        // PHOTO-SALES-EXTENSION START — an explicit watermark text (forced
+        // paid-photo mark) overrides the brand name; unchanged otherwise.
+        const label = settings.text || settings.companyName || 'Photo Gallery';
+        // PHOTO-SALES-EXTENSION END
         const fontSize = Math.max(16, Math.floor(metadata.width * 0.03));
         const padding = 10;
         
         // Create SVG text watermark
         const svg = `
-          <svg width="${settings.companyName.length * fontSize * 0.6 + padding * 2}" height="${fontSize + padding * 2}">
+          <svg width="${label.length * fontSize * 0.6 + padding * 2}" height="${fontSize + padding * 2}">
             <rect x="0" y="0" width="100%" height="100%" fill="black" opacity="0.5" rx="5"/>
             <text x="${padding}" y="${fontSize + padding/2}" 
               font-family="Arial, sans-serif" 
               font-size="${fontSize}" 
               fill="white" 
               opacity="${settings.opacity / 100}">
-              ${settings.companyName}
+              ${label}
             </text>
           </svg>
         `;
         
         watermarkBuffer = Buffer.from(svg);
         watermarkMetadata = {
-          width: settings.companyName.length * fontSize * 0.6 + padding * 2,
+          width: label.length * fontSize * 0.6 + padding * 2,
           height: fontSize + padding * 2
         };
       }
@@ -215,11 +219,24 @@ class WatermarkService {
       // outright — applyWatermark then catches its own error and silently
       // returns the unwatermarked original. Whether it lands on a whole pixel
       // was previously luck; nothing guaranteed it.
-      let watermarkedImage = image.composite([{
-        input: watermarkBuffer,
-        top: Math.max(0, Math.floor(position.top)),
-        left: Math.max(0, Math.floor(position.left))
-      }]);
+      let watermarkedImage;
+      // PHOTO-SALES-EXTENSION START — tiled mode repeats the mark across the
+      // whole image (strong protection for paid photos before checkout).
+      // Without the option the single-position composite below is used, so
+      // non-priced galleries render byte-identically to upstream PicPeak.
+      if (settings.tiled) {
+        watermarkedImage = image.composite([{
+          input: watermarkBuffer,
+          tile: true,
+        }]);
+      } else {
+        watermarkedImage = image.composite([{
+          input: watermarkBuffer,
+          top: Math.max(0, Math.floor(position.top)),
+          left: Math.max(0, Math.floor(position.left))
+        }]);
+      }
+      // PHOTO-SALES-EXTENSION END
 
       // A DOWNLOAD keeps the photo's EXIF, XMP and IPTC (issue 1649) — same
       // reasoning as resizeToBox: the credit travels with the file the guest

@@ -17,6 +17,7 @@
 const { resolvePhotoStorageKey, resolvePhotoFilePath } = require('./photoResolver');
 const { withLocalCopy, resizeToBox, ensurePreviewImage } = require('./imageProcessor');
 const watermarkService = require('./watermarkService');
+const { isGalleryPriced, resolvePhotoSalesWatermarkSettings } = require('../modules/photoSales/priceRules');
 const { getStorage } = require('./storage');
 const fs = require('fs');
 
@@ -90,7 +91,9 @@ function previewDownloadName(name, extension) {
 /**
  * Resolve the effective watermark settings for an event, or null when no
  * watermark applies. Same global-OR-event rule the download routes already
- * used, lifted here so the job builder can't drift from it.
+ * used, lifted here so the job builder can't drift from it. Deliberately
+ * does NOT include the per-photo photo-sales forcing — that needs the photo
+ * and lives in resolveWatermarkSettingsForPhoto below.
  */
 async function resolveWatermarkSettings(event) {
   const settings = await watermarkService.getWatermarkSettings();
@@ -104,11 +107,28 @@ async function resolveWatermarkSettings(event) {
   };
 }
 
+/**
+ * PHOTO-SALES-EXTENSION: per-photo watermark settings.
+ *
+ * Priced galleries resolve through the photo-sales rules: a paid photo
+ * (outside the free quota) is watermarked FORCEDLY even when the global /
+ * gallery watermark is off; a free photo keeps the original global-OR-event
+ * rule. Non-priced galleries go through the unchanged event-level resolver,
+ * so their bytes never drift from upstream PicPeak.
+ */
+async function resolveWatermarkSettingsForPhoto(event, photo) {
+  if (isGalleryPriced(event)) {
+    return resolvePhotoSalesWatermarkSettings(event, photo);
+  }
+  return resolveWatermarkSettings(event);
+}
+
 module.exports = {
   renderPhotoForDownload,
   renderPreviewForDownload,
   previewDownloadName,
   resolveWatermarkSettings,
+  resolveWatermarkSettingsForPhoto,
   isVideo,
   getStorage,
 };

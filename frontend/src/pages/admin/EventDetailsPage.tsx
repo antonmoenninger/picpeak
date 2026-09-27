@@ -23,8 +23,11 @@ import { EventTabs } from './event-details/EventTabs';
 import { OverviewTab } from './event-details/OverviewTab';
 import { PhotosTab } from './event-details/PhotosTab';
 import { CategoriesTab } from './event-details/CategoriesTab';
+// PHOTO-SALES-EXTENSION START
+import { OrdersTab } from './event-details/OrdersTab';
+// PHOTO-SALES-EXTENSION END
 
-const ALL_TAB_KEYS: EventDetailsTab[] = ['overview', 'photos', 'categories', 'guests'];
+const ALL_TAB_KEYS: EventDetailsTab[] = ['overview', 'photos', 'categories', 'guests', 'orders'];
 
 function isValidTab(value: string | null): value is EventDetailsTab {
   return value !== null && (ALL_TAB_KEYS as string[]).includes(value);
@@ -167,6 +170,15 @@ export const EventDetailsPage: React.FC = () => {
       setActiveTab('overview');
     }
   }, [feedbackSettingsLoading, eventLoading, showGuestsTab, activeTab]);
+
+  // PHOTO-SALES-EXTENSION START — Orders only exists for priced galleries.
+  useEffect(() => {
+    if (eventLoading) return;
+    if (activeTab === 'orders' && !event?.is_priced) {
+      setActiveTab('overview');
+    }
+  }, [eventLoading, event?.is_priced, activeTab]);
+  // PHOTO-SALES-EXTENSION END
 
   // Update local feedback settings when fetched from server
   useEffect(() => {
@@ -456,6 +468,11 @@ export const EventDetailsPage: React.FC = () => {
       download_limit: event.download_limit || 0,
       // Default photo sort
       default_photo_sort: event.default_photo_sort || 'upload_date_desc',
+      // Photo sales pricing
+      is_priced: Boolean(event.is_priced),
+      free_photo_count: Number(event.free_photo_count ?? 0),
+      photo_price: Number(event.photo_price ?? 0),
+      purchase_access_days: Number(event.purchase_access_days ?? 30),
       // Per-event promotional override (#440)
       promo_mode: ((event as { promo_mode?: 'inherit' | 'custom' | 'off' }).promo_mode) || 'inherit',
       info_mode: ((event as { info_mode?: 'inherit' | 'custom' | 'off' }).info_mode) || 'inherit',
@@ -595,6 +612,11 @@ export const EventDetailsPage: React.FC = () => {
       download_limit: editForm.download_limit > 0 ? editForm.download_limit : null,
       // Default photo sort
       default_photo_sort: editForm.default_photo_sort,
+      // Photo sales pricing
+      is_priced: editForm.is_priced,
+      free_photo_count: editForm.is_priced ? Math.max(0, Number(editForm.free_photo_count || 0)) : 0,
+      photo_price: editForm.is_priced ? Number(editForm.photo_price || 0) : null,
+      purchase_access_days: editForm.is_priced ? Math.max(1, Number(editForm.purchase_access_days || 30)) : 30,
       // Header style settings (decoupled from layout, #158)
       header_style: currentTheme?.headerStyle || 'standard',
       hero_divider_style: currentTheme?.heroDividerStyle || 'wave',
@@ -770,6 +792,12 @@ export const EventDetailsPage: React.FC = () => {
       {activeTab === 'categories' && (
         <CategoriesTab id={id} />
       )}
+
+      {/* PHOTO-SALES-EXTENSION START — purchase orders for priced galleries */}
+      {activeTab === 'orders' && !!event.is_priced && (
+        <OrdersTab eventId={event.id} baseUrl={window.location.origin} />
+      )}
+      {/* PHOTO-SALES-EXTENSION END */}
 
       {/* Guests Tab (guest identity mode, or uploader names on) */}
       {activeTab === 'guests' && showGuestsTab && (

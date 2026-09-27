@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Download, Maximize2, Check, MessageSquare, Heart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Download, Maximize2, Check, MessageSquare, Heart, ShoppingCart } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import { AuthenticatedImage } from '../common';
 import { thumbnailUrlForTile } from './imageTiers';
@@ -10,6 +11,11 @@ import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
 import { useDownloadQuota } from '../../contexts/DownloadQuotaContext';
 import { downloadLimitReachedMessage } from '../../utils/downloadLimit';
 import { useInputMode } from '../../hooks/useInputMode';
+// PHOTO-SALES-EXTENSION START
+import { PhotoPurchaseBadge } from '../../features/photo-sales/PhotoPurchaseBadge';
+import { usePhotoSales } from '../../features/photo-sales/PhotoSalesContext';
+import { effectivePhotoPrice, snipcartItemProps } from '../../features/photo-sales/photoSales';
+// PHOTO-SALES-EXTENSION END
 import type { Photo } from '../../types';
 
 export interface PhotoCardFeedbackOptions {
@@ -118,7 +124,23 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   afterOverlay,
   children,
 }) => {
+  const { t } = useTranslation();
   const guestIdentity = useGuestIdentityOptional();
+  // PHOTO-SALES-EXTENSION START — in a priced gallery every photo is
+  // delivered through the checkout (the first N of the ORDER are free), so
+  // the direct download button is hidden and the price chip is the single
+  // entry point into the cart.
+  const photoSales = usePhotoSales();
+  const hideDownloadBySales = photoSales.checkoutReady;
+  const cartItemProps = photoSales.checkoutReady
+    ? snipcartItemProps({
+      slug: photoSales.slug,
+      priceCheckUrl: photoSales.priceCheckUrl,
+      price: effectivePhotoPrice(photoSales.price, photo.photo_price),
+      photo,
+    })
+    : null;
+  // PHOTO-SALES-EXTENSION END
   // Download limit (issue 1560): shown as unavailable once nothing is left.
   // aria-disabled rather than disabled, so the click still reaches the
   // handler (which explains the refusal) instead of falling through to the
@@ -275,6 +297,13 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   const actionIconClass = actionVariant === 'dark' ? 'w-5 h-5 text-white' : 'w-5 h-5 text-neutral-800';
 
   const handlePhotoClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // PHOTO-SALES-EXTENSION START — cart controls let the click bubble to
+    // Snipcart's document-level delegation; the tile must ignore those
+    // clicks instead of opening the lightbox.
+    if ((e.target as HTMLElement | null)?.closest?.('.snipcart-add-item, .snipcart-checkout')) {
+      return;
+    }
+    // PHOTO-SALES-EXTENSION END
     if (isTouchDevice && !overlayVisible && !isSelectionMode) {
       e.preventDefault();
       e.stopPropagation();
@@ -408,6 +437,11 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
 
           {beforeOverlay}
 
+          {/* PHOTO-SALES-EXTENSION START — always-visible price chip; one
+              tap puts the photo into the Snipcart cart. */}
+          <PhotoPurchaseBadge photo={photo} />
+          {/* PHOTO-SALES-EXTENSION END */}
+
           {/* Hover Overlay */}
           <div className={overlayClassName}>
             {!isSelectionMode && (
@@ -424,7 +458,20 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
                 >
                   <Maximize2 className={actionIconClass} />
                 </button>
-                {allowDownloads && (
+                {/* PHOTO-SALES-EXTENSION START — in a priced gallery the
+                    hover action is the cart, not a download. */}
+                {cartItemProps && (
+                  <button
+                    type={buttonType}
+                    className={`snipcart-add-item ${actionButtonClass}`}
+                    aria-label={t('photoSales.addToCart', 'Add photo to cart')}
+                    {...cartItemProps}
+                  >
+                    <ShoppingCart className={actionIconClass} />
+                  </button>
+                )}
+                {/* PHOTO-SALES-EXTENSION END */}
+                {allowDownloads && !hideDownloadBySales && (
                   <button
                     type={buttonType}
                     className={actionButtonClass}

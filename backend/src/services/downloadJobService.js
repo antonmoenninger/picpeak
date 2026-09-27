@@ -30,7 +30,10 @@ const { db } = require('../database/db');
 const { getStorage } = require('./storage');
 const { createArchiveStreamGuard } = require('../utils/archiveStreamGuard');
 const { getUseOriginalFilenames, getZipEntryNames } = require('./downloadFilenameService');
-const { renderPhotoForDownload, resolveWatermarkSettings } = require('./downloadRendition');
+const { renderPhotoForDownload, renderPreviewForDownload, previewDownloadName, resolveWatermarkSettings, isVideo } = require('./downloadRendition');
+// PHOTO-SALES-EXTENSION START
+const { isGalleryPriced, resolveForcedWatermarkSettingsForPhoto } = require('../modules/photoSales/priceRules');
+// PHOTO-SALES-EXTENSION END
 const { resolvePhotoStorageKey, resolvePhotoFilePath } = require('./photoResolver');
 const { parseResolution } = require('../utils/downloadResolutions');
 const { applyPhotoVisibilityFilter, canSeeHiddenPhotos } = require('../utils/photoVisibility');
@@ -316,16 +319,31 @@ class DownloadJobService {
             const photo = photos[i];
             const name = entryNames[i] || `photo-${photo.id}.jpg`;
             try {
-              const rendered = await renderPhotoForDownload(event, photo, box, watermarkSettings);
-              if (rendered) {
-                archive.append(rendered, { name });
+              // PHOTO-SALES-EXTENSION START — before the checkout every
+              // photo of a priced gallery is packaged as the watermarked
+              // low-quality preview; free photos and non-priced galleries
+              // keep the historical build unchanged. Videos stay untouched.
+              let photoSettings = watermarkSettings;
+              let previewEntry = null;
+              if (isGalleryPriced(event) && !isVideo(photo)) {
+                photoSettings = await resolveForcedWatermarkSettingsForPhoto(event, photo);
+                previewEntry = await renderPreviewForDownload(photo, photoSettings);
+              }
+              // PHOTO-SALES-EXTENSION END
+              if (previewEntry) {
+                archive.append(previewEntry.buffer, { name: previewDownloadName(name, previewEntry.extension) });
               } else {
-                const key = resolvePhotoStorageKey(event, photo);
-                if (key) {
-                  if (!await guard.acquire()) break;
-                  archive.append(guard.track(await storage.get(key)), { name });
+                const rendered = await renderPhotoForDownload(event, photo, box, photoSettings);
+                if (rendered) {
+                  archive.append(rendered, { name });
                 } else {
-                  archive.file(resolvePhotoFilePath(event, photo), { name });
+                  const key = resolvePhotoStorageKey(event, photo);
+                  if (key) {
+                    if (!await guard.acquire()) break;
+                    archive.append(guard.track(await storage.get(key)), { name });
+                  } else {
+                    archive.file(resolvePhotoFilePath(event, photo), { name });
+                  }
                 }
               }
               appended += 1;

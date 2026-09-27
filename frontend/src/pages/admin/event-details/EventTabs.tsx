@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image } from 'lucide-react';
+import { Image, ShoppingBag } from 'lucide-react';
 import type { Event } from '../../../types';
 import type { FeedbackSettings as FeedbackSettingsType } from '../../../services/feedback.service';
 import type { EventDetailsTab } from './types';
@@ -72,6 +72,21 @@ export const EventTabs: React.FC<EventTabsProps> = ({
             {t('admin.events.tabs.guests', 'Guests')}
           </button>
         )}
+        {/* PHOTO-SALES-EXTENSION START — orders overview for priced galleries. */}
+        {!!event.is_priced && (
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+              activeTab === 'orders'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 hover:border-neutral-300 dark:hover:border-neutral-600'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>{t('admin.events.tabs.orders', 'Orders')}</span>
+          </button>
+        )}
+        {/* PHOTO-SALES-EXTENSION END */}
       </nav>
     </div>
   );

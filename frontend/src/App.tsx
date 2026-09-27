@@ -10,6 +10,9 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { GalleryPage } from './pages/GalleryPage';
 import { ClientAccessPage } from './pages/ClientAccessPage';
 import { PreviewPage } from './pages/gallery/PreviewPage';
+// PHOTO-SALES-EXTENSION START
+import { PurchasedDownloadsPage } from './pages/public/PurchasedDownloadsPage';
+// PHOTO-SALES-EXTENSION END
 const SlideshowPage = lazy(() => import('./pages/gallery/SlideshowPage').then((m) => ({ default: m.SlideshowPage })));
 import { LegalPage } from './pages/public/LegalPage';
 import {
@@ -223,6 +226,11 @@ function App() {
                   <Routes>
                   {/* Public gallery routes */}
                   <Route path="/gallery/preview" element={<PreviewPage />} />
+                  {/* PHOTO-SALES-EXTENSION START — buyer access page; the
+                      token is bound to the order and the entitlement runs
+                      against photo_purchases.expires_at server-side. */}
+                  <Route path="/purchased-downloads/:accessToken" element={<PurchasedDownloadsPage />} />
+                  {/* PHOTO-SALES-EXTENSION END */}
                   {/* Live Slideshow ("Diashow") — token-only fullscreen kiosk.
                       Self-manages its session token; no GalleryAuthProvider. */}
                   <Route path="/gallery/:slug/show/:token" element={

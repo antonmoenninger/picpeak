@@ -266,6 +266,14 @@ app.options('/api/*', cors(corsOptions));
 // SSRF/path-allowlist model.
 app.use('/api/analytics/tracker', require('./src/routes/analyticsTrackerProxy'));
 
+// PHOTO-SALES-EXTENSION START — the Snipcart order webhook verifies its HMAC
+// over the RAW request bytes, so it must be mounted ahead of the global JSON
+// body parsers (which would otherwise consume the stream and re-serialise the
+// body in a byte layout that never matches the signature). Unmatched gallery
+// paths fall through to the regular gallery router below unchanged.
+app.use('/api/gallery', require('./src/routes/gallery/snipcartWebhook'));
+// PHOTO-SALES-EXTENSION END
+
 // Health check endpoint. `pid` + `uptime` let monitors (and the local E2E
 // watchdog) detect a silent process restart between two checks.
 //
@@ -1372,6 +1380,15 @@ async function startServer() {
     // large number of supertest suites that never start a worker. Keeping it
     // lazy means they don't pay for a module graph they never use.
     require('./src/services/faceQueue').start();
+
+    // PHOTO-SALES-EXTENSION START — priced galleries whose promo-code
+    // discount is missing (e.g. the Snipcart secret key was added after the
+    // gallery was saved) get one sync attempt per server start. Fire and
+    // forget, delayed so the HTTP stack is up.
+    setTimeout(() => {
+      require('./src/modules/photoSales/promoDiscount').startupSync().catch(() => {});
+    }, 5000);
+    // PHOTO-SALES-EXTENSION END
 
     httpServer = app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);

@@ -183,6 +183,50 @@ export const EventInformationCard: React.FC<EventInformationCardProps> = ({
             />
           </div>
 
+          <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/40 p-4">
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3 flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Photo sales
+            </h3>
+
+            <label className="inline-flex items-center gap-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              <input
+                type="checkbox"
+                checked={editForm.is_priced}
+                onChange={(e) => setEditForm(prev => ({ ...prev, is_priced: e.target.checked }))}
+                className="rounded border-neutral-300 dark:border-neutral-600"
+              />
+              Priced gallery
+            </label>
+
+            {editForm.is_priced && (
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  label="Free photos"
+                  type="number"
+                  min={0}
+                  value={editForm.free_photo_count}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, free_photo_count: Math.max(0, Number(e.target.value || 0)) }))}
+                />
+                <Input
+                  label="Price per extra photo"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={editForm.photo_price}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, photo_price: Number(e.target.value || 0) }))}
+                />
+                <Input
+                  label={t('photoSales.accessDays', 'Access days')}
+                  type="number"
+                  min={1}
+                  value={editForm.purchase_access_days}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, purchase_access_days: Math.max(1, Number(e.target.value || 30)) }))}
+                />
+              </div>
+            )}
+          </div>
+
           {/* Hero Photo Selection */}
           <HeroPhotoSelector
             photos={photos || []}

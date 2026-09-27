@@ -39,6 +39,10 @@ export interface AdminPhoto {
   credit_name?: string | null;
   credit_source?: 'guest' | 'exif' | 'manual' | null;
   uploaded_by?: 'admin' | 'guest';
+  // PHOTO-SALES-EXTENSION START — per-photo price override (null = gallery
+  // default) for priced galleries.
+  photo_price?: number | null;
+  // PHOTO-SALES-EXTENSION END
 }
 
 // Filter value for "photos without a credit" — mirrors CREDIT_NONE in
@@ -153,6 +157,13 @@ class PhotosService {
     const response = await api.patch(`/admin/events/${eventId}/photos/${photoId}`, { category_id: categoryId });
     return response.data.photo;
   }
+
+  // PHOTO-SALES-EXTENSION START — per-photo price override (null = gallery default).
+  async updatePhotoPrice(eventId: number, photoId: number, photoPrice: number | null): Promise<AdminPhoto> {
+    const response = await api.patch(`/admin/events/${eventId}/photos/${photoId}`, { photo_price: photoPrice });
+    return response.data.photo;
+  }
+  // PHOTO-SALES-EXTENSION END
 
   async updatePhotosCategory(eventId: number, photoIds: number[], categoryId: number | null): Promise<void> {
     await api.post(`/admin/events/${eventId}/photos/bulk-update`, {

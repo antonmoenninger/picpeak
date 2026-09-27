@@ -20,6 +20,7 @@ import {
   Webhook,
   Mail,
   Palette,
+  Droplets,
   FileText,
   HardDrive,
   type LucideIcon,
@@ -49,6 +50,9 @@ import {
 } from '../../features/settings';
 import { EmailConfigPage } from './EmailConfigPage';
 import { BrandingPage } from './BrandingPage';
+// PHOTO-SALES-EXTENSION START
+import { WatermarkTab } from '../../features/settings/tabs/WatermarkTab';
+// PHOTO-SALES-EXTENSION END
 import { EventTypesPage } from './EventTypesPage';
 import { SlideshowSettingsPage } from './SlideshowSettingsPage';
 import { BackupManagement } from './BackupManagement';
@@ -71,6 +75,9 @@ type TabType =
   | 'events'
   | 'eventTypes'
   | 'branding'
+  // PHOTO-SALES-EXTENSION START — dedicated watermark configuration tab.
+  | 'watermark'
+  // PHOTO-SALES-EXTENSION END
   | 'categories'
   | 'thumbnails'
   | 'downloads'
@@ -111,7 +118,7 @@ interface NavGroup {
 const ALL_TAB_KEYS: TabType[] = [
   'usage',
   'features', 'general', 'events', 'eventTypes',
-  'branding', 'categories', 'thumbnails', 'downloads', 'styling', 'cms',
+  'branding', 'watermark', 'categories', 'thumbnails', 'downloads', 'styling', 'cms',
   'email', 'moderation',
   'security', 'sso', 'imageSecurity', 'seo',
   'apiTokens', 'webhooks',
@@ -138,6 +145,7 @@ const TAB_PERMISSIONS: Record<TabType, string[]> = {
   events:            ['settings.view'],
   eventTypes:        ['settings.view', 'event_types.view', 'event_types.manage'],
   branding:          ['settings.view', 'branding.view', 'branding.edit'],
+  watermark:         ['settings.view', 'branding.edit'],
   categories:        ['settings.view'],
   thumbnails:        ['settings.view'],
   downloads:         ['settings.view'],
@@ -324,6 +332,7 @@ export const SettingsPage: React.FC = () => {
       label: t('settings.groups.appearance', 'Content & Appearance'),
       items: [
         { key: 'branding',   label: t('settings.branding.title',   'Branding'),    icon: Palette },
+        { key: 'watermark',  label: t('settings.watermark.title',  'Watermark'),   icon: Droplets },
         { key: 'categories', label: t('settings.categories.title'),                 icon: Tags },
         { key: 'thumbnails', label: t('settings.thumbnails.title', 'Thumbnails'),  icon: ImageIcon },
         { key: 'downloads', label: t('settings.downloads.title', 'Download resolutions'), icon: DownloadIcon },
@@ -536,6 +545,9 @@ export const SettingsPage: React.FC = () => {
           {activeTab === 'eventTypes' && <EventTypesPage />}
           {activeTab === 'slideshow' && <SlideshowSettingsPage />}
           {activeTab === 'branding' && <BrandingPage />}
+          {/* PHOTO-SALES-EXTENSION START */}
+          {activeTab === 'watermark' && <WatermarkTab />}
+          {/* PHOTO-SALES-EXTENSION END */}
           {activeTab === 'cms' && <CMSPage />}
           {activeTab === 'email' && <EmailConfigPage />}
           {activeTab === 'backup' && <BackupManagement />}

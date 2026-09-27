@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDevToolsProtection } from '../../hooks/useDevToolsProtection';
-import { X, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut, Minimize2, MessageSquare, Heart, Star, Lock } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut, Minimize2, MessageSquare, Heart, Star, Lock, ShoppingCart } from 'lucide-react';
 import type { Photo, GalleryPerson } from '../../types';
 import { useSavePhotoToDevice } from '../../hooks/useGallery';
 import { AuthenticatedImage } from '../common';
@@ -17,6 +17,10 @@ import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
 import { useDownloadQuota } from '../../contexts/DownloadQuotaContext';
 import { notifyDownloadQuotaChanged, showDownloadLimitReached, videoUnavailableMessage } from '../../utils/downloadLimit';
 import { useFeedbackLimitModal } from '../../hooks/useFeedbackLimitModal';
+// PHOTO-SALES-EXTENSION START
+import { usePhotoSales } from '../../features/photo-sales/PhotoSalesContext';
+import { effectivePhotoPrice } from '../../features/photo-sales/photoSales';
+// PHOTO-SALES-EXTENSION END
 
 interface PhotoLightboxProps {
   photos: Photo[];
@@ -78,6 +82,9 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  // PHOTO-SALES-EXTENSION START
+  const photoSales = usePhotoSales();
+  // PHOTO-SALES-EXTENSION END
   // Pinch baseline lives in a ref so a burst of touchmoves within one
   // render frame chains off the previous step, not off stale state.
   // isPinching is state because it gates the image's transform transition.
@@ -203,6 +210,10 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   // Defaults true for uncategorised photos and pre-migration-135 categories.
   const photoAllowsDownload =
     allowDownloads && currentPhoto?.category_allow_downloads !== false;
+  // PHOTO-SALES-EXTENSION START — every photo of a priced gallery is
+  // delivered through the checkout; the direct download button is hidden.
+  const downloadLockedBySales = photoSales.checkoutReady && currentPhoto != null;
+  // PHOTO-SALES-EXTENSION END
   // Download limit (issue 1560): the button stays, disabled with the reason,
   // once nothing is left — except for photos already downloaded, which are free.
   const downloadQuota = useDownloadQuota();
@@ -1064,7 +1075,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
             <div className="w-px h-6 bg-white/20 mx-2" />
             
-            {photoAllowsDownload && (
+            {photoAllowsDownload && !downloadLockedBySales && (
               <button
                 onClick={handleDownload}
                 // aria-disabled, not disabled: the click still reaches the
@@ -1080,6 +1091,35 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
                 <Download className="w-5 h-5 text-white" />
               </button>
             )}
+
+            {/* PHOTO-SALES-EXTENSION START — every photo of a priced gallery
+                can be put in the cart at its base price. The first N photos
+                of the ORDER are free: the cart re-prices its lines live
+                (cartAllocation) and the server audits the total at
+                order.completed. */}
+            {photoSales.checkoutReady && currentPhoto
+              && currentPhoto.type !== 'video' && currentPhoto.media_type !== 'video' && (
+              <button
+                className="snipcart-add-item p-2 bg-accent hover:bg-accent-dark rounded-full transition-colors"
+                aria-label={t('photoSales.addToCart', 'Add photo to cart')}
+                title={t('photoSales.buyTitle', 'Buy this photo in full quality, without watermark')}
+                data-item-id={`${photoSales.slug}-photo-${currentPhoto.id}`}
+                data-item-price={effectivePhotoPrice(photoSales.price, currentPhoto.photo_price)}
+                data-item-url={`${photoSales.priceCheckUrl}${photoSales.priceCheckUrl.includes('?') ? '&' : '?'}photoId=${currentPhoto.id}`}
+                data-item-name={currentPhoto.original_filename || currentPhoto.filename || `Photo ${currentPhoto.id}`}
+                data-item-description={`${photoSales.slug} — photo ${currentPhoto.id}`}
+                data-item-max-quantity={1}
+                data-item-custom1-name="photoId"
+                data-item-custom1-value={String(currentPhoto.id)}
+                data-item-custom1-type="hidden"
+                {...(currentPhoto.thumbnail_url
+                  ? { 'data-item-image': currentPhoto.thumbnail_url.startsWith('http') ? currentPhoto.thumbnail_url : `${window.location.origin}${currentPhoto.thumbnail_url}` }
+                  : {})}
+              >
+                <ShoppingCart className="w-5 h-5 text-white" />
+              </button>
+            )}
+            {/* PHOTO-SALES-EXTENSION END */}
 
             {/* Inline Like */}
             {feedbackEnabled && feedbackSettings?.allow_likes && (

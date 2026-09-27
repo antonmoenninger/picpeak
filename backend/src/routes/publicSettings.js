@@ -267,7 +267,12 @@ router.get('/', async (req, res) => {
       // SEO meta tag flags (safe to expose - these are intended for crawlers)
       seo_meta_noindex: settingsObject.seo_meta_noindex === true,
       seo_meta_nofollow: settingsObject.seo_meta_nofollow === true,
-      seo_meta_noai: settingsObject.seo_meta_noai === true
+      seo_meta_noai: settingsObject.seo_meta_noai === true,
+      // PHOTO-SALES-EXTENSION START — Snipcart's PUBLIC API key. It is meant
+      // to ship to the browser; the webhook secret is never exposed. Null
+      // keeps the gallery-side purchase UI hidden when unconfigured.
+      snipcart_api_key: process.env.SNIPCART_API_KEY || null,
+      // PHOTO-SALES-EXTENSION END
     };
 
     res.json(publicSettings);

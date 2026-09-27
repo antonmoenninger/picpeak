@@ -1,6 +1,6 @@
 import type { GuestNameMode } from '../../../types';
 
-export type EventDetailsTab = 'overview' | 'photos' | 'categories' | 'guests';
+export type EventDetailsTab = 'overview' | 'photos' | 'categories' | 'guests' | 'orders';
 
 export type EditFormState = {
   welcome_message: string;
@@ -46,6 +46,11 @@ export type EditFormState = {
   download_limit: number;
   // Default photo sort
   default_photo_sort: string;
+  // Photo sales pricing for paid galleries.
+  is_priced: boolean;
+  free_photo_count: number;
+  photo_price: number;
+  purchase_access_days: number;
   // Per-event promotional override (#440). Three-way mode:
   //   inherit → use the global branding_promo_markdown
   //   custom  → render this event's promo_markdown
@@ -103,6 +108,11 @@ export const INITIAL_EDIT_FORM: EditFormState = {
   download_limit: 0,
   // Default photo sort
   default_photo_sort: 'upload_date_desc',
+  // Photo sales pricing defaults stay disabled unless the admin opts in.
+  is_priced: false,
+  free_photo_count: 0,
+  photo_price: 0,
+  purchase_access_days: 30,
   // Per-event promotional override (#440)
   promo_mode: 'inherit',
   promo_markdown: '',

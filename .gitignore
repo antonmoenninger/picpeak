@@ -69,6 +69,7 @@ backend/data/
 backend/docs/
 backend/logs/
 logs/
+prompt.md
 # Anchored to repo root: matches the top-level runtime storage dir,
 # NOT backend/src/services/storage/ (the storage backend abstraction code).
 /storage/
