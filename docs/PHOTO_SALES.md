@@ -143,6 +143,10 @@ heal · `263` per-photo price · `264` preview cache · `265` promo code.
   - Checkout refuses items → the price-check URL must be reachable from
     Snipcart and the dashboard default domain must match the origin the
     shopper used ("Failed to get response from host" in Test mode).
+  - "Failed to get response from host" with ZERO server hits → the nginx CSP
+    is blocking Snipcart client-side: `connect-src` must include
+    `https://api.snipcart.com` (address validation) and `frame-src` must
+    include `https://payment.snipcart.com` (payment iframe).
   - "No shipping method available" → an item was added without the
     `shippable: false` flag (all photo items must carry it — see above).
   - Orders never arrive → verify the webhook URL is the static one above and
