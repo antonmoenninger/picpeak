@@ -61,8 +61,12 @@ SNIPCART_SECRET_API_KEY=<secret key from Snipcart dashboard>
    `shippable: false` (digital goods delivered through the purchased-
    downloads page), so Snipcart removes all shipping options from the cart
    automatically. There is no "digital delivery" menu in the dashboard.
-3. Optional: set the store's website domain (Domains & URLs) — the
-   item-validation crawler resolves `data-item-url` against it.
+3. **Domains & URLs**: set the store's default website domain to the public
+   origin visitors use (e.g. `https://your-domain.example.com`). Order
+   validation resolves item URLs against it and only crawls hosts matching
+   the default domain or the allowed domains — without it the checkout fails
+   with "Failed to get response from host". Test purchases must run on that
+   domain too (not a random tunnel hostname).
 
 ## Pricing & the free quota
 
@@ -137,7 +141,8 @@ heal · `263` per-photo price · `264` preview cache · `265` promo code.
 - **Test purchase**: Snipcart test card `4242 4242 4242 4242`.
 - **Troubleshooting**:
   - Checkout refuses items → the price-check URL must be reachable from
-    Snipcart and the dashboard domain must be set.
+    Snipcart and the dashboard default domain must match the origin the
+    shopper used ("Failed to get response from host" in Test mode).
   - "No shipping method available" → an item was added without the
     `shippable: false` flag (all photo items must carry it — see above).
   - Orders never arrive → verify the webhook URL is the static one above and

@@ -73,7 +73,14 @@ export function buildPhotoSalesConfig(args: {
     freeCount,
     price: Number.isFinite(price) ? price : 0,
     currency: 'EUR',
-    priceCheckUrl: `/api/gallery/${encodeURIComponent(slug)}/price-check`,
+    // Absolute price-check URL: Snipcart's order validation resolves
+    // root-relative data-item-url values against the dashboard's default
+    // domain, and fails the order while that field is empty. An absolute URL
+    // removes that failure mode (the host still has to be the dashboard's
+    // default domain or an allowed domain).
+    priceCheckUrl: typeof window !== 'undefined'
+      ? `${window.location.origin}/api/gallery/${encodeURIComponent(slug)}/price-check`
+      : `/api/gallery/${encodeURIComponent(slug)}/price-check`,
     accessDays: Math.max(1, Math.floor(Number(event?.purchase_access_days ?? 30))),
   };
 }
