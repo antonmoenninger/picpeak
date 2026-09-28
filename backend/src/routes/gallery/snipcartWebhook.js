@@ -170,11 +170,18 @@ async function handleWebhook(req, res) {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // Snipcart v3 wraps the order in `content.order`; accept the v2 flat
-    // shape as well so nothing depends on the webhook version.
-    const order = payload?.content?.order || payload?.data?.order || payload?.order || {};
+    // Snipcart v3 puts the FULL Order object directly in `content` — there is
+    // no `content.order` wrapper. Keep the v2 flat shapes as fallbacks so
+    // nothing depends on the webhook version.
+    const content = payload?.content || {};
+    const order = content?.order
+      || (content?.token ? content : null)
+      || payload?.data?.order
+      || payload?.order
+      || {};
     const orderId = order?.token || order?.id || payload?.id;
     if (!orderId) {
+      logger.warn(`Snipcart webhook ${eventName}: missing order id in payload`);
       return res.status(400).json({ error: 'Missing order id' });
     }
 
@@ -186,6 +193,7 @@ async function handleWebhook(req, res) {
     const buyerEmail = order?.email || order?.customer?.email || order?.billingAddress?.email || '';
     const gallerySlug = req.params?.slug || gallerySlugFromOrderItems(order?.items);
     if (!gallerySlug) {
+      logger.warn(`Snipcart webhook ${eventName}: cannot determine gallery for order ${orderId}`);
       return res.status(400).json({ error: 'Cannot determine gallery from order' });
     }
     const gallery = await db('events')
@@ -197,6 +205,7 @@ async function handleWebhook(req, res) {
 
     const orderedIds = orderedPhotoIds(order?.items || []);
     if (!orderedIds.length) {
+      logger.warn(`Snipcart webhook ${eventName}: order ${orderId} has no purchased photo ids`);
       return res.status(400).json({ error: 'No purchased photo ids supplied' });
     }
 
@@ -210,6 +219,7 @@ async function handleWebhook(req, res) {
     const ownedById = new Map(ownedRows.map((row) => [Number(row.id), row]));
     const orderedOwned = orderedIds.filter((id) => ownedById.has(id));
     if (!orderedOwned.length) {
+      logger.warn(`Snipcart webhook ${eventName}: order ${orderId} has no photos belonging to gallery ${gallerySlug}`);
       return res.status(400).json({ error: 'No purchased photos belong to this gallery' });
     }
 
@@ -313,6 +323,7 @@ async function handleWebhook(req, res) {
       await db('photo_purchase_orders').where({ order_id: String(orderId) }).update({ email_sent: true });
     }
 
+    logger.info(`Snipcart order ${orderId} processed: gallery ${gallerySlug}, ${orderedOwned.length} photo(s), ${chargedTotalCents}c, email ${buyerEmail || 'n/a'}`);
     return res.status(200).json({ ok: true, order_id: String(orderId), access_token: accessToken });
   } catch (error) {
     errorResponse(res, error, 500, 'Failed to process Snipcart order');
