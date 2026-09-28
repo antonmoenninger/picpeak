@@ -5,6 +5,43 @@ All notable changes to PicPeak will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.148.2-beta.0](https://github.com/PicPeak/picpeak/compare/v3.148.1-beta.0...v3.148.2-beta.0) (2026-09-28)
+
+
+### Bug Fixes
+
+* **backup:** individual backup run delete route the History table already called ([#1714](https://github.com/PicPeak/picpeak/issues/1714)) ([c294880](https://github.com/PicPeak/picpeak/commit/c294880216200ed5f3eb53584ef461bb5e4c3589))
+* **gallery-story:** legible hero title, natural aspect grid option, Download All in the nav ([#1713](https://github.com/PicPeak/picpeak/issues/1713)) ([d1bffd3](https://github.com/PicPeak/picpeak/commit/d1bffd3de56acf8ac799607a5f9f7ea356f11a0e))
+
+## [3.148.1-beta.0](https://github.com/PicPeak/picpeak/compare/v3.148.0-beta.0...v3.148.1-beta.0) (2026-09-28)
+
+
+### Bug Fixes
+
+* **documents:** two follow-ups to [#1658](https://github.com/PicPeak/picpeak/issues/1658) — the VAT note is an invoice statement, and a reference stays in the meta block ([#1690](https://github.com/PicPeak/picpeak/issues/1690)) ([7766804](https://github.com/PicPeak/picpeak/commit/7766804899768341b78a65d5d795cef4283407b6))
+
+## [3.148.0-beta.0](https://github.com/PicPeak/picpeak/compare/v3.147.0-beta.0...v3.148.0-beta.0) (2026-09-28)
+
+
+### Features
+
+* **styling:** UI tokens as the single source, STYLING.md, lint rule and codemod ([#1692](https://github.com/PicPeak/picpeak/issues/1692)) ([f7fe33f](https://github.com/PicPeak/picpeak/commit/f7fe33f4acecf802db1de41446eacd06d79b2086))
+
+## [3.147.0-beta.0](https://github.com/PicPeak/picpeak/compare/v3.146.0-beta.0...v3.147.0-beta.0) (2026-09-28)
+
+
+### Features
+
+* **admin:** upload progress bar replaces the blocking modal, cards lose their shadow ([#1691](https://github.com/PicPeak/picpeak/issues/1691)) ([27bc170](https://github.com/PicPeak/picpeak/commit/27bc170f6bd33e75268acf20b7463a34c34bc6dc))
+
+## [3.146.0-beta.0](https://github.com/PicPeak/picpeak/compare/v3.145.1-beta.0...v3.146.0-beta.0) (2026-09-28)
+
+
+### Features
+
+* **admin:** one sidebar, sections take over the menu, one page header ([#1689](https://github.com/PicPeak/picpeak/issues/1689)) ([fcca6d0](https://github.com/PicPeak/picpeak/commit/fcca6d02e5b18a8b306b7f3c9c36350699684e4a))
+* **settings:** one sticky save bar with dirty state and a leave guard on every settings tab ([#1693](https://github.com/PicPeak/picpeak/issues/1693)) ([2cb6152](https://github.com/PicPeak/picpeak/commit/2cb6152c137606f20c8f45de4bf16b8c5225a6a3))
+
 ## [3.145.1-beta.0](https://github.com/PicPeak/picpeak/compare/v3.145.0-beta.0...v3.145.1-beta.0) (2026-09-27)
 
 

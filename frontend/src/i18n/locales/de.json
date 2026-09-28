@@ -844,15 +844,15 @@
     "someFilesFailed": "Einige Dateien konnten nicht hochgeladen werden",
     "failures": {
       "title": "{{count}} Datei(en) konnten nicht hochgeladen werden",
-      "toast": "{{count}} Datei(en) konnten nicht hochgeladen werden – siehe Liste unten.",
+      "toast": "{{count}} Datei(en) konnten nicht hochgeladen werden – Details in der Upload-Leiste oben.",
       "kindRejected": "Abgelehnt",
       "kindTransfer": "Übertragung fehlgeschlagen",
       "kindProcessing": "Verarbeitung fehlgeschlagen",
       "transferReason": "Übertragung fehlgeschlagen",
       "unknownReason": "Unbekannter Fehler",
       "unknownFile": "Unbekannte Datei",
-      "toast_one": "{{count}} Datei konnte nicht hochgeladen werden – siehe Liste unten.",
-      "toast_other": "{{count}} Dateien konnten nicht hochgeladen werden – siehe Liste unten.",
+      "toast_one": "{{count}} Datei konnte nicht hochgeladen werden – Details in der Upload-Leiste oben.",
+      "toast_other": "{{count}} Dateien konnten nicht hochgeladen werden – Details in der Upload-Leiste oben.",
       "title_one": "{{count}} Datei konnte nicht hochgeladen werden",
       "title_other": "{{count}} Dateien konnten nicht hochgeladen werden"
     },
@@ -877,7 +877,16 @@
     "nameRequired": "Bitte gib deinen Namen ein, um hochzuladen.",
     "nameSaveFailed": "Dein Name konnte nicht gespeichert werden. Bitte versuche es erneut.",
     "namePrivacyShown": "Dein Name wird mit deinen Fotos gespeichert und anderen Gästen angezeigt. Der Gastgeber kann ihn jederzeit entfernen.",
-    "namePrivacyHidden": "Dein Name wird mit deinen Fotos für den Gastgeber gespeichert. Andere Gäste sehen ihn nicht, und der Gastgeber kann ihn jederzeit entfernen."
+    "namePrivacyHidden": "Dein Name wird mit deinen Fotos für den Gastgeber gespeichert. Andere Gäste sehen ihn nicht, und der Gastgeber kann ihn jederzeit entfernen.",
+    "alreadyRunning": "Es läuft bereits ein Upload. Er muss abgeschlossen sein, bevor der nächste starten kann.",
+    "bar": {
+      "uploading_one": "{{count}} Datei wird hochgeladen",
+      "uploading_other": "{{count}} Dateien werden hochgeladen",
+      "uploaded_one": "{{count}} Datei hochgeladen",
+      "uploaded_other": "{{count}} Dateien hochgeladen",
+      "viewEvent": "Zur Veranstaltung",
+      "statusUnavailable": "Der Verarbeitungsstatus konnte nicht gelesen werden — die Fotos sind in der Warteschlange und erscheinen, sobald sie verarbeitet sind."
+    }
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -1465,6 +1474,17 @@
         "showing": "Zeige {{from}}-{{to}} von {{total}} Backups",
         "previous": "Zurück",
         "next": "Weiter"
+      },
+      "deleteConfirm": "Backup vom {{date}} löschen? Eintrag und Manifest werden entfernt; gesicherte Dateien, auf die spätere Backups aufbauen, bleiben erhalten. Das kann nicht rückgängig gemacht werden.",
+      "deleteSuccess": "Backup gelöscht",
+      "deleteSuccessArtifactMissing": "Backup-Eintrag gelöscht; das Manifest war bereits weg",
+      "deleteError": "Backup konnte nicht gelöscht werden",
+      "deleteErrors": {
+        "BACKUP_NOT_FOUND": "Dieses Backup existiert nicht mehr",
+        "BACKUP_RUNNING": "Ein laufendes Backup kann nicht gelöscht werden",
+        "ARTIFACT_OUT_OF_SCOPE": "Die Dateien dieses Backups liegen außerhalb des konfigurierten Backup-Ziels, daher wurde nichts gelöscht",
+        "ARTIFACT_DELETE_FAILED": "Das Backup-Manifest konnte nicht entfernt werden, der Eintrag wurde behalten",
+        "FORBIDDEN": "Du hast keine Berechtigung, Backups zu löschen"
       }
     },
     "restore": {
@@ -3158,7 +3178,7 @@
       "vat": {
         "title": "MwSt.",
         "registered": "MwSt-pflichtig (Umsatzsteuer berechnen + Vorsteuer abziehen)",
-        "registeredHint": "Aus = Kleinunternehmen / unter der Schwelle: keine MwSt berechnet, Vorsteuer ist Aufwand (nicht abziehbar). Rechnungen und Angebote ohne MwSt zeigen dann keine MwSt.-Zeile; der MwSt.-Hinweis aus den CRM-Einstellungen steht an ihrer Stelle.",
+        "registeredHint": "Aus = Kleinunternehmen / unter der Schwelle: keine MwSt berechnet, Vorsteuer ist Aufwand (nicht abziehbar). Rechnungen ohne MwSt zeigen dann keine MwSt.-Zeile; der MwSt.-Hinweis aus den CRM-Einstellungen steht an ihrer Stelle. Auf Angeboten erscheint er nie — ein Angebot ist nicht das Steuerdokument.",
         "reclaimCountries": "Länder mit abziehbarer Vorsteuer",
         "reclaimCountriesHint": "Üblicherweise Ihr Inland (CH / LI). Kosten aus anderen Ländern gelten als nicht abziehbare ausländische MwSt. Cmd/Ctrl-Klick für Mehrfachauswahl.",
         "defaultOutputCode": "Standard-MwSt-Code für neue Rechnungen",
@@ -3363,6 +3383,13 @@
       "running": "Urheber werden gelesen...",
       "noneToRead": "Keine Fotos mehr zu lesen",
       "button": "Urheber aus EXIF lesen"
+    },
+    "saveBar": {
+      "unsaved": "Du hast ungespeicherte Änderungen",
+      "leaveTitle": "Ungespeicherte Änderungen verwerfen?",
+      "leaveMessage": "Auf dieser Seite gibt es ungespeicherte Änderungen. Wenn du jetzt gehst, gehen sie verloren.",
+      "leaveConfirm": "Verwerfen und verlassen",
+      "leaveCancel": "Hier bleiben"
     }
   },
   "branding": {
@@ -3476,6 +3503,12 @@
       "xl": "XL — Größte Fotos"
     },
     "thumbnailScaleHint": "Passt die Spaltenanzahl relativ zu den Basis-Rasterspalten an",
+    "storyGridMode": "Bildausschnitt",
+    "storyGridModeOptions": {
+      "fixed": "Feste Kacheln (zuschneiden)",
+      "natural": "Natürlich (Seitenverhältnis beibehalten)"
+    },
+    "storyGridModeHint": "Natürlich ordnet die Szenen in Reihen nach den Bildmaßen an, sodass Hochformate vollständig statt beschnitten gezeigt werden.",
     "typographyAndStyle": "Typografie & Stil",
     "bodyFont": "Fließtext-Schriftart",
     "headingFont": "Überschriften-Schriftart",
@@ -3885,6 +3918,8 @@
     "close": "Schließen",
     "noNotificationsMessage": "Keine Benachrichtigungen",
     "notificationMessages": {
+      "backupRunDeleted": "Backup-Lauf {{backup_run_id}} wurde gelöscht ({{destination}}, Dateien: {{artifact}})",
+      "backupRunDeleteFailed": "Löschen von Backup-Lauf {{backup_run_id}} fehlgeschlagen ({{code}})",
       "eventCreated": "Neues Event \"{{eventName}}\" wurde erstellt",
       "eventArchived": "Event \"{{eventName}}\" wurde archiviert",
       "eventUpdated": "Event \"{{eventName}}\" wurde aktualisiert",
@@ -4498,6 +4533,7 @@
     "viewReleaseNotes": "Versionshinweise auf GitHub ansehen",
     "expandSidebar": "Seitenleiste ausklappen",
     "collapseSidebar": "Seitenleiste einklappen",
+    "backToMenu": "Zurück zum Menü",
     "viewOnGithub": "PicPeak auf GitHub ansehen"
   },
   "acceptInvitation": {
@@ -4950,11 +4986,6 @@
     "title": "Systemwartung",
     "message": "Wir führen derzeit geplante Wartungsarbeiten durch, um unseren Service zu verbessern. Wir sind in Kürze wieder online.",
     "urgentMatters": "Bei dringenden Anliegen kontaktieren Sie bitte"
-  },
-  "migrationBanner": {
-    "title": "Die Image-Registry von PicPeak wurde verschoben",
-    "body": "Aktualisieren Sie Ihre docker-compose.yml, um Images von {{newPath}} zu beziehen — der alte Pfad wird nicht mehr aktualisiert.",
-    "link": "Migrationshinweise ansehen"
   },
   "passwordChange": {
     "title": "Passwort ändern",
@@ -6531,6 +6562,7 @@
       "flat": "Pauschal"
     },
     "inbox": {
+      "subtitle": "Per Kamera, Upload oder Eingangspostfach erfasste Lieferantenrechnungen, bereit zum Kategorisieren und Weiterverrechnen.",
       "captureTitle": "Lieferantenrechnung erfassen",
       "captureBody": "Fotografiere eine Papierrechnung mit der Gerätekamera oder lade ein PDF / Bild hoch.",
       "scanCamera": "Mit Kamera scannen",
@@ -6658,6 +6690,7 @@
       "other": "Sonstiges"
     },
     "ledger": {
+      "subtitle": "Interne Aufwände wie Kilometer, Spesenpauschalen und Barbelege, gebucht auf ein Event oder die Firma.",
       "allStatuses": "Alle Status",
       "allDispositions": "Alle Zuordnungen",
       "allKinds": "Alle Arten",
@@ -7827,7 +7860,7 @@
     "crm_invoices_vat_note_text": {
       "label": "MwSt.- / Freitext-Hinweis auf Rechnungen",
       "placeholder": "z. B. Gemäß § 6 Abs. 1 Z 27 UStG 1994 wird keine Umsatzsteuer berechnet (Kleinunternehmer).",
-      "help": "Wird direkt unter der MwSt.-Zeile auf jeder Rechnungs-PDF gedruckt. Ist das Unternehmen nicht MwSt-pflichtig (Einstellungen → Buchhaltung), steht der Hinweis auf Rechnungen und Angeboten ohne MwSt an Stelle dieser Zeile. Leer lassen zum Ausblenden. Bitte den genauen Wortlaut mit Ihrem Steuerberater abstimmen."
+      "help": "Wird direkt unter der MwSt.-Zeile auf jeder Rechnung ausgegeben. Ist das Unternehmen nicht mehrwertsteuerpflichtig (Einstellungen → Buchhaltung), ersetzt der Text diese Zeile auf Rechnungen ohne MwSt. Auf Angeboten erscheint er nie — ein Angebot ist nicht das Steuerdokument. Leer lassen, um ihn auszublenden. Bitte den genauen Wortlaut mit Ihrem Treuhänder bzw. Steuerberater abstimmen."
     },
     "crm_invoices_skonto_percent_default": {
       "label": "Standard-Skonto %"

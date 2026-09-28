@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Save,
   Server,
   Cloud,
   HardDrive,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button, Card, Input } from '../common';
+import { SettingsSaveBar } from './SettingsSaveBar';
 import { api } from '../../config/api';
 import { backupErrorCode, backupErrorText } from '../../utils/backupErrors';
 
@@ -107,6 +107,34 @@ const isRestrictedBackupSetting = (key: string) =>
 const SSH_KEY_PATH = /^\/[a-zA-Z0-9._/@:-]+$/;
 const isMaskedSshKey = (value: string) => value === '••••••••';
 
+const INITIAL_FORM: BackupFormData = {
+  backup_enabled: false,
+  backup_destination_type: 'local',
+  backup_destination_path: '',
+  backup_rsync_host: '',
+  backup_rsync_user: '',
+  backup_rsync_path: '',
+  backup_rsync_ssh_key: '',
+  backup_s3_endpoint: '',
+  backup_s3_bucket: '',
+  backup_s3_access_key: '',
+  backup_s3_secret_key: '',
+  backup_s3_region: '',
+  backup_schedule: 'daily',
+  backup_schedule_cron: '0 3 * * *',
+  backup_retention_days: 30,
+  backup_include_database: true,
+  backup_include_photos: true,
+  backup_include_archives: true,
+  // Matches the backend never-saved fallback (include everything) so the
+  // form does not show "off" while thumbnails are in fact being backed up.
+  backup_include_thumbnails: true,
+  backup_include_temp: false,
+  backup_compression: true,
+  backup_encryption: false,
+  backup_encryption_passphrase: ''
+};
+
 export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
   config,
   onSave,
@@ -148,33 +176,10 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
     { value: 'custom', label: t('backup.configuration.schedule.options.custom') }
   ];
 
-  const [formData, setFormData] = useState<BackupFormData>({
-    backup_enabled: false,
-    backup_destination_type: 'local',
-    backup_destination_path: '',
-    backup_rsync_host: '',
-    backup_rsync_user: '',
-    backup_rsync_path: '',
-    backup_rsync_ssh_key: '',
-    backup_s3_endpoint: '',
-    backup_s3_bucket: '',
-    backup_s3_access_key: '',
-    backup_s3_secret_key: '',
-    backup_s3_region: '',
-    backup_schedule: 'daily',
-    backup_schedule_cron: '0 3 * * *',
-    backup_retention_days: 30,
-    backup_include_database: true,
-    backup_include_photos: true,
-    backup_include_archives: true,
-    // Matches the backend never-saved fallback (include everything) so the
-    // form does not show "off" while thumbnails are in fact being backed up.
-    backup_include_thumbnails: true,
-    backup_include_temp: false,
-    backup_compression: true,
-    backup_encryption: false,
-    backup_encryption_passphrase: ''
-  });
+  const [formData, setFormData] = useState<BackupFormData>(INITIAL_FORM);
+  // The config as the form last received it, for the save bar's dirty state.
+  const [loaded, setLoaded] = useState<BackupFormData>(INITIAL_FORM);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [showSecrets, setShowSecrets] = useState({
     s3_secret_key: false
@@ -205,7 +210,19 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
         ...config,
         ...scheduleFromConfig(config)
       }));
+      setLoaded(prev => ({
+        ...prev,
+        ...config,
+        ...scheduleFromConfig(config)
+      }));
+      // The refreshed config carrying the approval means it was stored; the
+      // tick is no longer a pending change, or the bar would stay dirty and
+      // the leave guard would keep asking after a successful save.
+      const stored = (config as Record<string, unknown>)[APPROVAL_KEY];
+      setPendingPrivateOrigin(prev => (prev && prev === stored ? null : prev));
+      setApprovePrivate(prev => (prev && pendingPrivateOrigin === stored ? false : prev));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config]);
 
   const handleChange = <K extends keyof BackupFormData>(field: K, value: BackupFormData[K]) => {
@@ -294,6 +311,14 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
     }
   };
 
+  // A ticked approval is a change to save too: the endpoint itself may already
+  // be stored, in which case the draft alone reads clean.
+  const isDirty = approvedOrigin !== null || JSON.stringify(formData) !== JSON.stringify(loaded);
+  const discard = () => {
+    setFormData(loaded);
+    setApprovePrivate(false);
+  };
+
   const testConnection = async () => {
     setTestingConnection(true);
     try {
@@ -318,13 +343,14 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div>
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       {/* Enable/Disable Toggle */}
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{t('backup.configuration.enableBackup')}</h3>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+            <h3 className="text-lg font-semibold text-heading">{t('backup.configuration.enableBackup')}</h3>
+            <p className="mt-1 text-sm text-soft">
               {t('backup.configuration.enableBackupHelp')}
             </p>
           </div>
@@ -335,14 +361,14 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
               onChange={(e) => handleChange('backup_enabled', e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-neutral-200 dark:bg-neutral-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 dark:after:border-neutral-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+            <div className="w-11 h-6 bg-fill peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 dark:after:border-neutral-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
           </label>
         </div>
       </Card>
 
       {/* Destination Configuration */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">{t('backup.configuration.destinationType')}</h3>
+        <h3 className="text-lg font-semibold text-heading mb-4">{t('backup.configuration.destinationType')}</h3>
         {!canManageDestination && (
           <p className="mb-4 text-sm text-amber-700 dark:text-amber-300">
             {t('backup.configuration.destinationSuperAdminOnly', 'Only a Super Admin can change where backups are stored or whether they include the database.')}
@@ -362,7 +388,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                 className={`p-4 rounded-lg border-2 transition-all ${
                   formData.backup_destination_type === type.id
                     ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-neutral-200 dark:border-neutral-600 hover:border-neutral-300 dark:hover:border-neutral-500'
+                    : 'border-line hover:border-line-strong'
                 }`}
               >
                 <Icon className={`h-8 w-8 mb-2 mx-auto ${
@@ -370,8 +396,8 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                     ? 'text-primary-600 dark:text-primary-400'
                     : 'text-neutral-400'
                 }`} />
-                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">{type.name}</h4>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{type.description}</p>
+                <h4 className="font-medium text-heading">{type.name}</h4>
+                <p className="text-xs text-muted mt-1">{type.description}</p>
               </button>
             );
           })}
@@ -382,7 +408,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
           {formData.backup_destination_type === 'local' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                <label className="block text-sm font-medium text-body mb-1">
                   {t('backup.configuration.fields.destinationPath')}
                 </label>
                 <Input
@@ -392,7 +418,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                   placeholder={t('backup.configuration.fields.destinationPathPlaceholder')}
                   required
                 />
-                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-xs text-muted">
                   {t('backup.configuration.fields.destinationPathHelp')}
                 </p>
               </div>
@@ -403,7 +429,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-body mb-1">
                     {t('backup.configuration.fields.rsyncHost')}
                   </label>
                   <Input
@@ -415,7 +441,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-body mb-1">
                     {t('backup.configuration.fields.rsyncUser')}
                   </label>
                   <Input
@@ -428,7 +454,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                <label className="block text-sm font-medium text-body mb-1">
                   {t('backup.configuration.fields.rsyncPath')}
                 </label>
                 <Input
@@ -440,7 +466,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                <label className="block text-sm font-medium text-body mb-1">
                   {t('backup.configuration.fields.rsyncSshKey')}
                 </label>
                 <Input
@@ -457,7 +483,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                     {t('backup.configuration.fields.rsyncSshKeyStoredNotPath')}
                   </p>
                 )}
-                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-xs text-muted">
                   {t('backup.configuration.fields.rsyncSshKeyHelp')}
                 </p>
               </div>
@@ -467,7 +493,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
           {formData.backup_destination_type === 's3' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                <label className="block text-sm font-medium text-body mb-1">
                   {t('backup.configuration.fields.s3Endpoint')}
                 </label>
                 <Input
@@ -477,13 +503,13 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                   placeholder="https://s3.amazonaws.com"
                   required
                 />
-                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-xs text-muted">
                   {t('backup.configuration.fields.s3EndpointHelp')}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-body mb-1">
                     {t('backup.configuration.fields.s3Bucket')}
                   </label>
                   <Input
@@ -495,7 +521,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-body mb-1">
                     {t('backup.configuration.fields.s3Region')}
                   </label>
                   <Input
@@ -508,7 +534,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-body mb-1">
                     {t('backup.configuration.fields.s3AccessKey')}
                   </label>
                   <Input
@@ -520,7 +546,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-body mb-1">
                     {t('backup.configuration.fields.s3SecretKey')}
                   </label>
                   <div className="relative">
@@ -534,7 +560,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowSecrets(prev => ({ ...prev, s3_secret_key: !prev.s3_secret_key }))}
-                      className="absolute top-1/2 -translate-y-1/2 right-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                      className="absolute top-1/2 -translate-y-1/2 right-2 text-neutral-400 hover:text-body"
                     >
                       {showSecrets.s3_secret_key ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -574,7 +600,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                 </div>
               )}
               {!pendingPrivateOrigin && storedApproval && (
-                <p className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+                <p className="flex items-center gap-2 text-xs text-soft">
                   <ShieldAlert className="h-4 w-4 text-amber-500" />
                   <span>{t('backup.configuration.privateEndpoint.approved', { origin: storedApproval })}</span>
                 </p>
@@ -612,17 +638,17 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
 
       {/* Schedule Configuration */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">{t('backup.configuration.schedule.title')}</h3>
+        <h3 className="text-lg font-semibold text-heading mb-4">{t('backup.configuration.schedule.title')}</h3>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            <label className="block text-sm font-medium text-body mb-1">
               {t('backup.configuration.schedule.scheduleType')}
             </label>
             <select
               value={formData.backup_schedule}
               onChange={(e) => handleChange('backup_schedule', e.target.value)}
-              className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-line-strong bg-panel text-heading rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             >
               {scheduleOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -634,7 +660,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
 
           {formData.backup_schedule === 'custom' && (
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-body mb-1">
                 {t('backup.configuration.schedule.customCron')}
               </label>
               <Input
@@ -643,14 +669,14 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
                 onChange={(e) => handleChange('backup_schedule_cron', e.target.value)}
                 placeholder="0 3 * * *"
               />
-              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              <p className="mt-1 text-xs text-muted">
                 {t('backup.configuration.schedule.customCronHelp')}
               </p>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            <label className="block text-sm font-medium text-body mb-1">
               {t('backup.configuration.schedule.retention')}
             </label>
             <Input
@@ -660,7 +686,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
               min="1"
               max="365"
             />
-            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="mt-1 text-xs text-muted">
               {t('backup.configuration.schedule.retentionHelp')}
             </p>
           </div>
@@ -669,7 +695,7 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
 
       {/* Backup Content Selection */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">{t('backup.configuration.whatToBackup.title')}</h3>
+        <h3 className="text-lg font-semibold text-heading mb-4">{t('backup.configuration.whatToBackup.title')}</h3>
 
         <div className="space-y-3">
           <label className="flex items-center">
@@ -678,14 +704,14 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
               checked={formData.backup_include_database}
               onChange={(e) => handleChange('backup_include_database', e.target.checked)}
               disabled={!canManageDestination}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-line-strong rounded bg-inset"
             />
             <div className="ml-3">
               <div className="flex items-center space-x-2">
                 <Database className="h-4 w-4 text-neutral-400" />
-                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('backup.configuration.whatToBackup.database')}</span>
+                <span className="text-sm font-medium text-body">{t('backup.configuration.whatToBackup.database')}</span>
               </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('backup.configuration.whatToBackup.databaseHelp')}</p>
+              <p className="text-xs text-muted">{t('backup.configuration.whatToBackup.databaseHelp')}</p>
             </div>
           </label>
 
@@ -694,14 +720,14 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
               type="checkbox"
               checked={formData.backup_include_photos}
               onChange={(e) => handleChange('backup_include_photos', e.target.checked)}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-line-strong rounded bg-inset"
             />
             <div className="ml-3">
               <div className="flex items-center space-x-2">
                 <Image className="h-4 w-4 text-neutral-400" />
-                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('backup.configuration.whatToBackup.photos')}</span>
+                <span className="text-sm font-medium text-body">{t('backup.configuration.whatToBackup.photos')}</span>
               </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('backup.configuration.whatToBackup.photosHelp')}</p>
+              <p className="text-xs text-muted">{t('backup.configuration.whatToBackup.photosHelp')}</p>
             </div>
           </label>
 
@@ -710,14 +736,14 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
               type="checkbox"
               checked={formData.backup_include_archives}
               onChange={(e) => handleChange('backup_include_archives', e.target.checked)}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-line-strong rounded bg-inset"
             />
             <div className="ml-3">
               <div className="flex items-center space-x-2">
                 <FileArchive className="h-4 w-4 text-neutral-400" />
-                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('backup.configuration.whatToBackup.archives')}</span>
+                <span className="text-sm font-medium text-body">{t('backup.configuration.whatToBackup.archives')}</span>
               </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('backup.configuration.whatToBackup.archivesHelp')}</p>
+              <p className="text-xs text-muted">{t('backup.configuration.whatToBackup.archivesHelp')}</p>
             </div>
           </label>
 
@@ -726,38 +752,29 @@ export const BackupConfiguration: React.FC<BackupConfigurationProps> = ({
               type="checkbox"
               checked={formData.backup_include_thumbnails}
               onChange={(e) => handleChange('backup_include_thumbnails', e.target.checked)}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-line-strong rounded bg-inset"
             />
             <div className="ml-3">
               <div className="flex items-center space-x-2">
                 <Image className="h-4 w-4 text-neutral-400" />
-                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('backup.configuration.whatToBackup.thumbnails')}</span>
+                <span className="text-sm font-medium text-body">{t('backup.configuration.whatToBackup.thumbnails')}</span>
               </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('backup.configuration.whatToBackup.thumbnailsHelp')}</p>
+              <p className="text-xs text-muted">{t('backup.configuration.whatToBackup.thumbnailsHelp')}</p>
             </div>
           </label>
         </div>
       </Card>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button
-          type="submit"
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('backup.configuration.savingSettings')}
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              {t('backup.configuration.saveSettings')}
-            </>
-          )}
-        </Button>
-      </div>
     </form>
+
+      {/* Outside the form: the bar's buttons would submit it natively. Save
+          goes through requestSubmit so Enter and the bar run the same
+          handleSubmit, native required-field checks included. */}
+      <SettingsSaveBar
+        isDirty={isDirty}
+        isSaving={isSaving}
+        onSave={() => formRef.current?.requestSubmit()}
+        onDiscard={discard}
+      />
+    </div>
   );
 };
