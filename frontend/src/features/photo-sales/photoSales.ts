@@ -122,6 +122,11 @@ export function snipcartItemProps(args: {
     'data-item-url': `${priceCheckUrl}${priceCheckUrl.includes('?') ? '&' : '?'}photoId=${photo.id}`,
     'data-item-name': photo.original_filename || photo.filename || `Photo ${photo.id}`,
     'data-item-description': `${slug} — photo ${photo.id}`,
+    // Digital goods: photos are delivered through our purchased-downloads
+    // page, never shipped. Snipcart removes all shipping options from a cart
+    // whose items are all non-shippable — no shipping config in the dashboard
+    // needed and no "No shipping method available" error at checkout.
+    'data-item-shippable': 'false',
     'data-item-max-quantity': 1,
     'data-item-custom1-name': 'photoId',
     'data-item-custom1-value': String(photo.id),

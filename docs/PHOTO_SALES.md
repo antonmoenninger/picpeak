@@ -57,8 +57,10 @@ SNIPCART_SECRET_API_KEY=<secret key from Snipcart dashboard>
    The gallery is derived from the order's items — no per-gallery entry is
    ever needed. (Snipcart offers no API to manage webhooks, which is why the
    endpoint is deliberately static.)
-2. **Shipping**: configure a shipping method (e.g. "0 €" digital delivery) —
-   otherwise the checkout fails with "No shipping method available".
+2. **Shipping**: nothing to configure — every photo item is flagged
+   `shippable: false` (digital goods delivered through the purchased-
+   downloads page), so Snipcart removes all shipping options from the cart
+   automatically. There is no "digital delivery" menu in the dashboard.
 3. Optional: set the store's website domain (Domains & URLs) — the
    item-validation crawler resolves `data-item-url` against it.
 
@@ -136,6 +138,7 @@ heal · `263` per-photo price · `264` preview cache · `265` promo code.
 - **Troubleshooting**:
   - Checkout refuses items → the price-check URL must be reachable from
     Snipcart and the dashboard domain must be set.
-  - "No shipping method available" → configure shipping in the dashboard.
+  - "No shipping method available" → an item was added without the
+    `shippable: false` flag (all photo items must carry it — see above).
   - Orders never arrive → verify the webhook URL is the static one above and
     `SNIPCART_SECRET_API_KEY` is set (backend logs the auth failures).
