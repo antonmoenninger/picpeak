@@ -7,11 +7,11 @@ import i18n from 'i18next';
 /**
  * Photo-sales gallery helpers (frontend side of the pricing rules).
  *
- * The free quota of a priced gallery is ONE-TIME per gallery: only the
- * FIRST order gets its first `free_photo_count` photos free. The cart
- * prices are kept correct live (cartAllocation in PhotoSalesContext) and
- * re-verified server-side against the database at order.completed —
- * mirroring backend/src/modules/photoSales/priceRules.js.
+ * The free quota of a priced gallery is a ONE-TIME giveaway: the single-use
+ * promo code deducts the first `free_photo_count` photos on the first order
+ * that applies it. Prices stay correct in the cart and are re-verified
+ * server-side against the database at order.completed — mirroring
+ * backend/src/modules/photoSales/priceRules.js.
  */
 
 export interface PhotoSalesPhoto {
@@ -36,8 +36,8 @@ export interface PhotoSalesEventInfo {
   free_photo_count?: number;
   photo_price?: number | null;
   purchase_access_days?: number;
-  /** True until the FIRST order of the gallery completes — only that
-   *  order gets its first N photos free (one-time quota). */
+  /** True until the gallery's one-time promo code has been redeemed once —
+   *  a buyer who forgets the code does not burn the quota. */
   free_quota_available?: boolean;
 }
 
@@ -60,9 +60,9 @@ export function buildPhotoSalesConfig(args: {
   const { slug, event, apiKey } = args;
   const isPriced = event?.is_priced === true;
   const price = Number(event?.photo_price ?? 0);
-  // The free quota is one-time per gallery: only the first order gets its
-  // first N photos free. Once an order exists the server flips
-  // free_quota_available to false and every line costs the gallery price.
+  // The free quota is a one-time giveaway per gallery: the promo code is
+  // single-use and the server flips free_quota_available to false after it
+  // has been redeemed once (an order without the code leaves the quota).
   const freeCount = event?.free_quota_available !== false
     ? Math.max(0, Math.floor(Number(event?.free_photo_count ?? 0)))
     : 0;

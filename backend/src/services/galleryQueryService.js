@@ -15,11 +15,15 @@ const { getQuota, grantedPhotoIds, drawsOnQuota } = require('./downloadQuota');
 const { guestNameModeOf, creditVisibleToGuest } = require('./photoCredit');
 
 // PHOTO-SALES-EXTENSION START — the free quota is a one-time giveaway per
-// gallery: true only while NO order has been completed yet.
+// gallery: true until the gallery's promo code has been redeemed once (a
+// buyer who forgets the code does not burn the quota — only actual promo use
+// does, matching the single-use Snipcart discount).
 async function freeQuotaAvailable(event) {
   try {
     if (!parseBooleanInput(event.is_priced, false)) return false;
-    const prior = await db('photo_purchase_orders').where({ gallery_id: event.id }).first('id');
+    const prior = await db('photo_purchase_orders')
+      .where({ gallery_id: event.id, promo_used: true })
+      .first('id');
     return !prior;
   } catch {
     // Display-only: the webhook re-checks authoritatively at order time.

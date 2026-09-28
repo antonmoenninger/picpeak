@@ -232,16 +232,18 @@ async function handleWebhook(req, res) {
     );
     const grossCents = allocation.reduce((sum, line) => sum + line.amountCents, 0);
 
-    // One-time promo code: honoured only when the gallery still has its
-    // quota (no prior order) AND the code was actually applied in this
-    // order. The discount amount is what the synced Snipcart discount
-    // deducts: free_photo_count × photo_price.
-    const priorOrder = await db('photo_purchase_orders').where({ gallery_id: gallery.id }).first('id');
+    // One-time promo code: honoured exactly once per gallery — on the FIRST
+    // order that actually applies it. The Snipcart discount is single-use
+    // (maxNumberOfUsages=1), so a buyer who forgets the code on the first
+    // order does not burn the quota for everyone else.
+    const priorPromoUse = await db('photo_purchase_orders')
+      .where({ gallery_id: gallery.id, promo_used: true })
+      .first('id');
     const discountCodes = (Array.isArray(order?.discounts) ? order.discounts : [])
       .map((d) => String(d?.code || ''))
       .filter(Boolean);
     const codeApplied = !!(gallery.promo_code && discountCodes.includes(gallery.promo_code));
-    const codeHonored = codeApplied && !priorOrder && !!gallery.snipcart_discount_id;
+    const codeHonored = codeApplied && !priorPromoUse && !!gallery.snipcart_discount_id;
     const freeValueCents = codeHonored
       ? Math.round(Math.max(0, Number(gallery.free_photo_count || 0)) * Number(gallery.photo_price || 0) * 100)
       : 0;
@@ -283,6 +285,7 @@ async function handleWebhook(req, res) {
         expires_at: expiresAt,
         access_token: accessToken,
         email_sent: false,
+        promo_used: codeHonored,
       });
 
       // Per-order allocation: the first N lines record a 0 amount; the
