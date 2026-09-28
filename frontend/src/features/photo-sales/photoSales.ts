@@ -1,4 +1,8 @@
-import i18n from '../../i18n/config';
+// The i18next singleton — same instance that src/i18n/config.ts initializes at
+// app startup. Importing the singleton directly (instead of the config module)
+// keeps react-i18next out of this module's import graph, so components using
+// these helpers stay testable with a minimal react-i18next mock.
+import i18n from 'i18next';
 
 /**
  * Photo-sales gallery helpers (frontend side of the pricing rules).

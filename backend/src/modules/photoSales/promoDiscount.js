@@ -130,8 +130,10 @@ async function ensurePromoForEvent(eventRow) {
 }
 
 /**
- * Startup sweep: galleries that are priced and have a code but no synced
- * discount (e.g. the secret key was added after the gallery was saved).
+ * Startup sweep: heal priced galleries with a missing promo code or a
+ * missing Snipcart discount (e.g. the secret key was added after the
+ * gallery was saved, or the gallery was created before this feature
+ * shipped). Generates the one-time promo and re-syncs the discount.
  */
 async function startupSync() {
   try {
@@ -139,11 +141,12 @@ async function startupSync() {
       .where(function () {
         this.where('is_priced', true).orWhere('is_priced', 1).orWhere('is_priced', '1');
       })
-      .whereNotNull('promo_code')
-      .whereNull('snipcart_discount_id')
+      .where(function () {
+        this.whereNull('promo_code').orWhereNull('snipcart_discount_id');
+      })
       .select('id', 'event_name', 'is_priced', 'free_photo_count', 'photo_price', 'promo_code', 'snipcart_discount_id');
     for (const event of pending) {
-      await syncPromoDiscount(event);
+      await ensurePromoForEvent(event);
     }
   } catch (error) {
     logger.warn(`Promo discount startup sync failed: ${error.message}`);

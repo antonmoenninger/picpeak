@@ -57,6 +57,12 @@
       ],
       "reason": "Configuration boolean only; no actual download/selection behavior or resolution values."
     },
+    "watermark": {
+      "signals": [
+        "gallery_watermarks"
+      ],
+      "reason": "Watermark logo upload/removal and default watermark behavior settings only; no image contents or applied-watermark usage data."
+    },
     "styling": {
       "signals": [
         "custom_css"
@@ -1208,6 +1214,7 @@
         "POST /logo",
         "DELETE /logo",
         "POST /branding/watermark-logo",
+        "DELETE /branding/watermark-logo",
         "PUT /theme",
         "PUT /general",
         "PUT /security",
@@ -1687,6 +1694,40 @@
         "GET /resolve/:identifier",
         "GET /:slug/verify-token/:token",
         "GET /:slug/info"
+      ]
+    },
+    "gallery/purchasedDownloads.js": {
+      "decision": "excluded",
+      "signals": [],
+      "reason": "Customer purchase-access surface (Snipcart extension): access-token download listing without product-usage middleware, callbacks, counters or report triggers.",
+      "route_signatures": [
+        "GET /purchased-downloads/:accessToken"
+      ]
+    },
+    "gallery/snipcart.js": {
+      "decision": "excluded",
+      "signals": [],
+      "reason": "Snipcart price-check endpoint queried by the cart from gallery pages: stateless validation, no product-usage middleware, callbacks, counters or report triggers.",
+      "route_signatures": [
+        "GET /:slug/price-check"
+      ]
+    },
+    "gallery/snipcartWebhook.js": {
+      "decision": "excluded",
+      "signals": [],
+      "reason": "Snipcart third-party order/refund webhook surface: token-verified machine traffic without product-usage middleware, callbacks, counters or report triggers.",
+      "route_signatures": [
+        "POST /snipcart-webhook",
+        "POST /:slug/snipcart-webhook"
+      ]
+    },
+    "adminEvents/photoOrders.js": {
+      "decision": "excluded",
+      "signals": [],
+      "reason": "Photo-sales order overview and purchase-email resend (Snipcart extension): read-only admin listing and email trigger without product-usage middleware, callbacks, counters or report triggers.",
+      "route_signatures": [
+        "GET /:id/photo-orders",
+        "POST /:id/photo-orders/:orderId/resend-email"
       ]
     },
     "gallery/photos.js": {
