@@ -10,6 +10,10 @@ permissions:
 
 jobs:
   release-please:
+    # Release automation only exists upstream: on a fork the default
+    # GITHUB_TOKEN cannot push the release tag and the job fails on every
+    # commit. Forks take upstream releases via merge instead.
+    if: github.repository == 'PicPeak/picpeak'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
