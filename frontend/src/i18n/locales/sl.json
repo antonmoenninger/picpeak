@@ -4,21 +4,21 @@
     "intro": "Pomagajte oblikovati PicPeak z neobveznimi poročili o uporabi izdelka. Pred odločitvijo preglejte psevdonimizirane podatke, kdo jih lahko vidi in kam se pošiljajo."
   },
   "productUsage": {
-    "fields": "Poročila usage.v5 vsebujejo prstni odtis namestitve, različico PicPeak, datum poročila po UTC in čas izdelave, metapodatke sheme/podpisovanja, nadzorovane postavitve galerij, 87 nespremenljivih signalov zmožnosti (64 parov nastavljeno/uporabljeno in 23 logičnih vrednosti samo za konfiguracijo) ter dve skupni vrednosti namestitve: shranjene galerije in zapise fotografij brez videov. Vključeni so osnutki in arhivirane galerije ter njihovi ohranjeni zapisi fotografij. Spodnji katalog opredeljuje vsako polje. Število dejanj in opazovanja obiskovalcev se ne zbirajo.",
-    "catalogTitle": "Celoten katalog: 87 signalov zmožnosti in 2 skupni vrednosti inventarja (usage.v5)",
+    "fields": "Poročila usage.v6 vsebujejo prstni odtis namestitve, različico PicPeak, datum poročila po UTC in čas izdelave, metapodatke sheme/podpisovanja, nadzorovane postavitve galerij, 87 nespremenljivih signalov zmožnosti (64 parov nastavljeno/uporabljeno in 23 logičnih vrednosti samo za konfiguracijo) ter dve skupni vrednosti namestitve: shranjene galerije in zapise fotografij brez videov. Vključeni so osnutki in arhivirane galerije ter njihovi ohranjeni zapisi fotografij. Spodnji katalog opredeljuje vsako polje. Število dejanj in opazovanja obiskovalcev se ne zbirajo.",
+    "catalogTitle": "Celoten katalog: 87 signalov zmožnosti in 2 skupni vrednosti inventarja (usage.v6)",
     "catalogExplanation": "Nastavljeno opisuje trenutno tehnično razpoložljivost ali konfiguracijo. Vgrajeno pomeni, da je funkcija na voljo, ne da je bila uporabljena. Uporabljeno je ena logična vrednost za celotno namestitev od soglasja k shemi poročanja; sprejeta opravila pomenijo začeta, ne nujno dokončana. Zmožnosti samo za konfiguracijo nimajo podatka o uporabi. Inventar vsebuje samo trenutno skupno število zapisov galerij/fotografij, brez razčlenitve po galerijah. V označevalnikih uporabe se ne hranijo izvajalec, identifikator entitete, čas dejanja ali pogostost.",
     "catalogSearch": "Išči po imenu ali ključu zmožnosti",
     "catalogEmpty": "Ni ujemajočih se zmožnosti.",
     "configuredLabel": "Razpoložljivost / konfiguracija",
     "usedLabel": "Uporabljeno",
     "configurationOnly": "Samo konfiguracija — dejanska uporaba se ne zbira.",
-    "versionDisclosure": "To soglasje zajema usage.v5 / usage-consent.v5: 87 zmožnosti in isti dve skupni vrednosti inventarja. Nove logične vrednosti razlikujejo dejanske spremembe CMS/predlog/blagovne znamke/SEO/kategorij/vrst dogodkov ter dejanski sprejem e-pošte iz predlog pri transportu, vključno s pošiljanjem v ozadju, od privzetih vrednosti, nespremenjenih shranjevanj, predogledov in testov. Vsebina, prejemnik, ključ predloge, čas dejanja ali pogostost se ne zbirajo. Opazovanje se začne šele po sprejetem soglasju; vrednost false ne pomeni, da namestitev še vedno uporablja privzete nastavitve. Prejšnje različice ohranijo svoj pomen in obseg do nadgradnje; paketi v čakalni vrsti ostanejo nespremenjeni, označevalniki pa se po potrditvi začnejo znova.",
+    "versionDisclosure": "To soglasje zajema usage.v6 / usage-consent.v6: istih 87 zmožnosti in isti dve skupni vrednosti inventarja kot usage.v5. Edina sprememba: »Odhodni webhooki« veljajo za uporabljene po vsaki uspešni dostavi (HTTP 2xx), tudi pri dostavah, ki jih samodejno sprožijo dogodki, in ne več le po izrecnem skrbniškem testu/ponovitvi. Ostaja ena sama logična vrednost da/ne za celotno namestitev; cilji, vrste dogodkov, vsebine, časovni žigi ali števci se ne zbirajo. Opazovanje se začne šele po sprejetem soglasju. Prejšnje različice ohranijo svoj pomen in obseg do nadgradnje; paketi v čakalni vrsti ostanejo nespremenjeni, označevalniki pa se po potrditvi začnejo znova.",
     "currentSchema": "Trenutna shema poročanja: {{schema}}",
-    "reviewUpgrade": "Nadgradi na usage.v5",
-    "upgrade": "Izrecno soglašam z usage.v5",
+    "reviewUpgrade": "Nadgradi na usage.v6",
+    "upgrade": "Izrecno soglašam z usage.v6",
     "upgradeExplanation": "Vaše obstoječe sodelovanje ohrani trenutni obseg. Pred odločitvijo preglejte razširjeni katalog in dve skupni vrednosti inventarja. Zavrnitev ne konča sodelovanja.",
     "upgradePending": "Podpisana nadgradnja soglasja čaka na potrditev. Zbira se samo prej sprejeti obseg. Poskusite znova, ko bo zbiralnik dosegljiv, ali onemogočite sodelovanje, da ustavite zbiranje in izbrišete podatke.",
-    "pendingBlocksActions": "Nadgradnja v5 in portal uporabe nista na voljo, dokler čakajoče poročilo ni ponovno poslano ali dostavljeno — zgoraj uporabite »Ponovi / pošlji, če je čas«.",
+    "pendingBlocksActions": "Nadgradnja v6 in portal uporabe nista na voljo, dokler čakajoče poročilo ni ponovno poslano ali dostavljeno — zgoraj uporabite »Ponovi / pošlji, če je čas«.",
     "pendingBlocksPortal": "Portal uporabe ni na voljo, dokler čakajoče poročilo ni ponovno poslano ali dostavljeno — zgoraj uporabite »Ponovi / pošlji, če je čas«.",
     "catalog": {
       "crm": {
@@ -267,7 +267,7 @@
       "webhooks": {
         "name": "Odhodni webhooki",
         "configured": "Nastavljen je vsaj en aktiven webhook; cilji, naročnine, skrivnosti ali dnevniki dostave se ne zbirajo.",
-        "used": "Uspešen izrecni skrbniški test/ponovitev webhooka; brez samodejnih ali z obiskovalci sproženih dostav."
+        "used": "Uspešna dostava (HTTP 2xx) katerega koli odhodnega webhooka, ne glede na to, ali jo je samodejno sprožil dogodek ali izrecen skrbniški test/ponovitev; brez ciljev, vrst dogodkov, vsebin, časovnih žigov ali števcev."
       },
       "restore": {
         "name": "Obnovi",
@@ -665,11 +665,10 @@
     "confirmEmailForSsoDialog": {
       "title": "Potrdim ta e-poštni naslov za SSO?",
       "message": "Želite potrditi {{email}} kot naslov uporabnika {{name}}? Prijava z enotno prijavo, ki prispe s tem preverjenim e-poštnim naslovom, bo nato povezana s tem računom. Sam naslov se ne spremeni. Potrdite ga le, če veste, da pripada tej osebi."
-    }
+    },
+    "creditNameHelp": "Navedeno pri fotografijah, ki jih naloži ta račun, če datoteka v metapodatkih nima imena fotografa."
   },
   "systemHealth": {
-    "title": "Stanje sistema",
-    "subtitle": "Napake v ozadju, ki potrebujejo pozornost.",
     "retry": "Ponovi",
     "dismiss": "Zapri",
     "retriedToast": "E-pošta ponovno dodana v čakalno vrsto.",
@@ -826,6 +825,7 @@
     "noCategory": "Brez kategorije",
     "eventSpecific": "(specifično za dogodek)",
     "clickToUpload": "Kliknite za nalaganje ali povlecite in spustite",
+    "clickToUploadOrDropFolder": "Kliknite za nalaganje ali povlecite in spustite datoteke ali mapo",
     "takePhoto": "Posnemi fotografijo",
     "fileRequirements": "{{formats}} (največ {{sizeLimit}} MB na datoteko, {{limit}} datotek na nalaganje)",
     "videoSizeLimit": "Videi: največ {{sizeLimit}} MB na datoteko",
@@ -869,6 +869,7 @@
     "replacedFiles_other": "Zamenjanih {{count}} fotografij",
     "uploadingChunks_one": "Nalaganje {{count}} dela",
     "uploadingChunks_other": "Nalaganje {{count}} delov",
+    "invalidFileType": "Nepodprta vrsta datoteke: {{names}}",
     "fileTooLarge": "Datoteka je prevelika: {{name}} (največ {{limit}} MB)",
     "uploadingAs": "Nalaganje kot {{name}}",
     "notYou": "Niste vi?",
@@ -877,7 +878,59 @@
     "nameRequired": "Za nalaganje vnesite svoje ime.",
     "nameSaveFailed": "Vašega imena ni bilo mogoče shraniti. Poskusite znova.",
     "namePrivacyShown": "Vaše ime se shrani z vašimi fotografijami in je vidno drugim gostom. Gostitelj ga lahko kadar koli odstrani.",
-    "namePrivacyHidden": "Vaše ime se shrani z vašimi fotografijami za gostitelja. Drugi gostje ga ne vidijo, gostitelj pa ga lahko kadar koli odstrani."
+    "namePrivacyHidden": "Vaše ime se shrani z vašimi fotografijami za gostitelja. Drugi gostje ga ne vidijo, gostitelj pa ga lahko kadar koli odstrani.",
+    "addFiles": "Dodaj datoteke",
+    "chooseFolder": "Izberi mapo",
+    "structure": {
+      "galleryRoot": "glavna raven galerije",
+      "folderCount_one": "{{count}} mapa",
+      "folderCount_two": "{{count}} mapi",
+      "folderCount_few": "{{count}} mape",
+      "folderCount_other": "{{count}} map",
+      "uploadRequesting_one": "Naloži {{count}} datoteko · zahtevaj {{folders}}",
+      "uploadRequesting_two": "Naloži {{count}} datoteki · zahtevaj {{folders}}",
+      "uploadRequesting_few": "Naloži {{count}} datoteke · zahtevaj {{folders}}",
+      "uploadRequesting_other": "Naloži {{count}} datotek · zahtevaj {{folders}}",
+      "uploadIntoFolders_one": "Naloži {{count}} datoteko v {{folders}}",
+      "uploadIntoFolders_two": "Naloži {{count}} datoteki v {{folders}}",
+      "uploadIntoFolders_few": "Naloži {{count}} datoteke v {{folders}}",
+      "uploadIntoFolders_other": "Naloži {{count}} datotek v {{folders}}",
+      "tooManyFolders": "Ta izbor vsebuje več kot {{limit}} map. Naložite ga po delih.",
+      "resolveFailed": "Map za to nalaganje ni bilo mogoče pripraviti. Nič ni bilo naloženo.",
+      "looseFilesGoTo": "Posamezne datoteke gredo v",
+      "uploadInto": "Naloži v",
+      "statusNew": "Nova",
+      "statusNeedsAdmin": "Potreben skrbnik",
+      "statusExists": "Obstaja",
+      "keepStructure": "Ohrani strukturo map",
+      "keepStructureHelp": "Podmape postanejo mape galerije. Privzeta vrednost izhaja iz nastavitve Mape dogodka.",
+      "skipOuter": "Izpusti zunanjo mapo »{{name}}«",
+      "skipOuterHelp": "Vse je bilo v eni sami mapi, zato je izpuščena. Sicer bi morali gostje najprej odpreti dodatno mapo.",
+      "previewFailed": "Predogleda map ni bilo mogoče naložiti. Ob začetku nalaganja se mape ponovno določijo.",
+      "loading": "Preverjanje map…",
+      "firstLookRow": "→ glavna raven galerije, označeno kot »Prvi izbor«",
+      "looseFiles_one": "Posamezne datoteke ({{count}}) → {{target}}",
+      "looseFiles_two": "Posamezne datoteke ({{count}}) → {{target}}",
+      "looseFiles_few": "Posamezne datoteke ({{count}}) → {{target}}",
+      "looseFiles_other": "Posamezne datoteke ({{count}}) → {{target}}",
+      "hiddenSkipped_one": "{{count}} datoteka v skritih mapah je preskočena",
+      "hiddenSkipped_two": "{{count}} datoteki v skritih mapah sta preskočeni",
+      "hiddenSkipped_few": "{{count}} datoteke v skritih mapah so preskočene",
+      "hiddenSkipped_other": "{{count}} datotek v skritih mapah je preskočenih",
+      "folded": "Mape, globlje od ravni {{depth}}, so združene v svojo mapo na ravni {{depth}}.",
+      "needsAdminNotice_one": "{{count}} mapa še ne obstaja. Vaša vloga lahko nalaga, ne more pa ustvarjati map, zato je poslana skrbniku kot zahteva za mapo. Dokler je skrbnik ne potrdi, njene fotografije ({{files}}) čakajo v najbližji obstoječi mapi (označeno s →) in se po potrditvi samodejno premaknejo v novo mapo.",
+      "needsAdminNotice_two": "Map, ki še ne obstajajo: {{count}}. Vaša vloga lahko nalaga, ne more pa ustvarjati map, zato so poslane skrbniku kot zahteve za mapo. Dokler jih skrbnik ne potrdi, njihove fotografije ({{files}}) čakajo v najbližji obstoječi mapi (označeno s →) in se po potrditvi samodejno premaknejo v nove mape.",
+      "needsAdminNotice_few": "Map, ki še ne obstajajo: {{count}}. Vaša vloga lahko nalaga, ne more pa ustvarjati map, zato so poslane skrbniku kot zahteve za mapo. Dokler jih skrbnik ne potrdi, njihove fotografije ({{files}}) čakajo v najbližji obstoječi mapi (označeno s →) in se po potrditvi samodejno premaknejo v nove mape.",
+      "needsAdminNotice_other": "Map, ki še ne obstajajo: {{count}}. Vaša vloga lahko nalaga, ne more pa ustvarjati map, zato so poslane skrbniku kot zahteve za mapo. Dokler jih skrbnik ne potrdi, njihove fotografije ({{files}}) čakajo v najbližji obstoječi mapi (označeno s →) in se po potrditvi samodejno premaknejo v nove mape.",
+      "firstLookCallout_one": "Najdena je mapa prvega izbora: »{{name}}«. Njene fotografije ({{count}}) so označene kot »Prvi izbor« in galerija preklopi na dostavo v dveh korakih: gostje vidijo, da je na poti še več fotografij, dokler celotne galerije ne označite kot pripravljene.",
+      "firstLookCallout_two": "Najdena je mapa prvega izbora: »{{name}}«. Njene fotografije ({{count}}) so označene kot »Prvi izbor« in galerija preklopi na dostavo v dveh korakih: gostje vidijo, da je na poti še več fotografij, dokler celotne galerije ne označite kot pripravljene.",
+      "firstLookCallout_few": "Najdena je mapa prvega izbora: »{{name}}«. Njene fotografije ({{count}}) so označene kot »Prvi izbor« in galerija preklopi na dostavo v dveh korakih: gostje vidijo, da je na poti še več fotografij, dokler celotne galerije ne označite kot pripravljene.",
+      "firstLookCallout_other": "Najdena je mapa prvega izbora: »{{name}}«. Njene fotografije ({{count}}) so označene kot »Prvi izbor« in galerija preklopi na dostavo v dveh korakih: gostje vidijo, da je na poti še več fotografij, dokler celotne galerije ne označite kot pripravljene.",
+      "firstLookSettings": "Rok in oznaka: nastavitve te galerije → Mape in dostava. Ključne besede: Nastavitve → Dogodki.",
+      "nothingToUpload": "Nobene od izbranih datotek ni mogoče naložiti: vse so v skritih ali preskočenih mapah.",
+      "keptForNext": "Datoteke, dodane med pripravo map, so še vedno izbrane: {{count}}."
+    },
+    "largeFileReplaceSkipped": "Zamenjava po imenu ni podprta za datoteke, večje od velikosti paketa; naložite jo brez zamenjave."
   },
   "navigation": {
     "dashboard": "Nadzorna plošča",
@@ -886,7 +939,6 @@
     "transfers": "PicTransfer",
     "messages": "Sporočila",
     "settings": "Nastavitve",
-    "systemHealth": "Stanje sistema",
     "eventTypes": "Vrste dogodkov",
     "branding": "Blagovna znamka",
     "emailSettings": "Nastavitve e-pošte",
@@ -897,12 +949,12 @@
     "clients": "Stranke",
     "accounting": "Računovodstvo",
     "workflows": "Delovni tokovi",
-    "betaTag": "Beta"
+    "automation": "Avtomatizacija",
+    "sharing": "Deljenje"
   },
   "transfers": {
     "title": "PicTransfer",
     "subtitle": "Pošljite izvirne datoteke iz katerega koli dogodka prek povezave za prenos.",
-    "new": "Nov prenos",
     "create": "Ustvari prenos",
     "created": "Prenos ustvarjen",
     "createFailed": "Prenosa ni bilo mogoče ustvariti",
@@ -922,12 +974,7 @@
     "deleteConfirmTitle": "Izbrišem prenos?",
     "deleteConfirmBody": "S tem odstranite povezavo in vsa nalaganja stranke. Izvorne fotografije dogodka ostanejo nespremenjene.",
     "addImages": "Dodaj slike",
-    "clientUpload": "Nalaganje stranke",
-    "disableUploads": "Onemogoči",
-    "enableUploads": "Omogoči povezavo za nalaganje",
-    "uploadEnabled": "Povezava za nalaganje omogočena",
     "noUploads": "Stranka še ni naložila nobene datoteke.",
-    "uploadHint": "Omogočite to, da stranka dobi 6-mestno kodo za pošiljanje datotek (logotipi ipd.).",
     "createAndSend": "Ustvari in pošlji",
     "uploadedFiles": "Naložene datoteke",
     "addFiles": "Dodaj datoteke",
@@ -941,9 +988,7 @@
       "title": "Naslov",
       "files": "Datoteke",
       "status": "Stanje",
-      "downloads": "Prenosi",
-      "expires": "Poteče",
-      "uploads": "Nalaganja"
+      "downloads": "Prenosi"
     },
     "status": {
       "active": "Aktivno",
@@ -957,7 +1002,6 @@
       "messagePlaceholder": "Prikaže se prejemniku na strani za prenos",
       "expiresInDays": "Povezava aktivna (dni)",
       "maxDownloads": "Največ prenosov (0 = neomejeno)",
-      "allowUploads": "Stranki omogoči tudi povezavo za nalaganje (za pošiljanje logotipov ipd.)",
       "files": "Datoteke",
       "noFiles": "Slike še niso izbrane.",
       "uploadFiles": "Naložite svoje datoteke",
@@ -966,10 +1010,7 @@
       "delivery": "Dostava",
       "recipients": "E-poštni naslovi prejemnikov",
       "recipientsPlaceholder": "ana@example.com, ben@example.com",
-      "recipientsCount": "{{count}} prejemnikov — vsak prejme povezavo za prenos",
-      "recipientsHint": "Več naslovov ločite z vejicami. Vsak prejemnik prejme povezavo za prenos.",
-      "recipientsCount_one": "{{count}} prejemnikov — vsak prejme povezavo za prenos",
-      "recipientsCount_other": "{{count}} prejemnikov — vsak prejme povezavo za prenos"
+      "recipientsHint": "Več naslovov ločite z vejicami. Vsak prejemnik prejme povezavo za prenos."
     },
     "picker": {
       "title": "Izberite slike iz drugih dogodkov",
@@ -1199,9 +1240,23 @@
     "downloadAll": "Prenesi vse",
     "downloadError": "Nekaterih fotografij ni bilo mogoče prenesti",
     "selectPhotos": "Izberi fotografije",
+    "selectMedia": "Izberi medije",
     "cancelSelection": "Prekliči izbiro",
     "selectAll": "Izberi vse",
     "deselectAll": "Počisti izbiro",
+    "copyFilenames": {
+      "button": "Kopiraj imena datotek",
+      "title": "Kopiraj imena datotek",
+      "selectedCount": "Izbrane fotografije: {{count}}",
+      "favoritesCount": "Priljubljene fotografije: {{count}}",
+      "hint": "Prilepite seznam v iskanje po imenu datoteke v svojem RAW-urejevalniku. Končnice so izpuščene, da se ujemajo tudi RAW-datoteke.",
+      "separator": "Ločilo",
+      "separatorComma": "Vejica",
+      "separatorSpace": "Presledek",
+      "copy": "Kopiraj",
+      "copied": "Kopirano",
+      "copyFailed": "Kopiranje je bilo blokirano. Besedilo je označeno, pritisnite Ctrl+C ali Cmd+C, da ga kopirate."
+    },
     "deleteSelected": "Izbriši izbrane",
     "searchByFilename": "Iskanje po imenu datoteke...",
     "uncategorized": "Brez kategorije",
@@ -1321,6 +1376,8 @@
     },
     "colorFilter": "Barva",
     "filterByColor": "Prikaži samo {{color}}",
+    "minRatingFilter": "Moja ocena",
+    "filterByMinRating": "Moja ocena: {{min}} zvezdic ali več",
     "folders": "Mape",
     "openFolder": "Odpri mapo {{name}}",
     "folderPhotoCount": "{{count}} fotografij",
@@ -1353,6 +1410,32 @@
       "photographer": "Fotograf",
       "uploadedBy": "Naložil(a) {{name}}",
       "photoBy": "Fotografija: {{name}}"
+    },
+    "firstLook": "Prvi izbor",
+    "viewAllPhotos": "Vse fotografije",
+    "viewSwitch": "Prikaži fotografije po",
+    "folderRoot": "Galerija",
+    "folderPath": "Pot do mape",
+    "folderUp": "Nazaj na {{name}}",
+    "subfolderCount": "Mape: {{count}}",
+    "downloadFolderWithSubfolders": "Prenesi mapo s podmapami ({{count}})",
+    "collapseFolder": "Strni {{name}}",
+    "expandFolder": "Razširi {{name}}",
+    "subfolderCount_one": "Mape: {{count}}",
+    "downloadFolderWithSubfolders_one": "Prenesi mapo s podmapami ({{count}})",
+    "subfolderCount_two": "Mape: {{count}}",
+    "downloadFolderWithSubfolders_two": "Prenesi mapo s podmapami ({{count}})",
+    "subfolderCount_few": "Mape: {{count}}",
+    "downloadFolderWithSubfolders_few": "Prenesi mapo s podmapami ({{count}})",
+    "subfolderCount_other": "Mape: {{count}}",
+    "downloadFolderWithSubfolders_other": "Prenesi mapo s podmapami ({{count}})",
+    "delivery": {
+      "title": "Več fotografij je na poti",
+      "progressWithDate": "Fotografij že na voljo: {{delivered}} od pribl. {{expected}}. Preostale slike se še urejajo — celotna galerija bo na voljo najpozneje {{date}}.",
+      "progress": "Fotografij že na voljo: {{delivered}} od pribl. {{expected}}. Preostale slike se še urejajo.",
+      "withDate": "Preostale slike se še urejajo — celotna galerija bo na voljo najpozneje {{date}}.",
+      "noDetails": "Preostale slike se še urejajo.",
+      "progressLabel": "Do zdaj dostavljene fotografije"
     }
   },
   "categories": {
@@ -1393,7 +1476,8 @@
     "folderDisabled": "Ta kategorija znova filtrira galerijo",
     "failedToToggleFolder": "Nastavitve mape ni bilo mogoče posodobiti",
     "disableFolderTitle": "Mapa: te fotografije so skrite iz glavne mreže in prikazane samo v mapi. Kliknite, da jo znova spremenite v filter.",
-    "enableFolderTitle": "Filter: te fotografije ostanejo v glavni mreži. Kliknite, da ga spremenite v mapo — fotografije se skrijejo iz mreže, dostop pa NI omejen."
+    "enableFolderTitle": "Filter: te fotografije ostanejo v glavni mreži. Kliknite, da ga spremenite v mapo — fotografije se skrijejo iz mreže, dostop pa NI omejen.",
+    "nestedFoldersHint": "Mape znotraj map upravljate v vrstici map na zavihku Fotografije."
   },
   "events": {
     "revealMode": "Način razkritja (skrij galerijo do razkritja)",
@@ -1457,6 +1541,7 @@
     "eventExpiresIn": "Ta dogodek poteče čez {{days}} dni",
     "overview": "Pregled",
     "photos": "Fotografije",
+    "media": "Mediji",
     "categories": "Kategorije",
     "eventInformation": "Informacije o dogodku",
     "sourceMode": "Način vira",
@@ -1466,7 +1551,7 @@
     "externalFolder": "Zunanja mapa",
     "externalFolderHint": "Te mape se berejo iz priklopa /external-media znotraj vsebnika ali gostitelja.",
     "externalWatch": "Spremljaj mapo za nove datoteke",
-    "externalWatchHint": "Nove slike, kopirane v to mapo, se samodejno uvozijo enako kot z gumbom Uvozi. Datoteke, odstranjene iz mape, se nikoli ne izbrišejo iz galerije.",
+    "externalWatchHint": "Nove slike, kopirane v to mapo, se samodejno uvozijo enako kot z gumbom Uvozi, prav tako videi dovoljene vrste datoteke. Datoteke, odstranjene iz mape, se nikoli ne izbrišejo iz galerije.",
     "externalWatchActive": "Mapa se spremlja — nove datoteke se samodejno uvažajo.",
     "externalWatchNoPermission": "Potrebujete dovoljenje za nalaganje fotografij.",
     "externalFolderRequired": "Pred shranjevanjem izberite zunanjo mapo.",
@@ -1512,8 +1597,20 @@
     "resendWithStoredPasswordHint": "Če je za galerijo shranjeno geslo, ga e-pošta vsebuje.",
     "passwordCopied": "Kopirano",
     "photoStatistics": "Statistika fotografij",
+    "mediaStatistics": "Statistika medijev",
     "totalPhotos": "Skupaj fotografij",
+    "videos": "Videi",
+    "videoRuntime": "Trajanje videov",
+    "photosCount_one": "{{count}} fotografija",
+    "photosCount_two": "{{count}} fotografiji",
+    "photosCount_few": "{{count}} fotografije",
+    "photosCount_other": "{{count}} fotografij",
+    "videosCount_one": "{{count}} video",
+    "videosCount_two": "{{count}} videa",
+    "videosCount_few": "{{count}} videi",
+    "videosCount_other": "{{count}} videov",
     "managePhotos": "Upravljanje fotografij",
+    "manageMedia": "Upravljanje medijev",
     "actions": "Dejanja",
     "archivingInfo": "Arhiviranje bo ustvarilo ZIP datoteko vseh fotografij in odstranilo galerijo iz javnega dostopa.",
     "archivedOn": "Arhivirano dne",
@@ -1632,9 +1729,7 @@
     "publishSuccess": "Galerija je bila objavljena, stranka pa obveščena!",
     "publishDialog": {
       "title": "Objavi galerijo",
-      "descriptionWithEmail": "Objava »{{eventName}}« naredi galerijo dostopno in pošlje e-poštno obvestilo na {{customerEmail}}.",
       "descriptionNoEmail": "Objava »{{eventName}}« naredi galerijo dostopno. E-poštni naslov stranke ni nastavljen, zato obvestilo ne bo poslano.",
-      "descriptionAssignedAccount": "Objava »{{eventName}}« naredi galerijo dostopno. Dodeljeni računi strank bodo po e-pošti (v svojem jeziku) obveščeni, da je na voljo.",
       "justPublish": "Objavi",
       "passwordLabel": "Geslo galerije",
       "passwordPlaceholder": "Vnesite geslo galerije",
@@ -1644,8 +1739,7 @@
       "notifyHelp": "Odstranite kljukico za tiho objavo — galerija postane aktivna in nič se ne pošlje. E-pošto lahko pošljete pozneje s te strani.",
       "descriptionQuiet": "Objava »{{eventName}}« naredi galerijo dostopno. E-pošta ne bo poslana — pošljete jo lahko pozneje s te strani.",
       "descriptionWhatsapp": "Objava »{{eventName}}« naredi galerijo dostopno. Če je WhatsApp nastavljen, bo stranka tam obveščena.",
-      "descriptionAssignedAccount_one": "Objava »{{eventName}}« naredi galerijo dostopno. Dodeljeni račun stranke bo po e-pošti (v svojem jeziku) obveščen, da je na voljo.",
-      "descriptionAssignedAccount_other": "Objava »{{eventName}}« naredi galerijo dostopno. Dodeljeni računi strank bodo po e-pošti (v svojem jeziku) obveščeni, da je na voljo."
+      "descriptionNotify": "Objava »{{eventName}}« naredi galerijo dostopno in obvesti:"
     },
     "duplicateEvent": "Podvoji galerijo",
     "duplicateDialog": {
@@ -1771,7 +1865,7 @@
     "devtoolsDetection": "Zaznavanje DevTools",
     "watermarked": "Z vodnim žigom",
     "importExternal": "Uvozi iz zunanje mape",
-    "externalImportInfo": "Uvožene bodo vse slike iz izbrane mape.",
+    "externalImportInfo": "Uvožene bodo vse slike iz izbrane mape. Uvozijo se tudi videi, če je njihova vrsta datoteke dovoljena za nalaganje.",
     "selectExternalFolder": "Izberite zunanjo mapo pod /external-media",
     "importFromSelectedFolder": "Uvozi iz izbrane mape",
     "promoBanner": {
@@ -1804,8 +1898,8 @@
       "confirm": "Pošljem e-pošto galerije na {{recipient}}?",
       "success": "E-pošta galerije dodana v čakalno vrsto za {{recipient}}.",
       "title": "Pošlji e-pošto galerije",
-      "description": "Pošlje povezavo do galerije »{{eventName}}« na {{recipient}}.",
-      "passwordHelp": "E-pošta vsebuje natanko to besedilo. Znova vnesite geslo galerije (ali izberite novo) — backend ga ponovno zgosti, da prijava še naprej deluje."
+      "passwordHelp": "E-pošta vsebuje natanko to besedilo. Znova vnesite geslo galerije (ali izberite novo) — backend ga ponovno zgosti, da prijava še naprej deluje.",
+      "descriptionList": "Pošlje povezavo do galerije »{{eventName}}« na:"
     },
     "bulkArchive": {
       "title": "Potrditev množičnega arhiviranja",
@@ -1847,6 +1941,135 @@
       "showToGuestsHelp": "Gostje vidijo imena pri fotografijah, naloženih, ko je to vklopljeno; imena, vpisana, ko je bilo izklopljeno, ostanejo samo za vas in gostitelja. Izklop skrije vsa imena pred gosti. Velja tudi za avtorstvo fotografa iz EXIF.",
       "shownToGuests": "Vidno gostom",
       "hiddenFromGuests": "Vidno samo vam"
+    },
+    "sortNameAsc": "A – Z",
+    "sortNameDesc": "Z – A",
+    "sortDateNewest": "Najprej najnovejše",
+    "sortDateOldest": "Najprej najstarejše",
+    "sortCreatedNewest": "Nedavno ustvarjene",
+    "sortCreatedOldest": "Najprej ustvarjene",
+    "sortPhotosMost": "Največ fotografij",
+    "sortPhotosFewest": "Najmanj fotografij",
+    "sortStatusActive": "Najprej aktivne",
+    "sortStatusArchived": "Najprej arhivirane",
+    "sortExpiresSoonest": "Prej potečejo",
+    "sortExpiresLatest": "Pozneje potečejo",
+    "filterAllTypes": "Vse vrste",
+    "filterByType": "Filtriraj po vrsti",
+    "sortByName": "Razvrsti po imenu",
+    "sortByDate": "Razvrsti po datumu",
+    "sortByPhotos": "Razvrsti po številu fotografij",
+    "sortByStatus": "Razvrsti po stanju",
+    "sortByExpiry": "Razvrsti po poteku",
+    "settingsTab": {
+      "delivery": "Mape in dostava",
+      "about": {
+        "delivery": "Gnezdene mape iz nalaganj in prvi izbor pred celotno galerijo."
+      },
+      "summary": {
+        "folderStructureOn": "Struktura map vklopljena",
+        "folderStructureOff": "Nalaganja brez map",
+        "firstLookDue": "prvi izbor, celotna galerija do {{date}}",
+        "firstLook": "prvi izbor, več sledi",
+        "teamMembers_one": "{{count}} član ekipe",
+        "teamMembers_two": "{{count}} člana ekipe",
+        "teamMembers_few": "{{count}} člani ekipe",
+        "teamMembers_other": "{{count}} članov ekipe",
+        "teamReview": "nalaganja ekipe se pregledujejo"
+      },
+      "passwordOwnerOnly": "Samo lastnik galerije lahko spremeni geslo ali ga izklopi."
+    },
+    "folders": {
+      "sectionTitle": "Mape",
+      "sectionHelp": "Podmape nalaganja ali povezane zunanje mape postanejo gnezdene mape galerije (največ tri ravni). Izklop vpliva le na nova nalaganja in pregledovanja; obstoječe mape ostanejo, kot so.",
+      "mirror": "Ohrani strukturo map pri nalaganju in uvozu",
+      "mirrorHelp": "V oknu za nalaganje lahko to spremenite za vsako nalaganje."
+    },
+    "delivery": {
+      "sectionTitle": "Dostava v dveh korakih",
+      "sectionHelp": "Zdaj dostavite prvi izbor, celotno galerijo pa pozneje. Gostje vidijo prve fotografije z oznako, obvestilo, da jih bo še več, in nadomestne ploščice, dokler celotne galerije ne označite kot pripravljene.",
+      "statusComplete": "Celotna",
+      "statusPartial": "Prvi izbor, več sledi",
+      "ofApprox": "od ~{{count}}",
+      "badged": "Fotografije z oznako »{{label}}«: {{count}}",
+      "overdueSince": "Obljubljeno do {{date}} — zamuda",
+      "promisedBy": "Obljubljeno do {{date}} · preostali dnevi: {{count}}",
+      "completeButton": "Celotna galerija je pripravljena",
+      "completedOn": "Zaključeno {{date}}. Oznake prvega izbora ostanejo na fotografijah.",
+      "expected": "Pričakovano število fotografij",
+      "expectedHelp": "Približno. Uporablja se le za obvestilo gostom in nadomestne ploščice.",
+      "dueAt": "Celotna galerija obljubljena do",
+      "dueDefault": "privzeto",
+      "dueHelp": "Prikazano gostom in uporabljeno za vaš opomnik. Prazno: datum dogodka plus privzeta vrednost iz Nastavitve → Dogodki.",
+      "badgeLabel": "Besedilo oznake",
+      "badgeHelp": "Na primer »Predogled za družbena omrežja«. Oznaka ostane na teh fotografijah tudi po dostavi celotne galerije.",
+      "switchOffHint": "Shranjevanje »Celotna« tukaj odstrani le obvestilo in nadomestne ploščice — e-pošta se ne pošlje. Za obvestilo stranki uporabite »Celotna galerija je pripravljena«.",
+      "invalidExpected": "Pričakovano število fotografij mora biti celo število, večje od 0, ali prazno.",
+      "completeTitle": "Označim celotno galerijo kot pripravljeno?",
+      "completeBody": "Obvestilo in nadomestne ploščice izginejo. Oznake prvega izbora ostanejo. Fotografije, ki jih bodo videli gostje: {{count}}.",
+      "sendMail": "Pošlji e-pošto »Vaša celotna galerija je pripravljena«",
+      "sendMailHelp": "Poteki dela se lahko odzovejo tudi na »gallery.completed«.",
+      "removeDuplicates": "Odstrani dvojnike prvega izbora ({{count}})",
+      "removeDuplicatesHelp": "Fotografije prvega izbora, ponovno najdene v celotni galeriji: isto izvirno ime datoteke, edinstveno na obeh straneh, in isti čas posnetka (ali, brez njega, ista velikost). Brisanje je trajno; oznako prevzamejo kopije v celotni galeriji.",
+      "removeDuplicatesNoPermission": "Za brisanje fotografij je potrebno dovoljenje photos.delete.",
+      "completeAndNotify": "Označi kot pripravljeno in obvesti",
+      "completeOnly": "Označi kot pripravljeno",
+      "completedMailed": "Galerija je celotna. Stranka je bila obveščena.",
+      "completed": "Galerija je celotna.",
+      "completeFailed": "Galerije ni bilo mogoče označiti kot celotne.",
+      "pill": "Prvi izbor",
+      "pillOverdue": "Prvi izbor · zamuda",
+      "pillDue": "Prvi izbor · rok čez {{count}} d",
+      "awaitingFilter": "Celotna galerija v pripravi",
+      "progressShort": "Fotografije: {{count}} od ~{{expected}}",
+      "progressNoExpected": "Fotografije do zdaj: {{count}}",
+      "overdueShort": "Zamuda od {{date}}",
+      "dueShort": "Rok {{date}}",
+      "viewAllAwaiting": "Prikaži vse",
+      "duplicatesNotRemoved": "Galerija je celotna, dvojnikov prvega izbora pa ni bilo mogoče odstraniti. Izbrišite jih na zavihku Fotografije."
+    },
+    "externalSource": {
+      "applyStructure": "Uporabi strukturo map",
+      "applyStructureHint": "Prenesi podmape na fotografije, uvožene, preden je bila struktura map vklopljena",
+      "applyStructureTitle": "Želite uporabiti strukturo map?",
+      "applyStructureMessage": "Fotografije, ki še niso v mapi galerije, se premaknejo v mape, ki posnemajo podmape zunanje mape. Fotografije, ki so že v mapi, ostanejo, kjer so.",
+      "structureApplied_one": "Fotografije, premaknjene v mape: {{count}}",
+      "structureApplied_two": "Fotografije, premaknjene v mape: {{count}}",
+      "structureApplied_few": "Fotografije, premaknjene v mape: {{count}}",
+      "structureApplied_other": "Fotografije, premaknjene v mape: {{count}}",
+      "structureNothing": "Vse fotografije iz podmap so že v mapi",
+      "structureFailed": "Strukture map ni bilo mogoče uporabiti"
+    },
+    "recipients": {
+      "andMore": "{{names}} +{{count}} več",
+      "galleryEmail": "E-pošta galerije",
+      "portalEmail": "E-pošta portala za stranke",
+      "previewTitle": "Obveščeni ob objavi galerije:",
+      "generatedPasswordNote": "Stranke se prijavijo prek portala za stranke, zato geslo galerije ni potrebno. Za zaščito povezave do galerije se ustvari močno geslo. Če pozneje dodate e-pošto stranke, takrat nastavite geslo.",
+      "passwordForEmailRequired": "Pred dodajanjem e-pošte stranke nastavite geslo galerije — e-pošta galerije ga vsebuje.",
+      "passwordForEmailHint": "Ta galerija je bila deljena samo prek portala za stranke, zato je bilo njeno geslo ustvarjeno in ga nihče ne pozna. E-pošta galerije na ta naslov vsebuje geslo, zato ga nastavite zdaj.",
+      "accountCount_one": "{{count}} račun stranke",
+      "accountCount_two": "{{count}} računa strank",
+      "accountCount_few": "{{count}} računi strank",
+      "accountCount_other": "{{count}} računov strank",
+      "whatsapp": "WhatsApp",
+      "skippedAccounts_one": "{{count}} račun stranke ne bo obveščen — za to je potrebno dovoljenje customers.events",
+      "skippedAccounts_two": "{{count}} računa strank ne bosta obveščena — za to je potrebno dovoljenje customers.events",
+      "skippedAccounts_few": "{{count}} računi strank ne bodo obveščeni — za to je potrebno dovoljenje customers.events",
+      "skippedAccounts_other": "{{count}} računov strank ne bo obveščenih — za to je potrebno dovoljenje customers.events"
+    },
+    "team": {
+      "label": "Člani ekipe",
+      "help": "Skrbniški računi, dodani tukaj, lahko delajo na tej galeriji kot vi, v okviru svoje vloge. Podatki o strankah in obračunu ostanejo vaši.",
+      "removeAria": "Odstrani {{name}}",
+      "placeholder": "Iskanje skrbniških računov",
+      "loading": "Nalaganje …",
+      "loadFailed": "Skrbniških računov ni bilo mogoče naložiti.",
+      "noResults": "Ni drugih ustreznih skrbniških računov.",
+      "reviewUploads": "Preglej nalaganja članov ekipe pred objavo",
+      "reviewUploadsHelp": "Zadrži nalaganja članov ekipe, katerih vloga nima dovoljenja »Review Team Uploads«: ostanejo skrita gostom in strankam, dokler jih vi ali pregledovalec ne odobrite na zavihku Fotografije. Vloge Admin, Editor in Solo Photographer imajo to dovoljenje privzeto, zato njihova nalaganja nikoli niso zadržana.",
+      "reviewUploadsHelpMember": "Vaša nalaganja v to galerijo ostanejo skrita gostom in strankam, dokler jih lastnik ali pregledovalec ne odobri.",
+      "reviewUploadsHelpReviewer": "Nalaganja članov ekipe brez dovoljenja »Review Team Uploads« čakajo na odobritev na zavihku Fotografije. Vaša so objavljena takoj."
     }
   },
   "settings": {
@@ -1863,6 +2086,8 @@
       "maxFileSize": "Največja velikost datoteke (MB)",
       "maxVideoSize": "Največja velikost videa (MB)",
       "maxVideoSizeHelp": "Ločena omejitev velikosti posamezne datoteke za videe, da lahko fotografije ohranijo manjšo omejitev.",
+      "videoWebRendition": "Kopije videov, ki jih brskalnik lahko predvaja",
+      "videoWebRenditionHelp": "Videe, ki jih brskalnik ne more predvajati (HEVC, QuickTime, MP4 brez pretakanja), prekodira v MP4 H.264 za predvajanje. Za prenos ostane izvirnik. Porabi CPU za vsak video in drugo datoteko; ob vklopu se že naloženi videi uvrstijo v čakalno vrsto.",
       "maxFilesPerUpload": "Največ datotek na nalaganje",
       "maxFilesPerUploadHelp": "Največje dovoljeno število fotografij v enem paketu nalaganja (1-{{max}}).",
       "maxUploadBatchSize": "Največja velikost paketa nalaganja (MB)",
@@ -1898,7 +2123,12 @@
       "timeFormat": "Oblika časa",
       "timeFormat24h": "24-urna (14:30)",
       "timeFormat12h": "12-urna (2:30 PM)",
-      "timeFormatHelp": "Določa prikaz časa v skrbniških pogledih, straneh za stranke in PDF-jih. Shranjevanje ostane 24-urno (HH:mm); spremeni se samo prikaz."
+      "timeFormatHelp": "Določa prikaz časa v skrbniških pogledih, straneh za stranke in PDF-jih. Shranjevanje ostane 24-urno (HH:mm); spremeni se samo prikaz.",
+      "adminLanguage": "Vaš jezik skrbniškega dela",
+      "adminLanguageHelp": "Velja za skrbniški del, samo za vas na tej napravi. Učinkuje takoj — shranjevanje ni potrebno.",
+      "customerLanguage": "Jezik galerije in gostov",
+      "accountCreditName": "Avtor fotografije",
+      "accountCreditNameHelp": "Navedeno pri fotografijah, ki jih naložite, če datoteka v metapodatkih nima imena fotografa. Pustite prazno, če ne želite navedbe."
     },
     "publicSite": {
       "badge": "Javna pristajalna stran",
@@ -2014,7 +2244,7 @@
       "aboutText": "Globalne kategorije so na voljo za vse dogodke. Pri urejanju posameznih dogodkov lahko ustvarite tudi kategorije za dogodek. Kategorije pomagajo organizirati fotografije in gostom omogočajo filtriranje fotografij po vrsti v prikazu galerije."
     },
     "systemStatus": {
-      "title": "Stanje sistema",
+      "title": "Status",
       "storageOverview": "Pregled prostora",
       "systemInfo": "Sistemske informacije",
       "databaseInfo": "Informacije o bazi podatkov",
@@ -2040,7 +2270,8 @@
       "failed": "Neuspešno",
       "lastUpdate": "Zadnja posodobitev",
       "emailProcessorStopped": "Ne deluje — e-pošta v čakalni vrsti se zapisuje, vendar je nič ne pošilja.",
-      "emailProcessorDegraded": "Deluje, vendar zadnji prehod ni mogel poslati: {{error}}"
+      "emailProcessorDegraded": "Deluje, vendar zadnji prehod ni mogel poslati: {{error}}",
+      "description": "Storitve, čakalne vrste, shramba in različica — kaj ta instanca trenutno izvaja."
     },
     "photoDimensions": {
       "title": "Dimenzije fotografij",
@@ -2113,7 +2344,16 @@
       "keybindColors": "Samo barve – 1 zelena, 2 rumena, 3 rdeča",
       "keybindLightroom": "Lightroom – 1–5 zvezdice, 6–9 barve",
       "defaultDownloadLimit": "Privzeta omejitev prenosov",
-      "defaultDownloadLimitHelp": "Predizpolnjeno pri novih dogodkih: koliko fotografij lahko stranka prenese. 0 = neomejeno."
+      "defaultDownloadLimitHelp": "Predizpolnjeno pri novih dogodkih: koliko fotografij lahko stranka prenese. 0 = neomejeno.",
+      "defaultFolderStructure": "Ohrani strukturo map v novih galerijah",
+      "defaultFolderStructureHelp": "Podmape nalaganj in zunanjih map postanejo gnezdene mape galerije. Obstoječe galerije obdržijo svojo nastavitev.",
+      "firstLookDetection": "Začni prvi izbor iz map s ključno besedo",
+      "firstLookDetectionHelp": "Mapa na najvišji ravni, katere ime vsebuje eno od teh besed (npr. »Poroka (FirstLook)«), se ne ustvari kot mapa: njene fotografije dobijo oznako, galerija pa preide na dostavo v dveh korakih.",
+      "firstLookKeywords": "Ključne besede",
+      "firstLookKeywordsHelp": "Ločene z vejicami. Velike črke, presledki, vezaji in podčrtaji se prezrejo, zato se »FirstLook« ujema tudi s »first-look«.",
+      "deliveryDays": "Rok za celotno galerijo po (dneh)",
+      "deliveryDaysHelp": "Če se prvi izbor začne brez obljubljenega datuma, je celotna galerija zapadla toliko dni po datumu dogodka.",
+      "defaultAllowDecisions": "Odobri / zavrni posamezno fotografijo"
     },
     "imageSecurity": {
       "title": "Zaščita slik",
@@ -2297,7 +2537,8 @@
       "system": "Sistem",
       "appearance": "Vsebina in videz",
       "communication": "Komunikacija",
-      "crm": "Nastavitve CRM"
+      "crm": "Nastavitve CRM",
+      "people": "Osebe in dostop"
     },
     "contracts": {
       "title": "Pogodbe"
@@ -2449,7 +2690,6 @@
         "automation": "Avtomatizacija"
       },
       "status": {
-        "stable": "stabilno",
         "beta": "beta",
         "new": "novo",
         "experimental": "eksperimentalno",
@@ -2581,7 +2821,9 @@
       "documents": {
         "title": "Dokumenti stranke",
         "description": "Delite dokumente s stranko v njenem portalu in od nje prejemajte dokumente. Datoteke, ki jih naložijo stranke, ostanejo nedostopne, dokler jih v zapisu stranke ne označite kot varne. Privzeto je dovoljen PDF; dodatne vrste datotek ter omejitve velikosti in prostora nastavite pod Nastavitve → CRM."
-      }
+      },
+      "configure": "Nastavi",
+      "sidebarInSettings": "Ni vnosa v stranski vrstici — najdete ga v nastavitvah"
     },
     "customerSurface": {
       "brandingTitle": "Glava nadzorne plošče stranke",
@@ -2816,6 +3058,15 @@
       "running": "Branje avtorjev...",
       "noneToRead": "Ni več fotografij za branje",
       "button": "Preberi avtorje iz EXIF"
+    },
+    "health": {
+      "title": "Stanje",
+      "description": "Napake v ozadju, ki potrebujejo pozornost — obtičala e-pošta, neuspele preverbe in čiščenje."
+    },
+    "search": {
+      "placeholder": "Iskanje po nastavitvah…",
+      "label": "Iskanje po nastavitvah",
+      "noResults": "Nobena nastavitev ne ustreza »{{query}}«."
     }
   },
   "analytics": {
@@ -3167,7 +3418,6 @@
     },
     "pdfTheme": {
       "title": "Tema PDF",
-      "description": "Barve, pisava, noga in številke strani za ponudbe, račune in pogodbe. Prazna polja podedujejo iz »Vsi dokumenti«, nato iz poslovnega profila.",
       "scopeLabel": "Vrsta dokumenta",
       "scope": {
         "default": "Vsi dokumenti",
@@ -3183,7 +3433,6 @@
         "subtle": "Noga in številke strani",
         "rule": "Črte"
       },
-      "inherited": "Podedovano",
       "inherit": "Podeduj ({{value}})",
       "reset": "Ponastavi",
       "titleSize": "Velikost naslova",
@@ -3211,12 +3460,8 @@
       "marginsNote": "Zgornji rob določata naslovno okno in glava dokumenta. Podpisna stran pogodbe ohrani svojo fiksno postavitev ne glede na robove, zato podpisi vedno padejo v svoja polja.",
       "preview": "Predogled PDF-ja",
       "resetScope": "Ponastavi na podedovano",
-      "save": "Shrani temo",
-      "saved": "Tema PDF shranjena",
-      "saveFailed": "Teme PDF ni bilo mogoče shraniti",
       "previewFailed": "Predogleda ni bilo mogoče izrisati",
       "presets": "Začni s prednastavitvijo",
-      "presetsHint": "Prednastavitev izpolni obrazec; nič se ne shrani, dokler teme ne shranite.",
       "preset": {
         "classic": "Klasično",
         "modern": "Moderno",
@@ -3302,6 +3547,7 @@
     "recentActivity": "Nedavna aktivnost",
     "storageUsed": "Uporabljen prostor",
     "totalPhotos": "Skupaj fotografij",
+    "totalMedia": "Skupaj medijev",
     "storagePercent": "{{percent}}% od omejitve {{limit}}",
     "storageSoftLimitConfigured": "Nastavljena omejitev: {{limit}}",
     "storageSoftLimitRecommended": "Priporočena omejitev: {{limit}}",
@@ -3404,6 +3650,7 @@
       "adminProfileUpdated": "Administratorski profil je posodobil {{actorName}}",
       "photosUploaded_one": "{{count}} fotografija naložena v »{{eventName}}«",
       "photosUploaded_other": "{{count}} fotografij naloženih v »{{eventName}}«",
+      "mediaUploaded": "{{media}} naloženih v »{{eventName}}«",
       "photosBulkDeleted_one": "{{count}} fotografija izbrisana iz »{{eventName}}«",
       "photosBulkDeleted_other": "{{count}} fotografij izbrisanih iz »{{eventName}}«",
       "bulkDownload_one": "{{count}} fotografija prenesena iz »{{eventName}}«",
@@ -3536,7 +3783,18 @@
       "apiPhotoDownloaded": "Izvirnik prenesen iz {{eventName}} z žetonom API #{{token_id}}",
       "apiPhotosDownloaded_one": "Žeton API »{{token_name}}« je prenesel {{count}} izvirnik iz {{eventName}}",
       "apiPhotosDownloaded_other": "Žeton API »{{token_name}}« je prenesel {{count}} izvirnikov iz {{eventName}}",
-      "apiPhotosZipDownloaded": "Žeton API »{{token_name}}« je prenesel ZIP z {{photo_count}} izvirniki iz {{eventName}}"
+      "apiPhotosZipDownloaded": "Žeton API »{{token_name}}« je prenesel ZIP z {{photo_count}} izvirniki iz {{eventName}}",
+      "eventTeamChanged": "Ekipa spremenjena za {{eventName}}",
+      "photosReviewApproved_one": "{{count}} nalaganje ekipe odobreno v {{eventName}}",
+      "photosReviewApproved_two": "{{count}} nalaganji ekipe odobreni v {{eventName}}",
+      "photosReviewApproved_few": "{{count}} nalaganja ekipe odobrena v {{eventName}}",
+      "photosReviewApproved_other": "{{count}} nalaganj ekipe odobrenih v {{eventName}}",
+      "photosReviewRejected_one": "{{count}} nalaganje ekipe zavrnjeno v {{eventName}}",
+      "photosReviewRejected_two": "{{count}} nalaganji ekipe zavrnjeni v {{eventName}}",
+      "photosReviewRejected_few": "{{count}} nalaganja ekipe zavrnjena v {{eventName}}",
+      "photosReviewRejected_other": "{{count}} nalaganj ekipe zavrnjenih v {{eventName}}",
+      "photoDecision": "Fotografija odobrena ali zavrnjena v {{eventName}}",
+      "guestFeedbackDecision": "Gost je odobril ali zavrnil fotografijo v {{eventName}}"
     },
     "notificationToasts": {
       "markedAllRead": "Vsa obvestila so označena kot prebrana",
@@ -3567,6 +3825,12 @@
       "processingStatus": "Obdelava…",
       "processingFailed": "Neuspešno",
       "retryQueued": "Ponovni poskus v čakalni vrsti",
+      "webCopyFailed": "Brez spletne kopije",
+      "individualPhotos": "Posamezne fotografije",
+      "individualVideos": "Posamezni videi",
+      "collages": "Kolaži",
+      "noPosterFrame": "Brez naslovne sličice",
+      "noPosterFrameRetry": "Znova zajemi naslovno sličico",
       "viewMode": "Način prikaza",
       "gridView": "Mrežni prikaz",
       "listView": "Seznamski prikaz",
@@ -3610,7 +3874,9 @@
         "filterLabel": "Filtriraj po avtorju",
         "filterAll": "Vsa imena",
         "filterNone": "Brez imena"
-      }
+      },
+      "approvedBy": "Odobreno: {{value}}",
+      "rejectedBy": "Zavrnjeno: {{value}}"
     },
     "events": {
       "tabs": {
@@ -3705,6 +3971,7 @@
       "gallery_opened": "Galerija »{{eventName}}« je bila odprta",
       "gallery_downloaded": "Fotografije iz »{{eventName}}« so bile prenesene",
       "photos_uploaded": "{{count}} fotografij naloženih v {{eventName}}",
+      "media_uploaded": "{{media}} naloženih v {{eventName}}",
       "event_archived": "Dogodek arhiviran: {{eventName}}",
       "archive_restored": "Arhiv obnovljen: {{eventName}}",
       "archive_deleted": "Arhiv izbrisan: {{eventName}}",
@@ -3887,7 +4154,30 @@
       "api_photo_downloaded": "Izvirnik prenesen iz {{eventName}} z žetonom API #{{token_id}}",
       "api_photos_downloaded_one": "Žeton API »{{token_name}}« je prenesel {{count}} izvirnik iz {{eventName}}",
       "api_photos_downloaded_other": "Žeton API »{{token_name}}« je prenesel {{count}} izvirnikov iz {{eventName}}",
-      "api_photos_zip_downloaded": "Žeton API »{{token_name}}« je prenesel ZIP z {{photo_count}} izvirniki iz {{eventName}}"
+      "api_photos_zip_downloaded": "Žeton API »{{token_name}}« je prenesel ZIP z {{photo_count}} izvirniki iz {{eventName}}",
+      "folder_created": "Mapa ustvarjena: {{name}}",
+      "folder_updated": "Mapa spremenjena v {{eventName}}",
+      "folder_deleted": "Mapa izbrisana: {{name}}",
+      "folders_created": "Ustvarjene mape v {{eventName}}: {{count}}",
+      "folder_requested": "Zahtevane mape za {{eventName}}: {{count}}",
+      "folder_request_approved": "Zahteva za mapo odobrena: {{path}}",
+      "folder_request_rejected": "Zahteva za mapo zavrnjena: {{path}}",
+      "folder_structure_applied": "Struktura map uporabljena v {{eventName}}",
+      "delivery_first_look_started": "Prvi izbor začet za {{eventName}}",
+      "delivery_completed": "Celotna galerija dostavljena: {{eventName}}",
+      "delivery_due_soon": "Rok za celotno galerijo {{eventName}} se bliža",
+      "delivery_overdue": "Celotna galerija {{eventName}} zamuja",
+      "photo_decision": "Fotografija odobrena ali zavrnjena v {{eventName}}",
+      "guest_feedback_decision": "Gost je odobril ali zavrnil fotografijo v {{eventName}}",
+      "event_team_changed": "Ekipa spremenjena za {{eventName}}",
+      "photos_review_approved_one": "{{count}} nalaganje ekipe odobreno v {{eventName}}",
+      "photos_review_approved_two": "{{count}} nalaganji ekipe odobreni v {{eventName}}",
+      "photos_review_approved_few": "{{count}} nalaganja ekipe odobrena v {{eventName}}",
+      "photos_review_approved_other": "{{count}} nalaganj ekipe odobrenih v {{eventName}}",
+      "photos_review_rejected_one": "{{count}} nalaganje ekipe zavrnjeno v {{eventName}}",
+      "photos_review_rejected_two": "{{count}} nalaganji ekipe zavrnjeni v {{eventName}}",
+      "photos_review_rejected_few": "{{count}} nalaganja ekipe zavrnjena v {{eventName}}",
+      "photos_review_rejected_other": "{{count}} nalaganj ekipe zavrnjenih v {{eventName}}"
     },
     "people": {
       "title": "Osebe v tej galeriji",
@@ -4143,7 +4433,6 @@
       "user": "Uporabniško ime",
       "pass": "Geslo",
       "folder": "Mapa",
-      "save": "Shrani nastavitve prejete pošte",
       "detectFolders": "Zaznaj",
       "folderHint": "Vnesite gostitelja, uporabniško ime in geslo, nato kliknite Zaznaj za prikaz map nabiralnika.",
       "foldersDetected": "Najdenih map: {{count}}.",
@@ -4254,6 +4543,7 @@
     "containerBgColorHelp": "Bela kartica, ki vsebuje e-poštno vsebino. Preslika se v Blagovna znamka → Površina.",
     "listBgColor": "Informacijski panel",
     "listBgColorHelp": "Ozadje označenih informacijskih panelov znotraj telesa e-pošte. Preslika se v Blagovna znamka → Dvignjeno.",
+    "listContrastWarning": "Besedilo je na informacijskem panelu slabo berljivo (kontrast {{ratio}}:1, priporočeno 4,5:1). E-poštna sporočila besedilo v panelu samodejno preklopijo na berljivo barvo, vendar se ujemajoče barve vidijo bolje.",
     "bodyTextColor": "Besedilo telesa",
     "bodyTextColorHelp": "Barva odstavkov in krepkega besedila. Preslika se v Blagovna znamka → Primarno besedilo.",
     "mutedTextColor": "Besedilo noge",
@@ -4656,8 +4946,8 @@
       },
       "fields": {
         "destinationPath": "Ciljna pot",
-        "destinationPathHelp": "Lokalna pot mape za shranjevanje varnostnih kopij",
-        "destinationPathPlaceholder": "/pot/do/mape/varnostnih/kopij",
+        "destinationPathHelp": "Mapa, kot jo vidi backend. V Dockerju je to pot znotraj vsebnika backenda, ne na gostitelju: uporabite mapo, ki je priklopljena v vsebnik.",
+        "destinationPathPlaceholder": "/app/storage/backups",
         "rsyncHost": "Oddaljeni gostitelj",
         "rsyncHostPlaceholder": "backup.example.com",
         "rsyncUser": "SSH uporabnik",
@@ -5060,7 +5350,9 @@
       "enableRateLimiting": "Omogoči omejevanje hitrosti",
       "rateLimitingDesc": "Prepreči neželeno pošiljanje z omejevanjem pogostosti povratnih informacij",
       "timeWindow": "Časovno okno (minute)",
-      "maxRequests": "Največ zahtev"
+      "maxRequests": "Največ zahtev",
+      "decisions": "Odobri / zavrni posamezno fotografijo",
+      "decisionsDesc": "Gostje vsako fotografijo odobrijo ali zavrnejo, po želji z razlogom. Po njihovi odločitvi lahko filtrirate in izvažate"
     },
     "settingsUpdated": "Nastavitve povratnih informacij posodobljene",
     "settingsUpdateError": "Nastavitev ni bilo mogoče posodobiti",
@@ -5083,7 +5375,8 @@
       "like": "Všečki",
       "comment": "Komentarji",
       "favorite": "Priljubljene",
-      "reaction": "Odzivi"
+      "reaction": "Odzivi",
+      "decision": "Odobri / zavrni"
     },
     "allStatuses": "Vsa stanja",
     "status": {
@@ -5114,6 +5407,7 @@
     "ratingError": "Ocene ni bilo mogoče oddati",
     "rateStar_one": "Oceni z {{count}} zvezdico",
     "rateStar_other": "Oceni z {{count}} zvezdicami",
+    "removeRating": "Odstrani oceno",
     "ratingsCount_one": "{{count}} ocena",
     "ratingsCount_other": "{{count}} ocen",
     "likeError": "Všečka ni bilo mogoče posodobiti",
@@ -5160,7 +5454,25 @@
     "removeColorLabel": "Odstrani oznako {{color}}",
     "setColorLabel": "Označi kot {{color}}",
     "markedAs": "Označeno kot {{color}}",
-    "alsoMarkedBy": "Označili tudi drugi: {{colors}}"
+    "alsoMarkedBy": "Označili tudi drugi: {{colors}}",
+    "decisions": {
+      "approved": "Odobreno",
+      "rejected": "Zavrnjeno"
+    },
+    "totalDecisions": "Odobreno / zavrnjeno",
+    "decisionsTitle": "Odobri / zavrni",
+    "decisionApprove": "Odobri",
+    "decisionReject": "Zavrni",
+    "decisionClear": "Prekliči odločitev",
+    "decisionReasonEdit": "Zakaj? (neobvezno)",
+    "decisionReasonLabel": "Zakaj zavračate to fotografijo? (neobvezno)",
+    "decisionReasonPlaceholder": "npr. zaprte oči, ni moja najboljša stran",
+    "decisionReasonSave": "Shrani razlog",
+    "decisionReasonBlocked": "Vaš razlog vsebuje besede, ki tukaj niso dovoljene.",
+    "decisionError": "Odločitve ni bilo mogoče shraniti",
+    "decisionType": "vašo odločitev",
+    "youApproved": "To fotografijo ste odobrili",
+    "youRejected": "To fotografijo ste zavrnili"
   },
   "filter": {
     "feedbackFilters": "Filtri povratnih informacij",
@@ -5170,6 +5482,7 @@
     "hasFavorites": "Ima priljubljene",
     "hasComments": "Ima komentarje",
     "showingPhotos": "Skupaj fotografij",
+    "showingMedia": "Skupaj medijev",
     "withRatings": "Z ocenami",
     "combineWith": "Združi z",
     "allPhotos": "Vse fotografije",
@@ -5182,7 +5495,11 @@
     "colorLabels": "Barvne oznake",
     "showOnlyColor": "Prikaži samo {{color}}",
     "myColorLabels": "Vaše oznake",
-    "showOnlyMyColor": "Prikaži samo moje oznake {{color}}"
+    "showOnlyMyColor": "Prikaži samo moje oznake {{color}}",
+    "decisions": "Odobri / zavrni",
+    "decisionApproved": "Odobreno",
+    "decisionRejected": "Zavrnjeno",
+    "decisionUndecided": "Neodločeno"
   },
   "setup": {
     "title": "Dobrodošli v PicPeaku",
@@ -5521,7 +5838,121 @@
     "movedToCategory_other": "{{count}} fotografij premaknjenih v {{category}}",
     "moveToCategoryFailed": "Fotografij ni bilo mogoče premakniti v kategorijo",
     "moveToCategory": "Premakni v kategorijo",
-    "folderOption": "{{name}} (mapa — skrito iz glavne mreže)"
+    "folderOption": "{{name}} (mapa — skrito iz glavne mreže)",
+    "folders": {
+      "title": "Mape",
+      "galleryRoot": "Glavna raven galerije",
+      "allPhotos": "Vse fotografije",
+      "breadcrumb": "Pot do mape",
+      "waitingView": "Čakanje na zahteve za mape",
+      "waitingChip": "Čaka na mapo",
+      "noFolders": "Še ni map",
+      "name": "Ime mape",
+      "newFolder": "Nova mapa",
+      "newSubfolder": "Nova podmapa",
+      "newSubfolderIn": "Nova podmapa v »{{name}}«",
+      "create": "Ustvari",
+      "created": "Mapa ustvarjena",
+      "createFailed": "Mape ni bilo mogoče ustvariti",
+      "rename": "Preimenuj",
+      "renameTitle": "Preimenuj mapo",
+      "renamed": "Mapa preimenovana",
+      "move": "Premakni",
+      "moveTitle": "Premakni »{{name}}« v …",
+      "moveHint": "Njene podmape in fotografije se premaknejo z njo. Mape so lahko ugnezdene največ {{depth}} ravni globoko.",
+      "moved": "Mapa premaknjena",
+      "updateFailed": "Mape ni bilo mogoče spremeniti",
+      "maxDepthReached": "Mape so lahko ugnezdene največ {{depth}} ravni globoko",
+      "delete": "Izbriši mapo",
+      "deleteTitle": "Želite izbrisati mapo »{{name}}«?",
+      "deleteMessage": "Njene fotografije ({{photos}}) in podmape ({{folders}}) se premaknejo v {{parent}}. Nobena fotografija ni izbrisana.",
+      "deleted": "Mapa izbrisana",
+      "deleteFailed": "Mape ni bilo mogoče izbrisati",
+      "allowDownloads": "Dovoli prenose v tej mapi",
+      "downloadsAllowed": "Prenosi dovoljeni",
+      "downloadsBlocked": "Prenosi blokirani",
+      "downloadsOn": "Prenosi v tej mapi so dovoljeni",
+      "downloadsOff": "Prenosi v tej mapi in njenih podmapah so blokirani",
+      "downloadsBlockedBy": "Vseeno blokirano z nadrejeno mapo »{{name}}«.",
+      "downloadsInherit": "Podmape to podedujejo: mapa, ki blokira prenose, jih blokira v vseh mapah pod njo.",
+      "moveToFolder": "Premakni v mapo …",
+      "moveToFolderTitle_one": "Premakni {{count}} fotografijo v mapo",
+      "moveToFolderTitle_two": "Premakni {{count}} fotografiji v mapo",
+      "moveToFolderTitle_few": "Premakni {{count}} fotografije v mapo",
+      "moveToFolderTitle_other": "Premakni {{count}} fotografij v mapo",
+      "photosMoved_one": "{{count}} fotografija premaknjena v {{folder}}",
+      "photosMoved_two": "{{count}} fotografiji premaknjeni v {{folder}}",
+      "photosMoved_few": "{{count}} fotografije premaknjene v {{folder}}",
+      "photosMoved_other": "{{count}} fotografij premaknjenih v {{folder}}",
+      "moveFailed": "Fotografij ni bilo mogoče premakniti"
+    },
+    "folderRequests": {
+      "title_one": "{{count}} zahteva za mapo",
+      "title_two": "{{count}} zahtevi za mapo",
+      "title_few": "{{count}} zahteve za mapo",
+      "title_other": "{{count}} zahtev za mapo",
+      "hint": "Fotografije čakajo v najbližji obstoječi mapi, dokler se ne odločite.",
+      "photoCount_one": "{{count}} fotografija",
+      "photoCount_two": "{{count}} fotografiji",
+      "photoCount_few": "{{count}} fotografije",
+      "photoCount_other": "{{count}} fotografij",
+      "waitIn": "čaka v {{folder}}",
+      "requestedBy": "zahteva uporabnika {{name}}",
+      "approve": "Odobri",
+      "approveAll": "Odobri vse",
+      "approveAs": "Odobri kot …",
+      "approveAsTitle": "Postavi »{{path}}« v obstoječo mapo",
+      "approveAsHint": "Namesto ustvarjanja zahtevane mape se njene fotografije premaknejo v mapo, ki jo izberete (na primer »Samstag« v »Saturday«).",
+      "reject": "Zavrni",
+      "approved_one": "Zahteva za mapo odobrena, premaknjene fotografije: {{count}}",
+      "approved_two": "Zahteva za mapo odobrena, premaknjene fotografije: {{count}}",
+      "approved_few": "Zahteva za mapo odobrena, premaknjene fotografije: {{count}}",
+      "approved_other": "Zahteva za mapo odobrena, premaknjene fotografije: {{count}}",
+      "approvedAll_one": "Vse zahteve za mape odobrene, premaknjene fotografije: {{count}}",
+      "approvedAll_two": "Vse zahteve za mape odobrene, premaknjene fotografije: {{count}}",
+      "approvedAll_few": "Vse zahteve za mape odobrene, premaknjene fotografije: {{count}}",
+      "approvedAll_other": "Vse zahteve za mape odobrene, premaknjene fotografije: {{count}}",
+      "rejected": "Zahteva za mapo zavrnjena; fotografije ostanejo, kjer so",
+      "failed": "Zahteve za mapo ni bilo mogoče posodobiti",
+      "showWaiting": "Pokaži čakajoče fotografije",
+      "waitingForAdmin_one": "Zahteve za mape, ki čakajo na skrbnika: {{count}}. Do takrat so njihove fotografije ({{photos}}) v najbližji obstoječi mapi.",
+      "waitingForAdmin_two": "Zahteve za mape, ki čakajo na skrbnika: {{count}}. Do takrat so njihove fotografije ({{photos}}) v najbližji obstoječi mapi.",
+      "waitingForAdmin_few": "Zahteve za mape, ki čakajo na skrbnika: {{count}}. Do takrat so njihove fotografije ({{photos}}) v najbližji obstoječi mapi.",
+      "waitingForAdmin_other": "Zahteve za mape, ki čakajo na skrbnika: {{count}}. Do takrat so njihove fotografije ({{photos}}) v najbližji obstoječi mapi."
+    },
+    "review": {
+      "pendingOwner_one": "{{count}} nalaganje vaše ekipe čaka na vaš pregled",
+      "pendingOwner_two": "{{count}} nalaganji vaše ekipe čakata na vaš pregled",
+      "pendingOwner_few": "{{count}} nalaganja vaše ekipe čakajo na vaš pregled",
+      "pendingOwner_other": "{{count}} nalaganj vaše ekipe čaka na vaš pregled",
+      "pendingMember_one": "{{count}} nalaganje ekipe čaka na pregled lastnika",
+      "pendingMember_two": "{{count}} nalaganji ekipe čakata na pregled lastnika",
+      "pendingMember_few": "{{count}} nalaganja ekipe čakajo na pregled lastnika",
+      "pendingMember_other": "{{count}} nalaganj ekipe čaka na pregled lastnika",
+      "nonePending": "Nobeno nalaganje ne čaka na pregled.",
+      "filterPending": "Čaka na pregled ({{count}})",
+      "filterRejected": "Zavrnjene ({{count}})",
+      "showAll": "Vse fotografije",
+      "approve": "Odobri",
+      "reject": "Zavrni",
+      "approved_one": "{{count}} fotografija odobrena in objavljena",
+      "approved_two": "{{count}} fotografiji odobreni in objavljeni",
+      "approved_few": "{{count}} fotografije odobrene in objavljene",
+      "approved_other": "{{count}} fotografij odobrenih in objavljenih",
+      "rejected_one": "{{count}} fotografija zavrnjena",
+      "rejected_two": "{{count}} fotografiji zavrnjeni",
+      "rejected_few": "{{count}} fotografije zavrnjene",
+      "rejected_other": "{{count}} fotografij zavrnjenih",
+      "failed": "Fotografij ni bilo mogoče pregledati",
+      "pendingBadge": "Čaka na pregled",
+      "rejectedBadge": "Zavrnjena",
+      "uploadedBy": "Naložil(a) {{name}}",
+      "hiddenUntilApproved": "Skrita gostom in strankam do odobritve",
+      "skippedOnShow_one": "{{count}} fotografija čaka na pregled in ostane skrita do odobritve",
+      "skippedOnShow_two": "{{count}} fotografiji čakata na pregled in ostaneta skriti do odobritve",
+      "skippedOnShow_few": "{{count}} fotografije čakajo na pregled in ostanejo skrite do odobritve",
+      "skippedOnShow_other": "{{count}} fotografij čaka na pregled in ostane skritih do odobritve"
+    }
   },
   "customer": {
     "login": {
@@ -5638,8 +6069,6 @@
       "quotes": "Ponudbe",
       "bills": "Računi",
       "profile": "Profil",
-      "soon": "Kmalu",
-      "new": "Novo",
       "contracts": "Pogodbe",
       "documents": "Dokumenti"
     },
@@ -6602,7 +7031,6 @@
     "search": "Išči po imenu ali stranki…",
     "empty": "Projektov še ni. Ustvarite ga zgoraj ali pa so bili obstoječi dogodki že samodejno združeni.",
     "notFound": "Projekt ni najden",
-    "backToList": "Vsi projekti",
     "noCustomer": "Brez ene določene stranke",
     "rename": "Preimenuj",
     "timeline": "Mejniki",
@@ -7063,7 +7491,6 @@
       "customerMessage": "Sporočilo stranke"
     },
     "savedToast": "Ponudba shranjena kot osnutek.",
-    "edit": "Uredi ponudbo",
     "new": "Nova ponudba",
     "preview": "Predogled PDF-ja",
     "saveAndSend": "Shrani in pošlji",
@@ -7130,6 +7557,7 @@
     "catalog": {
       "addItem": "Dodaj postavko",
       "archive": "Arhiv",
+      "backToTemplates": "Nazaj na predloge",
       "archived": "Arhiviran",
       "boundTo": "Količina",
       "boundToNone": "Fiksna količina",
@@ -7500,7 +7928,6 @@
     "savedToast": "Račun shranjen.",
     "savedToastMulti": "Ustvarjenih računov: {{n}}.",
     "saveAndSpawn": "Ustvari {{n}} računov",
-    "edit": "Uredi račun",
     "customerSearch": "Išči po e-pošti ali podjetju…",
     "qrFormat": {
       "none": "Brez",
@@ -8061,9 +8488,7 @@
       "auditEmpty": "V revizijskem dnevniku še ni vnosov.",
       "auditTrail": "Revizijska sled",
       "auditTrailHelp": "Vsak dogodek, zabeležen pri tej pogodbi. Seznam je samo za dodajanje in je vir resnice v primeru spora glede pogodbe.",
-      "back": "Nazaj na seznam",
       "blocks": "Vključeni sklopi",
-      "cancel": "Prekliči",
       "cancelConfirm": "Prekličem to pogodbo? Povezava za podpis stranke bo razveljavljena.",
       "cancelError": "Preklic ni uspel",
       "cancelledToast": "Pogodba preklicana.",
@@ -8088,7 +8513,6 @@
       "dates": "Datumi",
       "downloadPdf": "Prenesi PDF",
       "downloadSignedPdf": "Prenesi podpisani PDF",
-      "edit": "Uredi",
       "fromQuote": "Iz ponudbe",
       "issued": "Izdano",
       "linkedInvoice": "Račun",
@@ -8194,14 +8618,11 @@
       }
     },
     "editor": {
-      "back": "Nazaj na seznam",
-      "backToDetail": "Nazaj na pogodbo",
       "create": "Ustvari osnutek",
       "createdToast": "Pogodba ustvarjena.",
       "customer": "Stranka",
       "disclaimerBody": "Prednastavljena besedila sklopov so primeri, ki jih je napisal vzdrževalec, ne pravnik. Pred pošiljanjem pogodbe naj sklope, ki jih vključujete, za vašo jurisdikcijo in namen pregleda pravnik — za vsebino ste odgovorni vi. To vam ne preprečuje shranjevanja osnutka.",
       "disclaimerTitle": "Priporočen je pravni pregled",
-      "saving": "Shranjevanje…",
       "disclaimerLink": "Preberite pravno obvestilo CRM",
       "errors": {
         "createNotSaved": "Osnutek ni bil shranjen.",
@@ -8242,20 +8663,13 @@
       "intro": "Uvodno besedilo (neobvezno)",
       "issueDate": "Datum izdaje",
       "language": "Jezik",
-      "locked": "Poslanih pogodb ni mogoče urejati. Za spremembe prekličite pogodbo in ustvarite novo.",
       "noBlocksInSection": "V tem razdelku še ni sklopov.",
       "outro": "Zaključno besedilo (neobvezno)",
-      "popupBlocked": "Dovolite pojavna okna za to spletno mesto, da si lahko ogledate PDF.",
-      "preview": "Predogled PDF-ja",
-      "previewAfterSave": "Najprej shranite osnutek, nato odprite predogled.",
-      "previewError": "Predogled ni uspel",
-      "save": "Shrani",
       "saveError": "Shranjevanje ni uspelo",
       "savedToast": "Pogodba shranjena.",
       "schriftformWarning": "Vrsta podpisa: preprost elektronski podpis (SES). Zadostuje za običajne fotografske pogodbe v CH / DE / AT / FL. NE zadostuje za dokumente, za katere zakon zahteva Schriftform / form qualifiée: Bürgschaft (DE § 766 BGB), Verbraucherdarlehensvertrag (DE § 492 BGB), befristete Arbeitsverträge (DE § 14 Abs. 4 TzBfG) in podobno. Zanje je potreben kvalificiran elektronski podpis (QES) ponudnika storitev zaupanja — PicPeak ne zagotavlja QES.",
       "searchCustomer": "Išči po e-pošti …",
       "systemBadge": "Sistem",
-      "titleEdit": "Uredi pogodbo",
       "titleField": "Naslov pogodbe",
       "titleNew": "Nova pogodba",
       "titlePlaceholder": "npr. Poročna pogodba Novak / Müller",
@@ -8272,7 +8686,6 @@
       "takeTheirs": "Uporabi njihove"
     },
     "blocks": {
-      "back": "Nazaj na pogodbe",
       "title": "Knjižnica pogodbenih sklopov",
       "hideInactive": "Skrij neaktivne",
       "disclaimerTitle": "Samo primeri — naj jih pregleda vaš pravnik",
@@ -8313,7 +8726,6 @@
     "templates": {
       "title": "Predloge pogodb",
       "intro": "Predloga določa določila, s katerimi se začne nova pogodba, njihov vrstni red in besedilo. Objava zamrzne različico; pogodba ohrani različico, iz katere je bila ustvarjena.",
-      "back": "Nazaj na pogodbe",
       "backToTemplates": "Nazaj na predloge",
       "newName": "Ime nove predloge",
       "create": "Ustvari predlogo",
@@ -9007,10 +9419,7 @@
     "empty": "Kampanj še ni.",
     "allStatuses": "Vsa stanja",
     "filterByStatus": "Filtriraj po stanju",
-    "backToList": "Vse kampanje",
     "recipientsTitle": "Prejemniki",
-    "notEditable": "Ta kampanja je že v čakalni vrsti in je ni več mogoče urejati.",
-    "viewCampaign": "Ogled kampanje",
     "status": {
       "draft": "Osnutek",
       "queued": "V čakalni vrsti",
@@ -9061,7 +9470,6 @@
     "refreshPreview": "Osveži predogled",
     "previewTitle": "Predogled e-novic",
     "sendTest": "Preizkus",
-    "queueButton": "Dodaj kampanjo v čakalno vrsto",
     "queueBlocked": "Pred pošiljanjem so potrebni zadeva, vsebina in vsaj en prejemnik.",
     "queueTitle": "Pošljem to kampanjo?",
     "queueBody": "S tem boste poslali e-pošto {{count}} strankam s hitrostjo {{rate}} na minuto (približno {{minutes}} min). Ko se pošiljanje začne, dejanja ni mogoče razveljaviti.",
@@ -9285,6 +9693,28 @@
     },
     "legalNotice": {
       "title": "Pravno obvestilo"
+    }
+  },
+  "search": {
+    "groups": {
+      "pages": "Strani"
+    },
+    "palette": {
+      "label": "Iskanje po skrbniškem delu",
+      "placeholder": "Iskanje strani in nastavitev…",
+      "noResults": "Nič ne ustreza »{{query}}«.",
+      "open": "Iskanje strani in nastavitev"
+    }
+  },
+  "automation": {
+    "empty": {
+      "title": "Nobena funkcija avtomatizacije ni omogočena",
+      "body": "Omogočite Workflows ali opomnike po e-pošti v Nastavitve → Funkcije, da začnete.",
+      "noAccessTitle": "Tukaj ni ničesar, kar bi lahko odprli",
+      "noAccessBody": "Te funkcije so vklopljene, vendar vaša vloga ne more odpreti nobene od njihovih strani. Za dostop prosite skrbnika."
+    },
+    "subnav": {
+      "approvals": "Odobritve"
     }
   }
 }

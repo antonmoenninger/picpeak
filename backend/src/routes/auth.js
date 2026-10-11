@@ -1,5 +1,7 @@
 const { isGalleryAvailable } = require('../utils/galleryLifecycle');
+const { publicThemeFields } = require('../services/galleryTheme');
 const express = require('express');
+const { toDateOnly } = require('../utils/dateOnly');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -146,8 +148,10 @@ router.post('/admin/login', [
       return res.status(403).json({ error: 'Local login is disabled — sign in through SSO', code: 'LOCAL_LOGIN_DISABLED' });
     }
 
-    // Check account lockout first
-    const lockoutStatus = await checkAccountLockout(username);
+    // Check account lockout first. Scoped to identifier + source IP like the
+    // gallery/client paths: anonymous failures from one address must not
+    // deny a correct login from every other address.
+    const lockoutStatus = await checkAccountLockout(username, ipAddress);
     if (lockoutStatus.isLocked) {
       logger.warn('Login attempt on locked account', { username, ipAddress });
       return res.status(423).json({ 
@@ -205,9 +209,10 @@ router.post('/admin/login', [
     // Second factor: if this admin has TOTP enabled, do NOT complete the login
     // yet. Issue a short-lived, single-purpose mfa_pending token and require the
     // code via /admin/login/mfa. We deliberately don't reset the lockout counter
-    // (trackSuccessfulLogin) or stamp last_login until the second factor passes,
-    // so MFA brute-force is still gated by the account lockout. `loginId` carries
-    // the typed identifier so the verify step tracks the same lockout bucket.
+    // (trackSuccessfulLogin) or stamp last_login until the second factor passes.
+    // MFA guessing is gated by the verify step's own account-wide bucket
+    // (`mfa:<id>`); `loginId` carries the typed identifier for the success
+    // record once the second factor passes.
     if (mfaService.isEnrolled(admin)) {
       const mfaToken = jwt.sign({
         id: admin.id,
@@ -274,7 +279,14 @@ router.post('/admin/login/mfa', [
     }
 
     const lockoutKey = decoded.loginId || decoded.username;
-    const lockoutStatus = await checkAccountLockout(lockoutKey);
+    // The second factor has a bucket of its own, counted across every source
+    // address. Per-IP (like the password step) would hand a holder of the
+    // mfa_pending token a fresh batch of six-digit guesses for each address
+    // they rotate to; sharing the password step's bucket would let anonymous
+    // password failures lock the owner out of this step. Only someone who
+    // already passed the password can add to it.
+    const mfaLockoutKey = `mfa:${decoded.id}`;
+    const lockoutStatus = await checkAccountLockout(mfaLockoutKey);
     if (lockoutStatus.isLocked) {
       return res.status(423).json({
         error: 'Account temporarily locked due to too many failed attempts',
@@ -325,15 +337,29 @@ router.post('/admin/login/mfa', [
     }
 
     if (!ok) {
-      await trackFailedAttempt(lockoutKey, ipAddress, userAgent);
+      await trackFailedAttempt(mfaLockoutKey, ipAddress, userAgent);
       return res.status(401).json({ error: 'Invalid verification code', code: 'MFA_INVALID' });
     }
 
     if (usedRecovery) {
-      await db('admin_users').where('id', admin.id).update({
-        two_factor_recovery_codes: JSON.stringify(remainingHashes),
-        updated_at: new Date()
-      });
+      // Compare-and-set against the list this request read. Two requests
+      // carrying the same captured code both passed the bcrypt compare and
+      // both overwrote the list, so both got a session and a code was
+      // redeemable twice; concurrent redemption of two different codes let
+      // the last writer restore the other one. Only the writer that still
+      // sees the list it read consumes the code (Codex security audit
+      // 2026-09-30) — the same rule persistTotpStep applies to TOTP.
+      const consumed = await db('admin_users')
+        .where('id', admin.id)
+        .where('two_factor_recovery_codes', admin.two_factor_recovery_codes)
+        .update({
+          two_factor_recovery_codes: JSON.stringify(remainingHashes),
+          updated_at: new Date()
+        });
+      if (consumed !== 1) {
+        await trackFailedAttempt(mfaLockoutKey, ipAddress, userAgent);
+        return res.status(401).json({ error: 'Invalid verification code', code: 'MFA_INVALID' });
+      }
       await logActivity('admin_mfa_recovery_used',
         { admin_id: admin.id, remaining: remainingHashes.length },
         null,
@@ -533,9 +559,9 @@ router.post('/gallery/verify', [
         id: event.id,
         event_name: event.event_name,
         event_type: event.event_type,
-        event_date: event.event_date,
+        event_date: toDateOnly(event.event_date),
         welcome_message: event.welcome_message,
-        color_theme: event.color_theme,
+        color_theme: (await publicThemeFields(event)).color_theme,
         expires_at: event.expires_at,
         allow_user_uploads: event.allow_user_uploads,
         upload_category_id: event.upload_category_id,
@@ -559,7 +585,7 @@ router.post('/gallery/:slug/client-login', [
     }
 
     const { slug } = req.params;
-    const { password } = req.body;
+    const { password, token: clientShareToken } = req.body;
     const ipAddress = getClientIp(req);
     const userAgent = req.headers['user-agent'] || '';
 
@@ -578,6 +604,14 @@ router.post('/gallery/:slug/client-login', [
         error: 'Too many failed attempts. Please try again later.',
         retryAfter: lockoutStatus.remainingTime
       });
+    }
+
+    const validLinkToken = typeof clientShareToken === 'string'
+      && typeof event.client_share_token === 'string'
+      && timingSafeEqualStr(clientShareToken, event.client_share_token);
+    if (!validLinkToken) {
+      await trackFailedAttempt(`client:${slug}`, ipAddress, userAgent);
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const validPassword = await bcrypt.compare(password, event.client_password_hash);
@@ -611,9 +645,9 @@ router.post('/gallery/:slug/client-login', [
         id: event.id,
         event_name: event.event_name,
         event_type: event.event_type,
-        event_date: event.event_date,
+        event_date: toDateOnly(event.event_date),
         welcome_message: event.welcome_message,
-        color_theme: event.color_theme,
+        color_theme: (await publicThemeFields(event)).color_theme,
         expires_at: event.expires_at,
         allow_user_uploads: event.allow_user_uploads,
         upload_category_id: event.upload_category_id,
@@ -710,9 +744,9 @@ router.post('/gallery/share-login', [
         id: event.id,
         event_name: event.event_name,
         event_type: event.event_type,
-        event_date: event.event_date,
+        event_date: toDateOnly(event.event_date),
         welcome_message: event.welcome_message,
-        color_theme: event.color_theme,
+        color_theme: (await publicThemeFields(event)).color_theme,
         expires_at: event.expires_at,
         allow_user_uploads: event.allow_user_uploads,
         upload_category_id: event.upload_category_id,
@@ -896,13 +930,11 @@ router.post('/password-strength', [
 
 const OIDC_STATE_COOKIE = 'oidc_state';
 
-function oidcStateCookieOptions(req) {
+function oidcStateCookieOptions(res) {
   return {
-    httpOnly: true,
-    secure: Boolean(req.secure),
+    ...buildCookieOptionsWithExpiry(res, 10 * 60 * 1000),
     sameSite: 'Lax',
     path: '/api/auth/admin/sso',
-    maxAge: 10 * 60 * 1000,
   };
 }
 
@@ -938,7 +970,7 @@ router.get('/admin/sso/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '10m', issuer: 'picpeak-auth' }
     );
-    res.cookie(OIDC_STATE_COOKIE, stash, oidcStateCookieOptions(req));
+    res.cookie(OIDC_STATE_COOKIE, stash, oidcStateCookieOptions(res));
     return res.redirect(url);
   } catch (error) {
     if (error.code === 'OIDC_NOT_CONFIGURED') {
@@ -965,7 +997,11 @@ router.get('/admin/sso/callback', async (req, res) => {
   const fail = (key) => res.redirect(`${frontendBase}/admin/login?sso_error=${key}`);
 
   const stashCookie = req.cookies?.[OIDC_STATE_COOKIE];
-  res.clearCookie(OIDC_STATE_COOKIE, { ...oidcStateCookieOptions(req), maxAge: undefined });
+  res.clearCookie(OIDC_STATE_COOKIE, {
+    ...buildClearCookieOptions(),
+    sameSite: 'Lax',
+    path: '/api/auth/admin/sso',
+  });
   if (!stashCookie) return fail('state');
 
   let stash;

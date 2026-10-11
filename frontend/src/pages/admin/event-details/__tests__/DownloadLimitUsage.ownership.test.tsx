@@ -7,13 +7,14 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ConfirmDialogProvider } from '../../../../components/common/ConfirmDialog';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
   initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 vi.mock('react-toastify', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock('../../../../hooks/usePermission', () => ({ usePermission: () => true }));
+vi.mock('../../../../hooks/usePermission', () => ({ usePermission: () => true, useAnyPermission: () => true }));
 vi.mock('../../../../services/events.service', () => ({
   eventsService: {
     getDownloadLimitUsage: vi.fn(),
@@ -27,7 +28,9 @@ import { DownloadLimitUsage } from '../DownloadLimitUsage';
 function renderUsage(ownedByOther?: boolean) {
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <DownloadLimitUsage eventId={3} downloadLimit={10} ownedByOther={ownedByOther} />
+      <ConfirmDialogProvider>
+        <DownloadLimitUsage eventId={3} downloadLimit={10} ownedByOther={ownedByOther} />
+      </ConfirmDialogProvider>
     </QueryClientProvider>,
   );
 }

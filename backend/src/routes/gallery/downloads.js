@@ -1,6 +1,6 @@
 const express = require('express');
 const { db, logActivity } = require('../../database/db');
-const { parseBooleanInput } = require('../../utils/parsers');
+const { originalAssetDenial } = require('../../services/galleryAssetPolicy');
 const archiver = require('archiver');
 const path = require('path');
 const { resolvePhotoContentType } = require('../../utils/photoContentType');
@@ -24,6 +24,7 @@ const { findValidPhotoPurchaseAccess } = require('../../modules/photoSales/purch
 // PHOTO-SALES-EXTENSION START
 const { isGalleryPriced, resolveForcedWatermarkSettingsForPhoto } = require('../../modules/photoSales/priceRules');
 // PHOTO-SALES-EXTENSION END
+const folderTree = require('../../services/folderTreeService');
 const {
   renderPhotoForDownload, renderPreviewForDownload, previewDownloadName, resolveWatermarkSettingsForPhoto, isVideo,
 } = require('../../services/downloadRendition');
@@ -41,7 +42,7 @@ const {
 } = require('../../services/downloadFilenameService');
 const { buildContentDisposition } = require('../../utils/filenameSanitizer');
 const { getStorage } = require('../../services/storage');
-const { createArchiveStreamGuard } = require('../../utils/archiveStreamGuard');
+const { createArchiveStreamGuard, streamingArchiveAdmission } = require('../../utils/archiveStreamGuard');
 const {
   downloadLimitOf, currentDownloadLimit, grantDownloads, checkDownloads, downloadLimitError,
   settleWhenDone, responseDelivered, refuseDownload, isPreviewOnly, clientOnlyError,
@@ -140,9 +141,8 @@ router.get('/:slug/download/:photoId', verifyGalleryAccess, denySlideshowToken, 
     const { photoId } = req.params;
 
     // Check if downloads are allowed for this event
-    if (!parseBooleanInput(req.event.allow_downloads, true)) {
-      return res.status(403).json({ error: 'Downloads are disabled for this gallery' });
-    }
+    const denial = await originalAssetDenial(req);
+    if (denial) return res.status(403).json(denial);
 
     const photo = await db('photos')
       .where({ id: photoId, event_id: req.event.id })
@@ -160,14 +160,8 @@ router.get('/:slug/download/:photoId', verifyGalleryAccess, denySlideshowToken, 
     // Per-category download permission (#640). Photos without a category are
     // always downloadable when the event allows downloads — only categorised
     // photos can opt out per-category.
-    if (photo.category_id) {
-      const cat = await db('photo_categories')
-        .where('id', photo.category_id)
-        .first('allow_downloads');
-      if (cat && !parseBooleanInput(cat.allow_downloads, true)) {
-        return res.status(403).json({ error: 'Downloads are disabled for this category' });
-      }
-    }
+    const photoDenial = await originalAssetDenial(req, photo);
+    if (photoDenial) return res.status(403).json(photoDenial);
 
     const accessToken = req.query?.access_token || req.query?.accessToken || null;
     const purchasedAccess = accessToken
@@ -508,14 +502,41 @@ router.get('/:slug/download/:photoId', verifyGalleryAccess, denySlideshowToken, 
       'Content-Disposition': contentDisposition,
     });
     res.sendFile(filePath, (downloadError) => {
-      if (downloadError) {
-        logger.error('Error streaming gallery download', {
-          slug: req.params.slug,
-          photoId,
-          eventId: req.event.id,
-          error: downloadError.message,
-        });
+      if (!downloadError) return;
+      logger.error('Error streaming gallery download', {
+        slug: req.params.slug,
+        photoId,
+        eventId: req.event.id,
+        error: downloadError.message,
+      });
+      // With a callback, sendFile leaves the response to us. Unanswered, the
+      // request stayed open until the client or proxy gave up. The existsSync
+      // above already caught a missing file; what lands here is EACCES/EISDIR
+      // or a file removed between the check and the send.
+      if (!res.headersSent) {
+        // Drop the staged attachment headers, or the browser saves a .jpg
+        // containing JSON — and the file metadata send stages once it has
+        // stat'ed the file (validators, ranges, caching), or the JSON error
+        // carries the photo's ETag and a bogus range.
+        const gone = downloadError.code === 'ENOENT' || downloadError.status === 404;
+        const status = gone ? 404
+          : (downloadError.status >= 400 && downloadError.status < 500 ? downloadError.status : 500);
+        for (const header of ['Content-Type', 'Content-Disposition', 'Content-Length', 'ETag', 'Last-Modified',
+          'Accept-Ranges', 'Cache-Control']) {
+          res.removeHeader(header);
+        }
+        // A 416 keeps the Content-Range send staged: that is what tells a
+        // resuming client to start over, where a 500 would not.
+        if (status !== 416) res.removeHeader('Content-Range');
+        // The file's caching policy went with its headers; an error answer
+        // must not be cached in its place (the storage-stream error path
+        // does the same).
+        res.setHeader('Cache-Control', 'no-store');
+        if (gone) return res.status(404).json({ error: 'Photo file not found' });
+        return res.status(status).json({ error: status === 416 ? 'Requested range not satisfiable' : 'Failed to download photo' });
       }
+      // Headers are out: a broken transfer, not a hang.
+      res.destroy();
     });
   } catch (error) {
     errorResponse(res, error, 500, 'Failed to download photo');
@@ -560,6 +581,30 @@ function abortStreamingArchive({ archive, guard, res, err, eventId, route }) {
   }
 }
 
+/**
+ * Admission to the synchronous archive routes (archiveStreamGuard). Returns the
+ * release function, or null after answering 429 when the process already has
+ * its share of archives running and waiting. The slot is released when the
+ * response closes, however it ends; a caller that leaves before streaming
+ * releases it itself (the release is idempotent).
+ */
+async function admitStreamingArchive(res) {
+  const release = await streamingArchiveAdmission.acquire();
+  if (!release) {
+    res.set('Retry-After', '10');
+    res.status(429).json({ error: 'Too many downloads are being prepared right now — please try again shortly' });
+    return null;
+  }
+  // A client that left while this request waited in the queue has already
+  // closed; 'close' will not fire again.
+  if (res.destroyed || res.closed) {
+    release();
+    return null;
+  }
+  res.once('close', release);
+  return release;
+}
+
 // finalize() settles on the archive's end or error, and an aborted archive may
 // emit neither; the response closing ends the wait too.
 async function finalizeOrClose(archive, res) {
@@ -588,6 +633,7 @@ async function bumpEventDownloadCounts(eventId) {
 router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, blockHiddenGallery, async (req, res) => {
   // Hoisted so the catch can reclaim reads opened before the failure.
   let guard = null;
+  let admission = null;
   // The client hung up. An aborted archive rejects finalize() with ABORTED,
   // and the catch would then try to send JSON over a response whose ZIP
   // headers already went out — ERR_HTTP_HEADERS_SENT, unhandled, on an
@@ -595,9 +641,8 @@ router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, block
   let cancelled = false;
   try {
     // Check if downloads are allowed for this event
-    if (!parseBooleanInput(req.event.allow_downloads, true)) {
-      return res.status(403).json({ error: 'Downloads are disabled for this gallery' });
-    }
+    const denial = await originalAssetDenial(req);
+    if (denial) return res.status(403).json(denial);
 
     // Try to serve pre-generated zip (instant download with Content-Length).
     // Guests may use the prebuilt cache ONLY when the event has no hidden
@@ -617,12 +662,13 @@ router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, block
     // prebuilt zip would hand them exactly the photos they may not download.
     const eventHasDownloadRestrictedPhotos = (isClient || eventHasHidden)
       ? false
-      : await db('photos')
+      : (await db('photos')
         .join('photo_categories', 'photos.category_id', 'photo_categories.id')
         .where('photos.event_id', req.event.id)
         .where('photo_categories.allow_downloads', false)
         .first('photos.id')
-        .then(Boolean);
+        .then(Boolean))
+        || (await folderTree.downloadBlockedFolderIds(req.event.id)).length > 0;
     // A download limit (issue 1560) grants exactly the photos that ship. The
     // stream below knows that set; the prebuilt archive does not have to match
     // it, so a limited gallery always streams.
@@ -678,6 +724,7 @@ router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, block
     // Fetch photos — exclude photos in categories that disabled downloads (#640).
     // Uncategorised photos are always included; categories without the column
     // (pre-migration-135) fall through the LEFT JOIN's null and are included.
+    const blockedFolders = await folderTree.downloadBlockedFolderIds(req.event.id);
     const photos = await applyPhotoVisibilityFilter(
       db('photos')
         .leftJoin('photo_categories', 'photos.category_id', 'photo_categories.id')
@@ -686,7 +733,8 @@ router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, block
           this.whereNull('photos.category_id')
             .orWhere('photo_categories.allow_downloads', true)
             .orWhereNull('photo_categories.allow_downloads');
-        }),
+        })
+        .where(folderTree.whereFolderAllowsDownload(blockedFolders)),
       req.accessLevel
     )
       .select('photos.*')
@@ -711,6 +759,10 @@ router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, block
       res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="${req.event.slug}.zip"` });
       return res.end();
     }
+
+    // One of a bounded number of archives this process builds at once.
+    admission = await admitStreamingArchive(res);
+    if (!admission) return;
 
     // Download limit (issue 1560): the whole archive or nothing, decided
     // before the zip headers go out.
@@ -909,6 +961,7 @@ router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, block
     }
   } catch (error) {
     if (guard) guard.destroyAll();
+    if (admission) admission();
     // Nothing to say to a client that already left, and the headers are gone.
     // A half-sent archive must not be left open or ended as if complete.
     if (cancelled || res.headersSent) {
@@ -924,11 +977,11 @@ router.post('/:slug/download-selected', verifyGalleryAccess, denySlideshowToken,
   // Hoisted so the catch can reclaim reads opened before the failure.
   let selectedGuard = null;
   let selectedCancelled = false;
+  let selectedAdmission = null;
   try {
     // Check if downloads are allowed for this event
-    if (!parseBooleanInput(req.event.allow_downloads, true)) {
-      return res.status(403).json({ error: 'Downloads are disabled for this gallery' });
-    }
+    const denial = await originalAssetDenial(req);
+    if (denial) return res.status(403).json(denial);
 
     const ids = Array.isArray(req.body?.photo_ids) ? req.body.photo_ids : [];
     if (!ids.length) {
@@ -947,6 +1000,7 @@ router.post('/:slug/download-selected', verifyGalleryAccess, denySlideshowToken,
 
     // Fetch photos — exclude photos in categories that disabled downloads (#640).
     // Same LEFT JOIN pattern as the download-all endpoint.
+    const blockedFolders = await folderTree.downloadBlockedFolderIds(req.event.id);
     const photos = await applyPhotoVisibilityFilter(
       db('photos')
         .leftJoin('photo_categories', 'photos.category_id', 'photo_categories.id')
@@ -956,7 +1010,8 @@ router.post('/:slug/download-selected', verifyGalleryAccess, denySlideshowToken,
           this.whereNull('photos.category_id')
             .orWhere('photo_categories.allow_downloads', true)
             .orWhereNull('photo_categories.allow_downloads');
-        }),
+        })
+        .where(folderTree.whereFolderAllowsDownload(blockedFolders)),
       req.accessLevel
     )
       .select('photos.*')
@@ -974,6 +1029,10 @@ router.post('/:slug/download-selected', verifyGalleryAccess, denySlideshowToken,
       return res.status(400).json({ error: 'Resolution not available for this gallery' });
     }
     const selectedBox = parseResolution(selectedResolution);
+
+    // One of a bounded number of archives this process builds at once.
+    selectedAdmission = await admitStreamingArchive(res);
+    if (!selectedAdmission) return;
 
     // Download limit (issue 1560): the resolved, visibility-filtered set is
     // what gets zipped, so it is what gets granted. All or nothing. A
@@ -1141,6 +1200,7 @@ router.post('/:slug/download-selected', verifyGalleryAccess, denySlideshowToken,
     }
   } catch (error) {
     if (selectedGuard) selectedGuard.destroyAll();
+    if (selectedAdmission) selectedAdmission();
     if (selectedCancelled || res.headersSent) {
       if (!res.destroyed) res.destroy();
       return;
@@ -1162,9 +1222,8 @@ router.post('/:slug/download-selected', verifyGalleryAccess, denySlideshowToken,
 // Kick off (or join) a build. Returns the polling token.
 router.post('/:slug/download-jobs', verifyGalleryAccess, denySlideshowToken, blockHiddenGallery, async (req, res) => {
   try {
-    if (!parseBooleanInput(req.event.allow_downloads, true)) {
-      return res.status(403).json({ error: 'Downloads are disabled for this gallery' });
-    }
+    const denial = await originalAssetDenial(req);
+    if (denial) return res.status(403).json(denial);
 
     const policy = await resolveEventDownloadPolicy(req.event);
     if (!policy.pickerEnabled) {
@@ -1195,7 +1254,7 @@ router.post('/:slug/download-jobs', verifyGalleryAccess, denySlideshowToken, blo
     if (await isPreviewOnly(req)) return res.status(403).json(clientOnlyError());
     if (downloadLimitOf(req.event) && !req.isAdminPreview) {
       const resolved = await downloadJobService
-        .photoQuery(req.event.id, photoIds, req.accessLevel)
+        .photoQuery(req.event.id, photoIds, req.accessLevel, await folderTree.downloadBlockedFolderIds(req.event.id))
         .select('photos.id');
       const quota = await checkDownloads(req.event, resolved.map((r) => r.id));
       if (!quota.ok) return res.status(403).json(downloadLimitError(quota));
@@ -1269,9 +1328,8 @@ router.get('/:slug/download-jobs/:token/file', verifyGalleryAccess, denySlidesho
   try {
     // Downloads can be switched off after a job was created — every other
     // download route re-checks this per request, so this one must too.
-    if (!parseBooleanInput(req.event.allow_downloads, true)) {
-      return res.status(403).json({ error: 'Downloads are disabled for this gallery' });
-    }
+    const denial = await originalAssetDenial(req);
+    if (denial) return res.status(403).json(denial);
 
     const job = await downloadJobService.getStatus(req.params.token);
     if (!job || job.event_id !== req.event.id) {

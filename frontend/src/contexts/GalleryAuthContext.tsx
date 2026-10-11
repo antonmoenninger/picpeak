@@ -13,6 +13,7 @@ import {
 } from '../utils/galleryAuthStorage';
 import { clearGuestIdentity } from '../utils/guestIdentityStorage';
 import type { GalleryAccessLevel } from '../types';
+import { isShareToken } from '../utils/shareToken';
 
 interface GalleryEvent {
   id: number;
@@ -44,7 +45,7 @@ interface GalleryAuthContextType {
   /** Session was minted by the customer portal — credentialed, bypasses reveal. */
   viaCustomer: boolean;
   login: (slug: string, password?: string, recaptchaToken?: string | null) => Promise<void>;
-  clientLogin: (slug: string, password: string) => Promise<void>;
+  clientLogin: (slug: string, password: string, token: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -114,7 +115,7 @@ export const GalleryAuthProvider: React.FC<GalleryAuthProviderProps> = ({ childr
         return;
       }
 
-      const looksLikeToken = /^[0-9a-fA-F]{32}$/.test(identifier) && !tokenSegment;
+      const looksLikeToken = isShareToken(identifier) && !tokenSegment;
 
       if (looksLikeToken) {
         if (lastResolvedIdentifier.current === identifier) {
@@ -347,12 +348,12 @@ export const GalleryAuthProvider: React.FC<GalleryAuthProviderProps> = ({ childr
     }
   };
 
-  const clientLoginFn = async (slug: string, password: string) => {
+  const clientLoginFn = async (slug: string, password: string, token: string) => {
     try {
       setRouteError(null);
       setError(null);
       setIsLoading(true);
-      const response = await authService.clientLogin(slug, password);
+      const response = await authService.clientLogin(slug, password, token);
       if (response.token) {
         storeGalleryToken(slug, response.token);
       }

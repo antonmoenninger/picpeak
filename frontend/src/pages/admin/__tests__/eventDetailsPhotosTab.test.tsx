@@ -75,11 +75,18 @@ vi.mock('../../../contexts/FeatureFlagsContext', () => ({
   useFeatureEnabled: () => false,
 }));
 
+// The Settings draft reads the download-resolution overrides directly.
+vi.mock('../../../config/api', () => ({
+  api: { get: vi.fn().mockResolvedValue({ data: undefined }), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}));
+
 vi.mock('../../../contexts/PermissionsContext', () => ({
   usePermissions: () => ({ hasAnyPermission: () => true, hasPermission: () => true, isLoading: false }),
 }));
 
 import { EventDetailsPage } from '../EventDetailsPage';
+import { ConfirmDialogProvider } from '../../../components/common/ConfirmDialog';
+import { UnsavedChangesProvider } from '../../../contexts/UnsavedChangesContext';
 
 const EVENT = {
   id: 1,
@@ -102,12 +109,16 @@ function renderPage(entry: string) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={[entry]}>
-        <Routes>
-          <Route path="/admin/events/:id" element={<EventDetailsPage />} />
-          <Route path="/admin/events" element={<div>events list</div>} />
-        </Routes>
-      </MemoryRouter>
+      <ConfirmDialogProvider>
+        <UnsavedChangesProvider>
+          <MemoryRouter initialEntries={[entry]}>
+            <Routes>
+              <Route path="/admin/events/:id" element={<EventDetailsPage />} />
+              <Route path="/admin/events" element={<div>events list</div>} />
+            </Routes>
+          </MemoryRouter>
+        </UnsavedChangesProvider>
+      </ConfirmDialogProvider>
     </QueryClientProvider>
   );
 }
@@ -150,18 +161,16 @@ describe('EventDetailsPage photos tab', () => {
   });
 
   it('shows the priced-gallery editing fields for existing paid galleries', async () => {
-    renderPage('/admin/events/1');
+    renderPage('/admin/events/1?tab=settings');
 
-    await waitFor(() => {
-      expect(screen.getByText('events.eventInformation')).toBeInTheDocument();
-    });
-
-    screen.getByRole('button', { name: 'common.edit' }).click();
+    // The pricing editor lives in the Settings tab as its own section.
+    const section = await screen.findByRole('button', { name: /Photo sales/ });
+    section.click();
 
     await waitFor(() => {
       expect(screen.getByText('Priced gallery')).toBeInTheDocument();
       expect(screen.getByLabelText('Free photos')).toHaveValue(2);
-      expect(screen.getByLabelText('Price per extra photo')).toHaveValue(9.5);
+      expect(screen.getByLabelText(/Price per extra photo/)).toHaveValue(9.5);
       expect(screen.getByLabelText('Access days')).toHaveValue(14);
     });
   });

@@ -13,8 +13,10 @@ const { getBcryptRounds } = require('../utils/passwordValidation');
 const { getAbsoluteFrontendUrl } = require('../utils/frontendUrl');
 const { queueEmail } = require('./emailProcessor');
 const logger = require('../utils/logger');
+const { accountCreditName } = require('./photoCredit');
 const { ConflictError, NotFoundError, ValidationError, ForbiddenError } = require('../utils/errors');
 const { hasColumnCached } = require('../utils/schemaCache');
+const { capabilityTokenColumns, digestCapabilityToken } = require('../utils/capabilityToken');
 
 /**
  * Create a new admin user invitation
@@ -72,7 +74,7 @@ async function createInvitation({ email, roleId, invitedById, inviterRoleName })
 
   const [invitationId] = await db('admin_invitations').insert({
     email,
-    token,
+    ...capabilityTokenColumns(token),
     role_id: roleId,
     invited_by: invitedById,
     expires_at: expiresAt,
@@ -114,7 +116,7 @@ async function createInvitation({ email, roleId, invitedById, inviterRoleName })
  */
 async function acceptInvitation({ token, username, password }) {
   const invitation = await db('admin_invitations')
-    .where('token', token)
+    .where('token_digest', digestCapabilityToken(token))
     .whereNull('accepted_at')
     .where('expires_at', '>', new Date())
     .first();
@@ -142,6 +144,15 @@ async function acceptInvitation({ token, username, password }) {
 
   // Create user in transaction
   const result = await db.transaction(async (trx) => {
+    // Claim before creating the account. Concurrent submissions may both read
+    // the pending row above, but only one conditional update can consume it.
+    const claimed = await trx('admin_invitations')
+      .where('id', invitation.id)
+      .whereNull('accepted_at')
+      .where('expires_at', '>', new Date())
+      .update({ accepted_at: new Date() });
+    if (claimed !== 1) throw new ValidationError('Invalid or expired invitation');
+
     const [userId] = await trx('admin_users').insert({
       username,
       email: invitation.email,
@@ -161,7 +172,6 @@ async function acceptInvitation({ token, username, password }) {
     await trx('admin_invitations')
       .where('id', invitation.id)
       .update({
-        accepted_at: new Date(),
         accepted_user_id: id
       });
 
@@ -207,6 +217,10 @@ async function getAllAdminUsers() {
   if (await hasColumnCached('admin_users', 'email_link_eligible')) {
     columns.push('admin_users.email_link_eligible');
   }
+  // Photo credit for the account's uploads (issue 743, migration 269).
+  if (await hasColumnCached('admin_users', 'credit_name')) {
+    columns.push('admin_users.credit_name');
+  }
   return db('admin_users')
     .leftJoin('roles', 'roles.id', 'admin_users.role_id')
     .leftJoin('admin_users as creator', 'creator.id', 'admin_users.created_by')
@@ -235,6 +249,10 @@ async function getAdminUserById(id) {
   ];
   if (await hasColumnCached('admin_users', 'email_link_eligible')) {
     columns.push('admin_users.email_link_eligible');
+  }
+  // Photo credit for the account's uploads (issue 743, migration 269).
+  if (await hasColumnCached('admin_users', 'credit_name')) {
+    columns.push('admin_users.credit_name');
   }
   const user = await db('admin_users')
     .leftJoin('roles', 'roles.id', 'admin_users.role_id')
@@ -373,6 +391,14 @@ async function updateAdminUser(id, updates, updatedById, requestingAdmin = {}) {
     allowedUpdates.role_id = updates.role_id;
   }
 
+  // The name the account's uploads are credited with when a file carries no
+  // EXIF name (issue 743).
+  if (updates.credit_name !== undefined && await hasColumnCached('admin_users', 'credit_name')) {
+    const credit = accountCreditName(updates.credit_name);
+    if (credit.error) throw new ValidationError(credit.error);
+    allowedUpdates.credit_name = credit.value;
+  }
+
   allowedUpdates.updated_at = new Date();
 
   const write = db('admin_users').where('id', id);
@@ -405,6 +431,36 @@ async function assertMayManageSuperAdminTarget(target, actorId) {
     .first('roles.name as role_name');
   if (!actor || actor.role_name !== 'super_admin') {
     throw new ForbiddenError('Only Super Admins can modify a Super Admin account');
+  }
+}
+
+async function isSuperAdminActor(actorId) {
+  const actor = await db('admin_users')
+    .leftJoin('roles', 'roles.id', 'admin_users.role_id')
+    .where('admin_users.id', actorId)
+    .first('roles.name as role_name');
+  return Boolean(actor && actor.role_name === 'super_admin');
+}
+
+/**
+ * A non-super actor only reaches roles whose permissions it holds itself —
+ * the containment createInvitation / updateAdminUser apply when GRANTING a
+ * role, applied here to the accounts and invitations that already carry it
+ * (delete, cancel). super_admin bypasses; a super_admin role is out of reach
+ * for everyone else.
+ */
+async function assertActorReachesRole(actorId, roleId, message) {
+  if (!roleId || await isSuperAdminActor(actorId)) return;
+  const role = await db('roles').where('id', roleId).first();
+  if (!role) return;
+  if (role.name === 'super_admin') throw new ForbiddenError(message);
+  const rolePermissions = await db('role_permissions')
+    .join('permissions', 'permissions.id', 'role_permissions.permission_id')
+    .where('role_permissions.role_id', roleId)
+    .pluck('permissions.name');
+  const { userHasAllPermissions } = require('../middleware/permissions');
+  if (rolePermissions.length > 0 && !(await userHasAllPermissions(actorId, rolePermissions))) {
+    throw new ForbiddenError(message);
   }
 }
 
@@ -546,14 +602,49 @@ async function deleteAdminUser(id, deletedById) {
   // super_admin, so their specific message survives.
   await assertMayManageSuperAdminTarget(user, deletedById);
 
+  // A delegated users.delete holder only reaches accounts within its own
+  // permissions, and never one that still owns events or projects: the FK
+  // rules below SET NULL the owner column, and ownerless rows are readable
+  // by every admin (middleware/ownership.js), so deleting the owner would
+  // hand their galleries to the deleting admin. A super_admin, who sees
+  // every event anyway, may still delete such an account.
+  await assertActorReachesRole(deletedById, user.role_id,
+    'You can only delete accounts whose role is within your own permissions');
+  if (!(await isSuperAdminActor(deletedById))) {
+    const owned = await db('events').where('created_by', id).count('id as count').first();
+    let ownedProjects = 0;
+    if (await hasColumnCached('projects', 'created_by')) {
+      ownedProjects = Number((await db('projects').where('created_by', id).count('id as count').first())?.count) || 0;
+    }
+    if (Number(owned?.count) > 0 || ownedProjects > 0) {
+      throw new ConflictError('This user still owns events or projects. Only a Super Admin can delete the account.');
+    }
+  }
+
   // Hard delete. FK ON DELETE rules in core migrations handle cascade:
   //   SET NULL on created_by_admin_id everywhere (events, photos,
   //     quotes, invoices, contracts, etc.)
   //   CASCADE on api_tokens.user_id, admin_invitations.invited_by,
   //     customer_invitations.invited_by (drops pending tokens + invites
   //     this user issued)
-  await deleteWithAccountingHistory(db, 'admin_users', { id },
-    { actor: deletedById, source: 'admin_user.delete' });
+  // The bell dismissals this admin recorded (migration 261): CASCADE on
+  // PostgreSQL, explicit for SQLite, which runs without PRAGMA foreign_keys —
+  // in the same transaction as the account, so a refused delete (a NO ACTION
+  // FK still pointing at the user) leaves their bell state intact.
+  // Their gallery assignments (migration 269) the same way: CASCADE, SET NULL
+  // on assigned_by and on the photos they uploaded.
+  await db.transaction(async (trx) => {
+    await trx('notification_dismissals').where('admin_id', id).del();
+    if (await trx.schema.hasTable('event_admin_assignments')) {
+      await trx('event_admin_assignments').where('admin_user_id', id).del();
+      await trx('event_admin_assignments').where('assigned_by', id).update({ assigned_by: null });
+    }
+    if (await trx.schema.hasColumn('photos', 'uploaded_by_admin_id')) {
+      await trx('photos').where('uploaded_by_admin_id', id).update({ uploaded_by_admin_id: null });
+    }
+    await deleteWithAccountingHistory(trx, 'admin_users', { id },
+      { actor: deletedById, source: 'admin_user.delete' });
+  });
 
   await logActivity('admin_user_deleted',
     { userId: id, username: user.username, email: user.email },
@@ -652,7 +743,23 @@ async function cancelInvitation(id, cancelledById) {
     throw new NotFoundError('Invitation', id);
   }
 
-  await db('admin_invitations').where('id', id).del();
+  // An accepted invitation is the provenance of an admin account; it stays.
+  if (invitation.accepted_at) {
+    throw new ConflictError('This invitation has already been accepted');
+  }
+
+  // Same ceiling as createInvitation: a non-super actor cannot cancel an
+  // invitation into super_admin or into a role carrying permissions it lacks.
+  await assertActorReachesRole(cancelledById, invitation.role_id,
+    'You can only cancel invitations to roles within your own permissions');
+
+  const cancelled = await db('admin_invitations')
+    .where('id', id)
+    .whereNull('accepted_at')
+    .del();
+  if (cancelled !== 1) {
+    throw new ConflictError('This invitation has already been accepted');
+  }
 
   await logActivity('admin_invitation_cancelled',
     { invitationId: id, email: invitation.email },
@@ -671,7 +778,7 @@ async function cancelInvitation(id, cancelledById) {
 async function validateInvitationToken(token) {
   const invitation = await db('admin_invitations')
     .join('roles', 'roles.id', 'admin_invitations.role_id')
-    .where('admin_invitations.token', token)
+    .where('admin_invitations.token_digest', digestCapabilityToken(token))
     .whereNull('admin_invitations.accepted_at')
     .where('admin_invitations.expires_at', '>', new Date())
     .select(
@@ -692,7 +799,7 @@ async function validateInvitationToken(token) {
 // System roles that ship with the app. Their `name` (the semantic key routes
 // check) is immutable and they cannot be deleted; their display/description and
 // (except super_admin) their permission set may be tweaked.
-const RESERVED_ROLE_NAMES = ['super_admin', 'admin', 'editor', 'viewer', 'solo_photographer', 'team_photographer'];
+const RESERVED_ROLE_NAMES = ['super_admin', 'admin', 'editor', 'viewer', 'solo_photographer', 'team_photographer', 'customer_support'];
 
 function clearPermCache() {
   // Bust the RBAC middleware cache so grant changes take effect immediately

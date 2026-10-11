@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Input } from '../common';
 import type { FilterType, FeedbackFilterType } from './GalleryFilter';
 import { ColorLabelFilterChips } from './ColorLabelFilterChips';
+import { MinRatingFilterChips } from './MinRatingFilterChips';
 import type { ColorLabel } from '../../services/feedback.service';
 
 interface PhotoCategory {
@@ -48,6 +49,12 @@ interface PhotoFilterBarProps {
   activeColorFilters?: ColorLabel[];
   onColorFilterChange?: (color: ColorLabel) => void;
   colorLabelCounts?: Partial<Record<ColorLabel, number>>;
+  // Minimum own-rating filter (issue 1733, A3c). Rendered only while ratings
+  // are on for the event — the same switch as the tile's star control.
+  ratingsEnabled?: boolean;
+  minRating?: number | null;
+  onMinRatingChange?: (minRating: number | null) => void;
+  minRatingCounts?: Partial<Record<number, number>>;
 }
 
 export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
@@ -71,7 +78,11 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
   colorLabelsEnabled = false,
   activeColorFilters = [],
   onColorFilterChange,
-  colorLabelCounts = {}
+  colorLabelCounts = {},
+  ratingsEnabled = false,
+  minRating = null,
+  onMinRatingChange,
+  minRatingCounts = {}
 }) => {
   const { t } = useTranslation();
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -84,9 +95,10 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
         {/* Search Bar */}
         <div className="flex-1">
           <Input
+            themed
             type="text"
             placeholder={t('gallery.searchPhotos')}
-            leftIcon={<Search className="w-5 h-5 text-neutral-400" />}
+            leftIcon={<Search className="w-5 h-5 text-muted-theme" />}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="text-sm md:text-base"
@@ -114,14 +126,14 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
           </Button>
           
           {showSortMenu && (
-            <div className="absolute right-0 md:right-auto md:left-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-surface py-1 z-10">
+            <div className="absolute right-0 md:right-auto md:left-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border-token py-1 z-10">
               <button
                 onClick={() => {
                   onSortChange('date');
                   setShowSortMenu(false);
                 }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-black/10 ${
-                  sortBy === 'date' ? 'bg-accent-dark text-white' : 'text-muted-theme'
+                className={`w-full text-left px-4 py-2 text-sm hover-surface ${
+                  sortBy === 'date' ? 'bg-accent-dark text-accent-fg' : 'text-muted-theme'
                 }`}
               >
                 {t('gallery.sortByDate')}
@@ -131,8 +143,8 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
                   onSortChange('capture_date');
                   setShowSortMenu(false);
                 }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-black/10 ${
-                  sortBy === 'capture_date' ? 'bg-accent-dark text-white' : 'text-muted-theme'
+                className={`w-full text-left px-4 py-2 text-sm hover-surface ${
+                  sortBy === 'capture_date' ? 'bg-accent-dark text-accent-fg' : 'text-muted-theme'
                 }`}
               >
                 {t('photoSort.dateTaken', 'Date Taken')}
@@ -142,8 +154,8 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
                   onSortChange('name');
                   setShowSortMenu(false);
                 }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-black/10 ${
-                  sortBy === 'name' ? 'bg-accent-dark text-white' : 'text-muted-theme'
+                className={`w-full text-left px-4 py-2 text-sm hover-surface ${
+                  sortBy === 'name' ? 'bg-accent-dark text-accent-fg' : 'text-muted-theme'
                 }`}
               >
                 {t('gallery.sortByName')}
@@ -153,8 +165,8 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
                   onSortChange('size');
                   setShowSortMenu(false);
                 }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-black/10 ${
-                  sortBy === 'size' ? 'bg-accent-dark text-white' : 'text-muted-theme'
+                className={`w-full text-left px-4 py-2 text-sm hover-surface ${
+                  sortBy === 'size' ? 'bg-accent-dark text-accent-fg' : 'text-muted-theme'
                 }`}
               >
                 {t('gallery.sortBySize')}
@@ -164,8 +176,8 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
                   onSortChange('rating');
                   setShowSortMenu(false);
                 }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-black/10 ${
-                  sortBy === 'rating' ? 'bg-accent-dark text-white' : 'text-muted-theme'
+                className={`w-full text-left px-4 py-2 text-sm hover-surface ${
+                  sortBy === 'rating' ? 'bg-accent-dark text-accent-fg' : 'text-muted-theme'
                 }`}
               >
                 {t('gallery.sortByRating', 'Sort by Rating')}
@@ -173,14 +185,14 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
 
               {/* Sort direction (#889) */}
               {onSortDescChange && (
-                <div className="border-t border-surface mt-1 pt-1">
+                <div className="border-t border-border-token mt-1 pt-1">
                   <button
                     onClick={() => {
                       onSortDescChange(false);
                       setShowSortMenu(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-black/10 flex items-center gap-2 ${
-                      !sortDesc ? 'bg-accent-dark text-white' : 'text-muted-theme'
+                    className={`w-full text-left px-4 py-2 text-sm hover-surface flex items-center gap-2 ${
+                      !sortDesc ? 'bg-accent-dark text-accent-fg' : 'text-muted-theme'
                     }`}
                   >
                     <SortAsc className="w-4 h-4" />
@@ -191,8 +203,8 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
                       onSortDescChange(true);
                       setShowSortMenu(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-black/10 flex items-center gap-2 ${
-                      sortDesc ? 'bg-accent-dark text-white' : 'text-muted-theme'
+                    className={`w-full text-left px-4 py-2 text-sm hover-surface flex items-center gap-2 ${
+                      sortDesc ? 'bg-accent-dark text-accent-fg' : 'text-muted-theme'
                     }`}
                   >
                     <SortDesc className="w-4 h-4" />
@@ -213,7 +225,10 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
             no feedback filter at all on desktop (#802 — the lg:hidden
             fallback block below only covers mobile/tablet). */}
         {((categories && categories.length > 0) || (feedbackEnabled && !!onFilterChange)) && (
-          <div className="flex items-start lg:items-center justify-between flex-col lg:flex-row gap-3">
+          // lg:flex-wrap: with feedback, colour labels and five rating chips
+          // all on, the fixed-width groups exceed the container at 1024px, and
+          // the global overflow-x: hidden would clip them off-screen.
+          <div className="flex items-start lg:items-center justify-between flex-col lg:flex-row lg:flex-wrap gap-3">
             {/* Categories: keep in a horizontal scroll container */}
             {categories && categories.length > 0 && (
               <div className="w-full overflow-x-auto pb-2 lg:pb-0">
@@ -310,6 +325,16 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
                 activeColors={activeColorFilters}
                 onToggle={onColorFilterChange}
                 counts={colorLabelCounts}
+              />
+            )}
+
+            {/* Own-rating filter (issue 1733), desktop */}
+            {feedbackEnabled && ratingsEnabled && onMinRatingChange && (
+              <MinRatingFilterChips
+                className="hidden lg:flex"
+                minRating={minRating}
+                onChange={onMinRatingChange}
+                counts={minRatingCounts}
               />
             )}
 
@@ -419,6 +444,16 @@ export const PhotoFilterBar: React.FC<PhotoFilterBarProps> = ({
             activeColors={activeColorFilters}
             onToggle={onColorFilterChange}
             counts={colorLabelCounts}
+          />
+        )}
+
+        {/* Own-rating filter (issue 1733), mobile/tablet */}
+        {feedbackEnabled && ratingsEnabled && onMinRatingChange && (
+          <MinRatingFilterChips
+            className="flex lg:hidden"
+            minRating={minRating}
+            onChange={onMinRatingChange}
+            counts={minRatingCounts}
           />
         )}
       </div>

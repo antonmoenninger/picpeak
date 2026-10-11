@@ -10,6 +10,7 @@ import { PhotoLightbox } from './PhotoLightbox';
 import { Button, AuthenticatedImage } from '../common';
 import { galleryService } from '../../services/gallery.service';
 import { analyticsService } from '../../services/analytics.service';
+import { hasVideoItems, selectLabel } from '../../utils/mediaCounts';
 
 interface PhotoGridProps {
   photos: Photo[];
@@ -136,7 +137,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
               title={t('gallery.selectPhotosHint')}
               className="text-xs sm:text-sm"
             >
-              {isSelectionMode ? t('gallery.cancelSelection') : t('gallery.selectPhotos')}
+              {isSelectionMode ? t('gallery.cancelSelection') : selectLabel(t, hasVideoItems(photos))}
             </Button>
             {!isSelectionMode && (
               <Button
@@ -268,13 +269,7 @@ const PhotoThumbnail: React.FC<PhotoThumbnailProps> = ({
             slug={slug}
             onProtectionViolation={(violationType) => {
               // Track analytics
-              if (typeof window !== 'undefined' && (window as any).umami) {
-                (window as any).umami.track('thumbnail_protection_violation', {
-                  photoId: photo.id,
-                  violationType,
-                  protectionLevel
-                });
-              }
+              analyticsService.track('thumbnail_protection_violation', { violationType, protectionLevel });
             }}
           />
           
@@ -289,7 +284,7 @@ const PhotoThumbnail: React.FC<PhotoThumbnailProps> = ({
               )}
               {(photo.average_rating ?? 0) > 0 && (
                 <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1" title={`Rating: ${Number(photo.average_rating ?? 0).toFixed(1)}`}>
-                  <Star className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" />
+                  <Star className="w-3.5 h-3.5 text-rating" fill="currentColor" />
                   <span className="text-xs font-medium text-muted-theme">{Number(photo.average_rating ?? 0).toFixed(1)}</span>
                 </div>
               )}
@@ -361,7 +356,7 @@ const PhotoThumbnail: React.FC<PhotoThumbnailProps> = ({
           </div>
         </>
       ) : (
-        <div className="skeleton aspect-square w-full" />
+        <div className="skeleton bg-border-token aspect-square w-full" />
       )}
     </div>
   );

@@ -1,6 +1,9 @@
 import type { GuestNameMode } from '../../../types';
 
-export type EventDetailsTab = 'overview' | 'photos' | 'categories' | 'guests' | 'orders';
+// 'guests' is "Guests & Feedback". Categories live in the Photos tab; an old
+// ?tab=categories link opens Photos with the categories panel. 'orders' is
+// the photo-sales purchase overview for priced galleries.
+export type EventDetailsTab = 'overview' | 'photos' | 'guests' | 'orders' | 'settings';
 
 export type EditFormState = {
   welcome_message: string;
@@ -68,60 +71,3 @@ export type EditFormState = {
   og_image_share_enabled: boolean;
 };
 
-export const INITIAL_EDIT_FORM: EditFormState = {
-  welcome_message: '',
-  color_theme: '',
-  css_template_id: null,
-  expires_at: '',
-  allow_user_uploads: false,
-  reveal_mode: false,
-  reveal_at: '',
-  upload_category_id: null,
-  guest_name_mode: 'off',
-  show_credits_to_guests: false,
-  hero_photo_id: null,
-  customer_name: '',
-  customer_email: '',
-  customer_phone: '',
-  source_mode: 'managed',
-  external_path: '',
-  external_watch: false,
-  require_password: true,
-  new_password: '',
-  confirm_new_password: '',
-  // Download protection settings
-  protection_level: 'standard',
-  disable_right_click: true,
-  allow_downloads: true,
-  watermark_downloads: false,
-  enable_devtools_protection: true,
-  use_canvas_rendering: false,
-  // Hero logo settings — null = inherit global branding toggle (#756)
-  hero_logo_visible: null,
-  hero_logo_size: null,
-  hero_logo_position: 'top',
-  login_logo_visible: null,
-  // Hero image anchor position (#162)
-  hero_image_anchor: 'center',
-  // Photo cap
-  photo_cap: 0,
-  download_limit: 0,
-  // Default photo sort
-  default_photo_sort: 'upload_date_desc',
-  // Photo sales pricing defaults stay disabled unless the admin opts in.
-  is_priced: false,
-  free_photo_count: 0,
-  photo_price: 0,
-  purchase_access_days: 30,
-  // Per-event promotional override (#440)
-  promo_mode: 'inherit',
-  promo_markdown: '',
-  info_mode: 'inherit',
-  info_markdown: '',
-  // Customer accounts (#354) — hydrated from event response.
-  customer_accounts: [],
-  // Per-event social-share opt-in (#474). Default false everywhere
-  // so a freshly opened editor never displays "on" against the saved
-  // (off) state.
-  og_image_share_enabled: false,
-};

@@ -29,7 +29,7 @@ async function deleteEventCascade(eventId, adminContext) {
   const tieredPhotos = await db('photos')
     .where('event_id', eventId)
     .select('id', 'path', 'filename', 'source_origin', 'external_relpath',
-      'thumbnail_path', 'hero_path', 'preview_path', 'watermark_path');
+      'thumbnail_path', 'hero_path', 'preview_path', 'watermark_path', 'web_path');
 
   // A Set because a photo can carry the same key in two columns (an unresized
   // gallery's hero and preview can resolve to one object) and deleting it
@@ -54,7 +54,7 @@ async function deleteEventCascade(eventId, adminContext) {
       }
       // Derived tiers are stored as canonical keys and pass through verbatim,
       // the same list adminPhotoDimensions.js:801 sweeps on a re-render.
-      for (const derived of [photo.thumbnail_path, photo.hero_path, photo.preview_path, photo.watermark_path]) {
+      for (const derived of [photo.thumbnail_path, photo.hero_path, photo.preview_path, photo.watermark_path, photo.web_path]) {
         if (derived) {
           storageKeys.add(derived);
           derivedKeys.add(derived);
@@ -87,10 +87,11 @@ async function deleteEventCascade(eventId, adminContext) {
           .whereIn('thumbnail_path', chunk)
           .orWhereIn('hero_path', chunk)
           .orWhereIn('preview_path', chunk)
-          .orWhereIn('watermark_path', chunk))
-        .select('thumbnail_path', 'hero_path', 'preview_path', 'watermark_path');
+          .orWhereIn('watermark_path', chunk)
+          .orWhereIn('web_path', chunk))
+        .select('thumbnail_path', 'hero_path', 'preview_path', 'watermark_path', 'web_path');
       for (const row of shared) {
-        for (const key of [row.thumbnail_path, row.hero_path, row.preview_path, row.watermark_path]) {
+        for (const key of [row.thumbnail_path, row.hero_path, row.preview_path, row.watermark_path, row.web_path]) {
           if (key && derivedKeys.has(key)) storageKeys.delete(key);
         }
       }
@@ -155,7 +156,17 @@ async function deleteEventCascade(eventId, adminContext) {
     if (trx.client.config.client === 'pg') {
       await trx('events').where({ id: eventId }).forUpdate().first();
     }
-    // 1. Delete activity logs (audit trail)
+    // 1. Delete activity logs (audit trail) — and the per-admin bell
+    // dismissals that point at them (migration 261). On PostgreSQL the FK
+    // cascade removes them with the activity rows; deleting them first here
+    // would take the locks in the opposite order to the download-summary
+    // bump (activity row, then its dismissals) and could deadlock with it.
+    // SQLite runs without PRAGMA foreign_keys, so there it is explicit.
+    if (trx.client.config.client !== 'pg') {
+      await trx('notification_dismissals')
+        .whereIn('activity_log_id', trx('activity_logs').where('event_id', eventId).select('id'))
+        .del();
+    }
     await trx('activity_logs').where('event_id', eventId).del();
     // 2. Delete access logs
     await trx('access_logs').where('event_id', eventId).del();
@@ -180,6 +191,10 @@ async function deleteEventCascade(eventId, adminContext) {
     // Download-limit grants (issue 1560): the same inert-cascade reason.
     if (await trx.schema.hasTable('event_download_grants')) {
       await trx('event_download_grants').where('event_id', eventId).del();
+    }
+    // Team assignments (migration 269): the same inert-cascade reason.
+    if (await trx.schema.hasTable('event_admin_assignments')) {
+      await trx('event_admin_assignments').where('event_id', eventId).del();
     }
     // feedback_rate_limits.event_id is also ON DELETE CASCADE (#1585), same
     // SQLite caveat as photo_faces above — delete explicitly so an event's

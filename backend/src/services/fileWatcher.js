@@ -1,7 +1,8 @@
 const chokidar = require('chokidar');
 const path = require('path');
 const fs = require('fs').promises;
-const sharp = require('sharp');
+const sharp = require('./isolatedSharp');
+const { retryTransient } = require('./imageResourcePolicy');
 const { resolveCredit } = require('./photoCredit');
 const pLimit = require('p-limit');
 const { db } = require('../database/db');
@@ -84,7 +85,8 @@ function startFileWatcher() {
 
   watcher
     .on('add', (filePath) => {
-      enqueue(() => processNewPhoto(filePath)).catch((error) => {
+      // A busy image worker is asked again: nothing re-announces this file.
+      enqueue(() => retryTransient(() => processNewPhoto(filePath))).catch((error) => {
         logger.error('Error processing new photo:', error);
       });
     })
@@ -174,6 +176,7 @@ async function processNewPhoto(filePath) {
         dimensions = { width: dims.width, height: dims.height };
       }
     } catch (err) {
+      if (require('./imageResourcePolicy').isResourceError(err)) throw err;
       logger.debug(`Could not read image dimensions for ${filename}: ${err.message}`);
     }
   }
@@ -200,6 +203,10 @@ async function processNewPhoto(filePath) {
     // Credit from the file's EXIF (#1561). Only for a row about to be created,
     // so a re-sweep of an imported folder reads nothing.
     const credit = await resolveCredit({ localPath: filePath, isVideo });
+    // Browser-playable copy (issue 1430): a video the watcher picks up is
+    // queued like an uploaded one while the setting is on; otherwise it would
+    // wait for the next switch-on backfill. No transaction is open here.
+    const webCopyEnabled = isVideo && await require('./videoRenditionService').isEnabled();
 
     // Add to database
     const insertResult = await db('photos').insert({
@@ -215,6 +222,7 @@ async function processNewPhoto(filePath) {
       size_bytes: stats.size,
       mime_type: mimeType,
       ...(dimensions && { width: dimensions.width, height: dimensions.height }),
+      ...(webCopyEnabled ? { web_status: 'pending' } : {}),
       ...credit
     }).returning('id');
     const photoId = insertResult[0]?.id || insertResult[0];

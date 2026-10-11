@@ -1,9 +1,10 @@
 import { usePhotoSelection } from '../../../hooks/usePhotoSelection';
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Download, Maximize2, Play, Pause, Heart, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Maximize2, Play, Pause, Heart, MessageSquare, Sparkles } from 'lucide-react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { AuthenticatedImage, Button } from '../../common';
 import { ColorLabelBadge } from '../ColorLabelBadge';
+import { useGalleryTileBadges } from '../GalleryTileBadges';
 import type { BaseGalleryLayoutProps } from './BaseGalleryLayout';
 import { FeedbackIdentityModal } from '../../gallery/FeedbackIdentityModal';
 import { feedbackService } from '../../../services/feedback.service';
@@ -71,6 +72,10 @@ export const CarouselGalleryLayout: React.FC<BaseGalleryLayoutProps> = ({
   const guestIdentity = useGuestIdentityOptional();
   // Download limit (issue 1560); see PhotoCard for why aria-disabled.
   const downloadQuota = useDownloadQuota();
+  // First look (issue 1562) and the "All photos" folder hint (issue 1786)
+  // ride in the chip row next to the category: this layout's corners are
+  // all taken (see the colour-label note below).
+  const tileBadges = useGalleryTileBadges();
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
   // Seed from server is_liked on first non-empty payload (#590 follow-up).
   // Mount-only so refetches don't clobber in-session optimistic toggles.
@@ -106,6 +111,7 @@ export const CarouselGalleryLayout: React.FC<BaseGalleryLayoutProps> = ({
         <ColorLabelBadge
           colorLabel={currentPhoto.my_color_label}
           otherColorLabels={currentPhoto.other_color_labels}
+          decision={currentPhoto.my_decision}
           position="bottom-4 left-4"
         />
 
@@ -137,6 +143,17 @@ export const CarouselGalleryLayout: React.FC<BaseGalleryLayoutProps> = ({
             {currentPhoto.category_name && (
               <span className="px-3 py-1 bg-black/50 text-white rounded-full text-sm">
                 {currentPhoto.category_name}
+              </span>
+            )}
+            {tileBadges.folderNameOf && tileBadges.folderNameOf(currentPhoto) && (
+              <span className="px-3 py-1 bg-black/50 text-white rounded-full text-sm max-w-[10rem] truncate">
+                {tileBadges.folderNameOf(currentPhoto)}
+              </span>
+            )}
+            {currentPhoto.first_look && tileBadges.firstLookLabel && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-white/90 text-neutral-800 rounded-full text-sm">
+                <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                {tileBadges.firstLookLabel}
               </span>
             )}
           </div>
@@ -225,7 +242,7 @@ export const CarouselGalleryLayout: React.FC<BaseGalleryLayoutProps> = ({
                     console.warn('Like submit failed, keeping optimistic UI', err);
                   }
                 }}
-                className={`bg-black/30 hover:bg-black/50 rounded-full border border-white/40 ${likedIds.has(currentPhoto.id) ? 'text-red-400' : 'text-white'}`}
+                className={`bg-black/30 hover:bg-black/50 rounded-full border border-white/40 ${likedIds.has(currentPhoto.id) ? 'text-danger' : 'text-white'}`}
                 title="Like photo"
                 aria-pressed={likedIds.has(currentPhoto.id)}
               >
@@ -271,7 +288,7 @@ export const CarouselGalleryLayout: React.FC<BaseGalleryLayoutProps> = ({
                 onClick={() => setCurrentIndex(index)}
                 className={`relative flex-shrink-0 w-20 h-20 rounded overflow-hidden transition-all ${
                   index === currentIndex 
-                    ? 'ring-2 ring-primary-600 scale-110' 
+                    ? 'ring-2 ring-accent scale-110' 
                     : 'opacity-70 hover:opacity-100'
                 }`}
               >
@@ -289,6 +306,7 @@ export const CarouselGalleryLayout: React.FC<BaseGalleryLayoutProps> = ({
                 <ColorLabelBadge
                   colorLabel={photo.my_color_label}
                   otherColorLabels={photo.other_color_labels}
+                  decision={photo.my_decision}
                   size="sm"
                   position="top-1 left-1"
                 />

@@ -1,4 +1,5 @@
 const { isGalleryExpired } = require('../../utils/galleryLifecycle');
+const { publicThemeFields } = require('../../services/galleryTheme');
 const express = require('express');
 const { db } = require('../../database/db');
 const { formatBoolean } = require('../../utils/dbCompat');
@@ -13,6 +14,7 @@ const { getEventShareToken, resolveShareIdentifier, buildShareLinkVariants } = r
 const { handleAsync, errorResponse } = require('../../utils/routeHelpers');
 const { isGalleryHidden } = require('../../utils/revealMode');
 const { NotFoundError } = require('../../utils/errors');
+const { toDateOnly } = require('../../utils/dateOnly');
 async function checkSlugRedirect(slug) {
   try {
     const hasTable = await db.schema.hasTable('slug_redirects');
@@ -181,6 +183,8 @@ router.get('/:slug/info', async (req, res) => {
         'watermark_text',
         'require_password',
         'color_theme',
+        'custom_theme_enabled',
+        'css_template_id',
         'enable_devtools_protection',
         'use_canvas_rendering',
         'hero_logo_visible',
@@ -251,15 +255,16 @@ router.get('/:slug/info', async (req, res) => {
     const globalHeroLogoVisible = await getAppSetting('branding_logo_display_hero', true);
     const globalLogoSize = await getAppSetting('branding_logo_size', 'medium');
 
+    const theme = await publicThemeFields(event);
     res.json({
       event_name: event.event_name,
       event_type: event.event_type,
-      event_date: event.event_date,
+      event_date: toDateOnly(event.event_date),
       expires_at: event.expires_at,
       is_active: event.is_active,
       is_expired: !event.is_active || isGalleryExpired(event),
       requires_password: requiresPassword,
-      color_theme: event.color_theme,
+      color_theme: theme.color_theme,
       allow_downloads: !(event.allow_downloads === false || event.allow_downloads === 0 || event.allow_downloads === '0'),
       is_priced: event.is_priced === true || event.is_priced === 1 || event.is_priced === '1',
       free_photo_count: Number(event.free_photo_count || 0),
@@ -283,8 +288,8 @@ router.get('/:slug/info', async (req, res) => {
       hero_logo_size: event.hero_logo_size || globalLogoSize || 'medium',
       hero_logo_position: event.hero_logo_position || 'top',
       hero_logo_url: event.hero_logo_url || null,
-      header_style: event.header_style || 'standard',
-      hero_divider_style: event.hero_divider_style || 'wave',
+      header_style: theme.header_style,
+      hero_divider_style: theme.hero_divider_style,
       hero_image_anchor: event.hero_image_anchor || 'center',
       default_photo_sort: event.default_photo_sort || 'upload_date_desc',
       // Per-event promotional override (#440). Frontend resolves

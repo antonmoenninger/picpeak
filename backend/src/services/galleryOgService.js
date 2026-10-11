@@ -1,8 +1,11 @@
 const { db } = require('../database/db');
 const logger = require('../utils/logger');
 const { ensureThumbnail } = require('./imageProcessor');
+const { isPresentationRenditionKey } = require('./galleryAssetPolicy');
 const { getStorage } = require('./storage');
 const { getAbsoluteFrontendUrl } = require('../utils/frontendUrl');
+const { isGalleryAvailable } = require('../utils/galleryLifecycle');
+const { isPotentialShareToken } = require('../utils/shareLinkUtils');
 
 const SOCIAL_CRAWLER_PATTERNS = [
   /facebookexternalhit/i,
@@ -122,7 +125,9 @@ async function resolveSlug(slug) {
   // would otherwise route here with `slug=<token>`, fail the slug
   // lookup, and serve the fallback site-wide OG — which is what
   // alex hit when he ran the Cloudflare Worker as a workaround.
-  if (/^[a-f0-9]{32}$/i.test(slug)) {
+  // Same token shape as everywhere else (32 hex, or 64 from an older quote
+  // or contract conversion): shareLinkUtils.isPotentialShareToken.
+  if (isPotentialShareToken(slug)) {
     event = await db('events').where('share_token', slug).first();
     if (event) return event;
   }
@@ -169,19 +174,12 @@ async function formatEventDate(value) {
   }
 }
 
-// Draft, archived and deactivated galleries are refused by /info; the OG
-// preview must not leak their name, date and welcome message to crawlers.
-function isPubliclyVisible(event) {
-  if (!event) return false;
-  const truthy = (v) => v === true || v === 1 || v === '1' || v === 'true';
-  if (truthy(event.is_draft) || truthy(event.is_archived)) return false;
-  if (event.is_active === false || event.is_active === 0 || event.is_active === '0') return false;
-  return true;
-}
-
+// Draft, archived, deactivated and expired galleries are refused by /info;
+// the OG preview must not leak their name, date and welcome message to
+// crawlers. Same predicate as gallery access, so the two never disagree.
 async function buildOgMetadata(slug, requestPath) {
   const resolved = await resolveSlug(slug);
-  const event = isPubliclyVisible(resolved) ? resolved : null;
+  const event = isGalleryAvailable(resolved) ? resolved : null;
   const branding = await fetchBranding();
   const base = await frontendBase();
   const siteName = branding.companyName || 'PicPeak';
@@ -229,6 +227,8 @@ async function buildOgMetadata(slug, requestPath) {
   if (event.og_image_share_enabled && event.hero_photo_id && !isGalleryHidden(event)) {
     const heroPhoto = await db('photos')
       .where({ id: event.hero_photo_id, event_id: event.id })
+      // Never a team upload still under review (issue 743).
+      .whereNull('moderation_status')
       .select('id', 'thumbnail_path')
       .first();
     if (heroPhoto && heroPhoto.thumbnail_path) {
@@ -253,6 +253,7 @@ function renderOgHtml(meta) {
   const i = escapeHtml(meta.image);
   const u = escapeHtml(meta.url);
   const s = escapeHtml(meta.siteName);
+  const l = escapeHtml(meta.linkLabel || 'View gallery');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -275,7 +276,7 @@ function renderOgHtml(meta) {
 <body>
   <h1>${t}</h1>
   <p>${d}</p>
-  <p><a href="${u}">View gallery</a></p>
+  <p><a href="${u}">${l}</a></p>
 </body>
 </html>`;
 }
@@ -322,21 +323,30 @@ async function handleGalleryOgCover(req, res) {
     }
     const event = await resolveSlug(slug);
     const { isGalleryHidden } = require('../utils/revealMode');
-    if (!event || !event.og_image_share_enabled || !event.hero_photo_id || isGalleryHidden(event)) {
+    // Lifecycle first: a draft, archived, deactivated or expired gallery has
+    // no public cover, however the opt-in is set.
+    if (!isGalleryAvailable(event) || !event.og_image_share_enabled || !event.hero_photo_id || isGalleryHidden(event)) {
       res.status(404).type('text/plain').send('Cover not available');
       return;
     }
 
     const photo = await db('photos')
       .where({ id: event.hero_photo_id, event_id: event.id })
+      .whereNull('moderation_status')
       .first();
     if (!photo) {
       res.status(404).type('text/plain').send('Cover not available');
       return;
     }
 
-    const thumbnailPath = await ensureThumbnail(photo);
-    if (!thumbnailPath) {
+    // This endpoint is public, so the row's pointer gets the same check as
+    // the gallery thumbnail route: a legacy-shaped one is rebuilt, and only a
+    // key in the thumbnail namespace is ever read.
+    let thumbnailPath = await ensureThumbnail(photo);
+    if (thumbnailPath && !isPresentationRenditionKey(thumbnailPath, 'thumbnail')) {
+      thumbnailPath = await ensureThumbnail({ ...photo, thumbnail_path: null }, { force: true });
+    }
+    if (!isPresentationRenditionKey(thumbnailPath, 'thumbnail')) {
       res.status(404).type('text/plain').send('Cover not available');
       return;
     }
@@ -375,6 +385,8 @@ async function handleGalleryOgCover(req, res) {
 
 module.exports = {
   isSocialCrawler,
+  fetchBranding,
+  absoluteUrl,
   buildOgMetadata,
   renderOgHtml,
   handleGalleryOgRequest,

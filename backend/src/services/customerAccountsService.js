@@ -13,13 +13,15 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { db, logActivity } = require('../database/db');
-const { formatBoolean } = require('../utils/dbCompat');
+const { formatBoolean, whereTimestamp } = require('../utils/dbCompat');
 const { getBcryptRounds } = require('../utils/passwordValidation');
 const { queueEmail } = require('./emailProcessor');
 const { auditedInsert, auditedUpdate, redactCustomerHistory } = require('./accountingHistory');
 const { getFrontendBaseUrl } = require('../utils/frontendUrl');
 const logger = require('../utils/logger');
 const { ConflictError, NotFoundError, ValidationError } = require('../utils/errors');
+const { capabilityTokenColumns, digestCapabilityToken } = require('../utils/capabilityToken');
+const { PROTECTED_PENDING_STATUS } = require('../utils/emailQueueEncryption');
 
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days, matches admin invites
 
@@ -161,7 +163,7 @@ async function createInvitation({ email, invitedById, prefill }) {
 
   const [insertedId] = await db('customer_invitations').insert({
     email: normalisedEmail,
-    token,
+    ...capabilityTokenColumns(token),
     invited_by: invitedById,
     expires_at: expiresAt,
     created_at: new Date(),
@@ -301,7 +303,7 @@ async function createDirect({ email, prefill, createdByAdminId, withinTransactio
  */
 async function acceptInvitation({ token, name, password, profile }) {
   const invitation = await db('customer_invitations')
-    .where('token', token)
+    .where('token_digest', digestCapabilityToken(token))
     .whereNull('accepted_at')
     .where('expires_at', '>', new Date())
     .first();
@@ -363,6 +365,20 @@ async function acceptInvitation({ token, name, password, profile }) {
   const preferredLanguage = merged.preferred_language || defaultPreferredLanguage;
 
   const customerId = await db.transaction(async (trx) => {
+    // Claim the invitation first. Two submissions of the same link both
+    // pass the read above before either commits; only the one whose
+    // conditional update affects the row may go on to set credentials.
+    // A concurrent cancellation (which deletes the row) also lands here
+    // as zero rows.
+    const claimed = await trx('customer_invitations')
+      .where('id', invitation.id)
+      .whereNull('accepted_at')
+      .where('expires_at', '>', new Date())
+      .update({ accepted_at: new Date().toISOString() });
+    if (claimed !== 1) {
+      throw new ValidationError('Invalid or expired invitation');
+    }
+
     let id;
     if (promoting) {
       // Promotion path: passive customer being claimed by the
@@ -400,9 +416,14 @@ async function acceptInvitation({ token, name, password, profile }) {
       overwriteIfSet('state');
       overwriteIfSet('country_code');
       if (merged.preferred_language) updates.preferred_language = merged.preferred_language;
-      await auditedUpdate(trx, 'customer_accounts', { id }, updates, {
+      // Still passive: a concurrent acceptance or an admin-set password
+      // since the read above must not be overwritten.
+      const promoted = await auditedUpdate(trx, 'customer_accounts', { id, password_hash: null }, updates, {
         actor: { type: 'customer', id }, source: 'customer.invitation.accept',
       });
+      if (promoted !== 1) {
+        throw new ConflictError('Email already registered', 'email');
+      }
     } else {
       const [inserted] = await auditedInsert(trx, 'customer_accounts', {
         email: invitation.email,
@@ -449,7 +470,7 @@ async function acceptInvitation({ token, name, password, profile }) {
 
     await trx('customer_invitations')
       .where('id', invitation.id)
-      .update({ accepted_at: new Date(), accepted_customer_id: id });
+      .update({ accepted_customer_id: id });
 
     return id;
   });
@@ -472,7 +493,7 @@ async function acceptInvitation({ token, name, password, profile }) {
 async function validateInvitationToken(token) {
   const invitation = await db('customer_invitations')
     .leftJoin('admin_users', 'admin_users.id', 'customer_invitations.invited_by')
-    .where('customer_invitations.token', token)
+    .where('customer_invitations.token_digest', digestCapabilityToken(token))
     .whereNull('customer_invitations.accepted_at')
     .where('customer_invitations.expires_at', '>', new Date())
     .select(
@@ -990,7 +1011,7 @@ async function eraseCustomer(id, erasedByAdminId) {
       if (emails.length > 0) {
         const candidates = await trx('email_queue')
           .whereRaw(`LOWER(recipient_email) IN (${emails.map(() => 'LOWER(?)').join(', ')})`, emails)
-          .whereIn('status', ['pending', 'sent', 'failed', 'cancelled'])
+          .whereIn('status', ['pending', PROTECTED_PENDING_STATUS, 'sent', 'failed', 'cancelled'])
           .select('id', 'recipient_email', 'email_data');
         signerQueueIds = candidates.filter((row) => {
           let data;
@@ -1010,7 +1031,8 @@ async function eraseCustomer(id, erasedByAdminId) {
       ? q.where((w) => forCustomer(w).orWhereIn('id', signerQueueIds))
       : forCustomer(q));
 
-    const cancelledQueueRows = await matchQueue(trx('email_queue')).where('status', 'pending')
+    const cancelledQueueRows = await matchQueue(trx('email_queue'))
+      .whereIn('status', ['pending', PROTECTED_PENDING_STATUS])
       .select('id', 'campaign_id');
     if (cancelledQueueRows.length > 0) {
       await trx('email_queue')
@@ -1316,7 +1338,10 @@ async function setAssignmentsForCustomer(customerId, targetEventIds, adminId, tr
  *   - One email per save (digest), not one per gallery.
  *   - Archived + expired events are filtered out — the customer would
  *     hit a "this gallery has expired" notice anyway, so naming them
- *     in the email just confuses people.
+ *     in the email just confuses people. Drafts too: publishing sends
+ *     this mail once the gallery is ready.
+ *   - Also called by galleryNotificationService whenever a gallery is
+ *     announced (create, publish, send later, resend).
  *   - Deactivated customers (is_active=false) get no email — their
  *     login is off, so a "you have new access" message would be
  *     misleading.
@@ -1324,9 +1349,11 @@ async function setAssignmentsForCustomer(customerId, targetEventIds, adminId, tr
  *     should never happen for accepted accounts but defensive).
  *   - Email failures are logged but never bubble up; the caller's
  *     `.catch` handler logs again at a more specific call site.
+ *
+ * @returns {Promise<boolean>} whether an email was queued
  */
 async function notifyCustomerOfNewAssignments(customerId, addedEventIds) {
-  if (!addedEventIds || addedEventIds.length === 0) return;
+  if (!addedEventIds || addedEventIds.length === 0) return false;
 
   const customer = await db('customer_accounts')
     .where({ id: customerId, is_active: formatBoolean(true) })
@@ -1336,29 +1363,35 @@ async function notifyCustomerOfNewAssignments(customerId, addedEventIds) {
     logger.info('Skip customer_gallery_assigned email: customer missing/inactive/no email', {
       customerId,
     });
-    return;
+    return false;
   }
 
   // Filter the added events to those the customer can actually open.
   // Archived events are hard-skipped; expired ones (expires_at in the
   // past) would render as "Expired DD MMM" in the dashboard and lead
   // to a confusing "I clicked the link in the email and got a 410"
-  // experience — drop those too.
+  // experience — drop those too. whereTimestamp: a plain `> Date` let every
+  // text-dated row through on SQLite (issue 1733). Drafts are not announced
+  // yet: publishing sends this mail, so assigning a draft would otherwise tell
+  // the customer twice, the first time about a gallery that is not ready.
   const now = new Date();
   const events = await db('events')
     .whereIn('id', addedEventIds)
     .where('is_archived', formatBoolean(false))
     .andWhere(function() {
-      this.whereNull('expires_at').orWhere('expires_at', '>', now);
+      this.whereNull('is_draft').orWhere('is_draft', formatBoolean(false));
+    })
+    .andWhere(function() {
+      this.whereNull('expires_at').orWhere((q) => q.modify(whereTimestamp, 'expires_at', '>', now));
     })
     .orderBy('event_date', 'desc')
     .select('id', 'slug', 'event_name', 'event_date');
 
   if (events.length === 0) {
-    logger.info('Skip customer_gallery_assigned email: all added events archived/expired', {
+    logger.info('Skip customer_gallery_assigned email: all added events archived/expired/draft', {
       customerId, addedEventIds,
     });
-    return;
+    return false;
   }
 
   // Build the gallery list block. HTML is whitelisted via
@@ -1391,7 +1424,7 @@ async function notifyCustomerOfNewAssignments(customerId, addedEventIds) {
     || customer.first_name?.trim()
     || (customer.email ? customer.email.split('@')[0] : '');
 
-  await queueEmail(null, customer.email, 'customer_gallery_assigned', {
+  const queued = await queueEmail(null, customer.email, 'customer_gallery_assigned', {
     customer_name: customerName,
     gallery_count: String(events.length),
     // `singular` / `multiple` drive the {{#if}} blocks in the
@@ -1403,6 +1436,8 @@ async function notifyCustomerOfNewAssignments(customerId, addedEventIds) {
     gallery_list_text: galleryListText,
     dashboard_link: `${frontendUrl}/customer/dashboard`,
   });
+  // queueEmail resolves false when nothing was queued.
+  return queued === true;
 }
 
 /**
@@ -1420,6 +1455,8 @@ async function getAssignmentsForEvent(eventId) {
       'customer_accounts.first_name',
       'customer_accounts.last_name',
       'customer_accounts.is_active',
+      // The language a mail to this account goes out in (__language).
+      'customer_accounts.preferred_language',
       // NOT the hash itself — only whether one exists. A passive customer is
       // identified by password_hash IS NULL (see createDirect), and callers
       // that mail a portal link need to know the recipient can actually sign
@@ -1500,7 +1537,13 @@ async function cancelInvitation(id, cancelledByAdminId) {
   if (!invitation) {
     throw new NotFoundError('Invitation', id);
   }
-  await db('customer_invitations').where('id', id).del();
+  // Complement of the claim in acceptInvitation: only a still-pending
+  // invitation can be cancelled. An acceptance that committed in between
+  // keeps its record instead of being deleted underneath the new account.
+  const cancelled = await db('customer_invitations').where('id', id).whereNull('accepted_at').del();
+  if (cancelled !== 1) {
+    throw new ConflictError('Invitation has already been accepted');
+  }
 
   await logActivity('customer_invitation_cancelled',
     { invitationId: id, email: invitation.email },
@@ -1673,7 +1716,7 @@ async function createPasswordReset({ customerId, requestedByAdminId }) {
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
 
   await db('customer_password_resets').insert({
-    token,
+    ...capabilityTokenColumns(token),
     customer_account_id: customerId,
     requested_by_admin_id: requestedByAdminId || null,
     expires_at: expiresAt,
@@ -1704,7 +1747,7 @@ async function createPasswordReset({ customerId, requestedByAdminId }) {
 async function validatePasswordResetToken(token) {
   const row = await db('customer_password_resets')
     .join('customer_accounts', 'customer_accounts.id', 'customer_password_resets.customer_account_id')
-    .where('customer_password_resets.token', token)
+    .where('customer_password_resets.token_digest', digestCapabilityToken(token))
     .whereNull('customer_password_resets.used_at')
     .where('customer_password_resets.expires_at', '>', new Date())
     .where('customer_accounts.is_active', formatBoolean(true))
@@ -1729,7 +1772,7 @@ async function validatePasswordResetToken(token) {
  */
 async function applyPasswordReset({ token, password }) {
   const row = await db('customer_password_resets')
-    .where('token', token)
+    .where('token_digest', digestCapabilityToken(token))
     .whereNull('used_at')
     .where('expires_at', '>', new Date())
     .first();
@@ -1744,13 +1787,27 @@ async function applyPasswordReset({ token, password }) {
 
   const passwordHash = await bcrypt.hash(password, getBcryptRounds());
   await db.transaction(async (trx) => {
-    await auditedUpdate(trx, 'customer_accounts', { id: customer.id }, {
+    // Claim the token first. Two submissions of the same link both pass the
+    // read above before either commits; only the one whose conditional
+    // update affects the row may change the password, so the later
+    // submission cannot overwrite the password the first one set.
+    const claimed = await trx('customer_password_resets')
+      .where('id', row.id)
+      .whereNull('used_at')
+      .where('expires_at', '>', new Date())
+      .update({ used_at: new Date().toISOString() });
+    if (claimed !== 1) {
+      throw new ValidationError('Invalid or expired reset link');
+    }
+    const updated = await auditedUpdate(trx, 'customer_accounts', { id: customer.id, is_active: formatBoolean(true) }, {
       password_hash: passwordHash,
       password_changed_at: new Date(),
       must_change_password: formatBoolean(false),
       updated_at: new Date(),
     }, { actor: { type: 'customer', id: customer.id }, source: 'customer.password_reset' });
-    await trx('customer_password_resets').where('id', row.id).update({ used_at: new Date() });
+    if (updated !== 1) {
+      throw new ValidationError('Invalid or expired reset link');
+    }
   });
 
   await logActivity('customer_password_reset_applied',

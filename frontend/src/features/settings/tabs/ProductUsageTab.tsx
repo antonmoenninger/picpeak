@@ -7,7 +7,7 @@ import {
 } from '../../../services/productUsage.service';
 import { ExternalLink } from 'lucide-react';
 import { useConfirm } from '../../../components/common/ConfirmDialog';
-import { Button, Card } from '../../../components/common';
+import { Button, Card, ErrorState, Notice } from '../../../components/common';
 import { UsageCatalog } from '../UsageCatalog';
 import { ProductUsageConsentDialog } from '../components/ProductUsageConsentDialog';
 
@@ -22,7 +22,7 @@ export default function ProductUsageTab() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isFetching, refetch } = useQuery({
     queryKey: ['productUsage'],
     queryFn: service.status,
     refetchInterval: 30000
@@ -66,7 +66,18 @@ export default function ProductUsageTab() {
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   if (isPending) return <p>{t('productUsage.loading')}</p>;
-  if (isError || !data) return <p role="alert">{t('productUsage.failed')}</p>;
+  // A failed background refetch keeps the last status on screen; only a
+  // first load that never succeeded shows the error.
+  if (!data) {
+    return (
+      <ErrorState
+        title={t('productUsage.failed')}
+        onRetry={() => refetch()}
+        retrying={isFetching}
+        size="inline"
+      />
+    );
+  }
   const active = data.status === 'active';
   // Signed-in portal access without the credential ever touching a URL that
   // a server sees. The backend asks the collector for a short-lived session
@@ -120,8 +131,13 @@ export default function ProductUsageTab() {
       }
     });
   };
+  // UI tokens, not `text-theme` (issue 1741): ThemeContext.applyTheme() writes
+  // the branding theme's --color-text onto <html>, so a themed wrapper here
+  // painted every label, paragraph and outline button in the gallery's text
+  // colour — grey on white in the light admin whenever the install uses a
+  // dark-toned branding theme. STYLING.md rule 2.
   return (
-    <div className="space-y-6 text-theme">
+    <div className="space-y-6 text-body">
       <p>{t('productUsage.purpose')}</p>
       <Card padding="md" className="space-y-4">
         <h3 className="text-lg font-semibold text-heading">
@@ -130,7 +146,7 @@ export default function ProductUsageTab() {
         <p>{t(`productUsage.stateDetails.${data.status}`)}</p>
         {data.status !== 'disabled' && <p>{t('productUsage.currentSchema', { schema: data.schema_version })}</p>}
         {data.consent_update_available && (
-          <div className="rounded border border-theme p-3 space-y-2">
+          <div className="rounded border border-line p-3 space-y-2">
             <p>{t('productUsage.upgradeExplanation')}</p>
             <Button disabled={busy || Boolean(data.pending_action) || !data.collector_url} onClick={() => setConsent(true)}>
               {t('productUsage.reviewUpgrade')}
@@ -142,7 +158,7 @@ export default function ProductUsageTab() {
           <label className="block">
             {t('productUsage.hash')}
             <input
-              className="mt-1 w-full rounded border border-theme bg-theme-surface p-2 font-mono text-sm"
+              className="mt-1 w-full rounded border border-line-strong bg-panel p-2 font-mono text-sm"
               readOnly
               value={data.installation_id}
             />
@@ -152,7 +168,7 @@ export default function ProductUsageTab() {
           <p>{t('productUsage.lastReport', { date: data.last_report_date })}</p>
         )}
         {data.collector_error === 'INVALID_COLLECTOR_URL' && (
-          <p role="alert" className="text-amber-700 dark:text-amber-300">
+          <p role="alert" className="text-warning-text">
             {/* Shown alongside the real controls, not instead of them: with a
                 bad URL the operator still needs to read their status and
                 still needs to be able to withdraw. */}
@@ -187,41 +203,43 @@ export default function ProductUsageTab() {
         {data.can_abandon && (
           // The one dead end the operator cannot retry out of. Offered only
           // here, and worded so nobody mistakes it for a confirmed deletion.
-          <div className="rounded border border-amber-300 dark:border-amber-700 p-3 space-y-2">
-            <p>
-              {t(
-                data.abandon_never_registered
-                  ? 'productUsage.abandonExplanationUnregistered'
-                  : 'productUsage.abandonExplanation'
-              )}
-            </p>
-            <Button
-              variant="outline"
-              className={WRAPPING_BUTTON}
-              disabled={busy}
-              onClick={async () => {
-                if (
-                  await confirm({
-                    title: t('productUsage.abandon'),
-                    message: t(
-                      data.abandon_never_registered
-                        ? 'productUsage.abandonConfirmUnregistered'
-                        : 'productUsage.abandonConfirm'
-                    ),
-                    confirmLabel: t('productUsage.abandon'),
-                    variant: 'danger'
-                  })
-                ) {
-                  await run(async () => {
-                    await service.abandon();
-                    setPreview(null);
-                  });
-                }
-              }}
-            >
-              {t('productUsage.abandon')}
-            </Button>
-          </div>
+          <Notice
+            tone="warning"
+            action={
+              <Button
+                variant="outline"
+                className={WRAPPING_BUTTON}
+                disabled={busy}
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      title: t('productUsage.abandon'),
+                      message: t(
+                        data.abandon_never_registered
+                          ? 'productUsage.abandonConfirmUnregistered'
+                          : 'productUsage.abandonConfirm'
+                      ),
+                      confirmLabel: t('productUsage.abandon'),
+                      variant: 'danger'
+                    })
+                  ) {
+                    await run(async () => {
+                      await service.abandon();
+                      setPreview(null);
+                    });
+                  }
+                }}
+              >
+                {t('productUsage.abandon')}
+              </Button>
+            }
+          >
+            {t(
+              data.abandon_never_registered
+                ? 'productUsage.abandonExplanationUnregistered'
+                : 'productUsage.abandonExplanation'
+            )}
+          </Notice>
         )}
         {active && data.pending_action && data.pending_action !== 'consent' && (
           // The portal button below (and the v5-upgrade button above, when
@@ -301,7 +319,7 @@ export default function ProductUsageTab() {
                       href={portalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-primary-600 dark:text-primary-400 hover:underline self-center"
+                      className="text-sm text-accent hover:underline self-center"
                     >
                       {t('productUsage.portalReady')}
                     </a>
@@ -319,7 +337,7 @@ export default function ProductUsageTab() {
                 </a>
               )}
               <a
-                className="text-sm text-primary-600 dark:text-primary-400 hover:underline self-center"
+                className="text-sm text-accent hover:underline self-center"
                 href={`${data.collector_url}/transparency`}
                 target="_blank"
                 rel="noreferrer"
@@ -406,7 +424,7 @@ export default function ProductUsageTab() {
             </div>
             {preview !== null && (
               <pre
-                className="max-h-96 overflow-auto rounded border border-theme p-3 text-xs"
+                className="max-h-96 overflow-auto rounded border border-line p-3 text-xs"
                 aria-label={t('productUsage.preview')}
               >
                 {JSON.stringify(preview, null, 2)}
@@ -457,7 +475,7 @@ export default function ProductUsageTab() {
               {t('productUsage.kind')}
               <select
                 aria-label={t('productUsage.kind')}
-                className="block mt-1 rounded border border-theme bg-theme-surface p-2"
+                className="block mt-1 rounded border border-line-strong bg-panel p-2"
                 value={form.kind}
                 onChange={(e) =>
                   setForm({
@@ -480,7 +498,7 @@ export default function ProductUsageTab() {
               <input
                 required
                 maxLength={120}
-                className="block mt-1 w-full rounded border border-theme bg-theme-surface p-2"
+                className="block mt-1 w-full rounded border border-line-strong bg-panel p-2"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
               />
@@ -491,7 +509,7 @@ export default function ProductUsageTab() {
                 required
                 maxLength={4000}
                 rows={5}
-                className="block mt-1 w-full rounded border border-theme bg-theme-surface p-2"
+                className="block mt-1 w-full rounded border border-line-strong bg-panel p-2"
                 value={form.body}
                 onChange={(e) => setForm({ ...form, body: e.target.value })}
               />
@@ -515,7 +533,7 @@ export default function ProductUsageTab() {
                   <input
                     required
                     maxLength={80}
-                    className="block mt-1 rounded border border-theme bg-theme-surface p-2"
+                    className="block mt-1 rounded border border-line-strong bg-panel p-2"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />

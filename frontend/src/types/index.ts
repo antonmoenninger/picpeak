@@ -3,6 +3,14 @@
 // Uploader names (#1561).
 export type GuestNameMode = 'off' | 'optional' | 'required';
 
+/** An admin account on a gallery's team (issue 743). */
+export interface AssignedAdmin {
+  id: number;
+  username: string;
+  /** The role's display name. */
+  role_name: string | null;
+}
+
 export interface Event {
   id: number;
   slug: string;
@@ -23,7 +31,11 @@ export interface Event {
   archive_path?: string;
   archived_at?: string;
   require_password?: boolean;
+  // Rows of either type. video_count says how many are videos, and
+  // video_duration is their total runtime in seconds (issue 1430).
   photo_count?: number;
+  video_count?: number;
+  video_duration?: number;
   total_size?: number;
   recent_photos?: Array<{
     filename: string;
@@ -49,6 +61,16 @@ export interface Event {
   external_path?: string | null;
   // Folder watcher opt-in (issue 1187). SQLite hands back 0/1, Postgres a boolean.
   external_watch?: boolean | number | null;
+  // Mirror subfolders of uploads and imports as gallery folders (issue 1786).
+  folder_structure?: boolean | number | null;
+  // Two-stage delivery (issue 1562).
+  delivery_status?: 'complete' | 'partial';
+  delivery_expected_count?: number | null;
+  delivery_due_at?: string | null;
+  // 'manual' | 'default' — how the promised date was set.
+  delivery_due_source?: string | null;
+  delivery_badge_label?: string | null;
+  delivery_completed_at?: string | null;
   // Download protection fields
   allow_downloads?: boolean;
   is_priced?: boolean;
@@ -86,6 +108,9 @@ export interface Event {
   hero_image_anchor?: string;
   // CSS Template
   css_template_id?: number | null;
+  // Off = the gallery renders the global Branding theme; on = its own
+  // color_theme / css_template_id (backend services/galleryTheme).
+  custom_theme_enabled?: boolean | number | null;
   // Photo cap
   photo_cap?: number | null;
   // Download limit (issue 1560). null = unlimited.
@@ -98,6 +123,16 @@ export interface Event {
   // Set when the API withheld the gallery links because the admin sees this
   // event but cannot act on it (another owner's gallery).
   share_secrets_hidden?: boolean;
+  // Team members (issue 743): admin accounts assigned to the gallery, from
+  // the event details. Only the owner changes them (can_manage_assignments);
+  // the owner or a photos.review holder reviews the uploads held by
+  // review_contributor_uploads (can_review_uploads).
+  assigned_admins?: AssignedAdmin[];
+  // The owner's admin id; null for a legacy ownerless gallery.
+  created_by?: number | null;
+  can_manage_assignments?: boolean;
+  can_review_uploads?: boolean;
+  review_contributor_uploads?: boolean | number;
   // Live Slideshow / "Diashow" (migration 138). Token-only fullscreen kiosk
   // link minted on demand; null token = disabled. Settings drive the running
   // projector and can be changed live.
@@ -180,6 +215,9 @@ export interface Photo {
   // post migration 062. Null for legacy rows. Surfaced in the lightbox
   // when the admin toggles `use_original_filenames` on (#508).
   original_filename?: string | null;
+  // The camera name written once at ingest; survives a replace, unlike
+  // original_filename (migration 193). What the admin export matches on.
+  source_filename?: string | null;
   url: string;
   thumbnail_url?: string;
   hero_url?: string; // Hero-optimized image URL (1920x1080) for full-width hero sections
@@ -197,9 +235,16 @@ export interface Photo {
   // stops serving multi-megabyte originals to display a photo on screen.
   slideshow_url?: string | null;
   type: 'collage' | 'individual' | 'video';
+  // Filter category (Portraits, Ceremony …). Since migration 265 never a
+  // folder: folders live in folder_id.
   category_id?: number | string | null;
   category_name?: string;
   category_slug?: string;
+  // The folder the photo lives in (issue 1786); null/absent = gallery root.
+  folder_id?: number | null;
+  // Delivered as part of a first look (issue 1562). The badge stays after the
+  // full gallery lands.
+  first_look?: boolean;
   // Per-category download permission (#640). Defaults true for uncategorised
   // photos and for categories that pre-date migration 135. The frontend hides
   // the lightbox download button when this is false (event-level allow_downloads
@@ -249,6 +294,10 @@ export interface Photo {
   // (guest_id when a guest token is present, else IP+UA hash fallback).
   // Used to seed the lifted likedPhotoIds Set in grid layouts on mount.
   is_liked?: boolean;
+  // The requesting viewer's own star rating, 1-5 (issue 1733). Same identity
+  // model and hidden-row rule as `is_liked`; null when unrated and whenever
+  // ratings are switched off for the event. Drives the tile rating control.
+  my_rating?: number | null;
   favorite_count?: number;
   // Colour labels (#1044). `color_label_count` is aggregate data and follows
   // show_feedback_to_guests; `my_color_label` is the requesting viewer's own
@@ -262,6 +311,12 @@ export interface Photo {
   // else was visible in fullscreen and invisible on the tile. Empty when the
   // gallery has show_feedback_to_guests off — it is other people's feedback.
   other_color_labels?: string[];
+  // Approve / reject (issue 744). The tallies follow show_feedback_to_guests
+  // like color_label_count; the viewer's own decision and reason do not.
+  approved_count?: number;
+  rejected_count?: number;
+  my_decision?: 'approved' | 'rejected' | null;
+  my_decision_reason?: string | null;
 }
 
 // Download resolutions (#858).
@@ -297,6 +352,22 @@ export interface PhotoCategory {
   // grid and narrows it when picked; a folder CONTAINS them — they are absent
   // from the root grid and only render once the guest opens the folder.
   is_folder?: boolean;
+  // Nesting (issue 1786): the parent folder, null = top level. Only folders
+  // nest, at most three levels deep.
+  parent_id?: number | null;
+}
+
+// Two-stage delivery (issue 1562) as the guest payload carries it. Absent or
+// null for an ordinary gallery.
+export interface GalleryDelivery {
+  status: 'partial' | 'complete';
+  expected_count: number | null;
+  delivered_count: number;
+  // Skeleton tiles to draw below the delivered photos; already capped.
+  placeholder_count: number;
+  due_at: string | null;
+  // Badge text; null = the translated default ("First look").
+  badge_label: string | null;
 }
 
 export interface GalleryData {
@@ -320,6 +391,8 @@ export interface GalleryData {
     upload_category_id?: number | null;
     hero_photo_id?: number | null;
     allow_downloads?: boolean;
+    // Two-stage delivery (issue 1562).
+    delivery?: GalleryDelivery | null;
     /** True when a pre-built download zip is on disk, so "download all" can skip the build. */
     download_zip_ready?: boolean;
     // Download limit (issue 1560). null = unlimited. Counted in distinct
@@ -378,9 +451,6 @@ export interface GalleryData {
 
 export interface GalleryStats {
   total_photos: number;
-  total_views: number;
-  total_downloads: number;
-  unique_visitors: number;
 }
 
 export interface ResolvedGalleryIdentifier {
@@ -413,6 +483,9 @@ export interface AdminUser {
   createdAt?: string | null;
   updatedAt?: string | null;
   createdByUsername?: string;
+  // Photo credit for the account's uploads when a file has no EXIF name
+  // (issue 743).
+  creditName?: string | null;
   /**
    * Whether a first SSO login may link to this admin by email
    * (admin_users.email_link_eligible, migration 227). Undefined on a backend

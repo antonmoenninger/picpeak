@@ -8,7 +8,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowLeft, ArrowUp, Plus, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button, Card, Input, Loading } from '../../../../components/common';
 import { DecimalInput } from '../../../../components/common/DecimalInput';
@@ -30,7 +30,7 @@ import type { BoundTo, LineUnit } from '../../../../utils/lineItemTotals';
 const UNITS: LineUnit[] = ['hour', 'day', 'piece', 'km', 'flat'];
 const CURRENCIES = ['CHF', 'EUR', 'USD', 'GBP'];
 const LANGUAGES = ['de', 'en', 'fr', 'nl', 'pt', 'ru'];
-const inputCls = 'w-full px-3 py-2 rounded-md border border-line-strong bg-panel text-heading text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900';
+const inputCls = 'w-full px-3 py-2 rounded-md border border-line-strong bg-panel text-heading text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900';
 // Native selects ignore vertical padding in Safari; a fixed height keeps them level with the inputs.
 const selectCls = `${inputCls} h-10`;
 const labelCls = 'block text-sm font-medium text-body mb-1';
@@ -156,6 +156,10 @@ export const QuoteTemplateEditorPage: React.FC = () => {
   if (isLoading || !data || !draft) return <Loading />;
   const template = data.template;
   const archived = template.status === 'archived';
+  // With quotes.view, or on an archived template, there is nothing to
+  // cancel — the same reason the contract template editor says
+  // "Back to templates" rather than pretending to discard.
+  const canEdit = !archived && hasPermission('quotes.manage');
 
   const setSections = (sections: TemplateSection[]) => setDraft({ ...draft, sections });
   const updateSection = (idx: number, section: TemplateSection) => setSections(draft.sections.map((s, i) => (i === idx ? section : s)));
@@ -240,10 +244,6 @@ export const QuoteTemplateEditorPage: React.FC = () => {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <button onClick={() => navigate('/admin/clients/quotes/catalog?tab=templates')}
-            className="text-sm text-soft hover:underline mb-1 inline-flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> {t('common.back', 'Back')}
-          </button>
           <h2 className="text-xl font-bold text-heading">
             {template.name}
             <span className="ml-2 text-sm font-normal text-muted">
@@ -251,16 +251,30 @@ export const QuoteTemplateEditorPage: React.FC = () => {
             </span>
           </h2>
         </div>
-        {/* Writes need quotes.manage; with quotes.view the editor is read-only. */}
-        {!archived && (
-          <PermissionGate permission="quotes.manage">
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={archive} disabled={busy}>{t('quotes.catalog.archive', 'Archive')}</Button>
-              <Button variant="outline" onClick={() => save()} disabled={busy}>{t('quotes.templates.saveDraft', 'Save draft')}</Button>
-              <Button onClick={publish} disabled={busy || draft.sections.length === 0}>{t('quotes.templates.publish', 'Publish')}</Button>
-            </div>
-          </PermissionGate>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {/* The exit sits in the action group so it lands next to Save rather
+              than mid-row, but outside the permission gate and the archived
+              check: a read-only viewer still needs it, and the catalogue is
+              not a sidebar entry to fall back on. */}
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin/clients/quotes/catalog?tab=templates')}
+          >
+            {canEdit
+              ? t('common.cancel', 'Cancel')
+              : t('quotes.catalog.backToTemplates', 'Back to templates')}
+          </Button>
+          {/* Writes need quotes.manage; with quotes.view the editor is read-only. */}
+          {!archived && (
+            <PermissionGate permission="quotes.manage">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={archive} disabled={busy}>{t('quotes.catalog.archive', 'Archive')}</Button>
+                <Button variant="outline" onClick={() => save()} disabled={busy}>{t('quotes.templates.saveDraft', 'Save draft')}</Button>
+                <Button onClick={publish} disabled={busy || draft.sections.length === 0}>{t('quotes.templates.publish', 'Publish')}</Button>
+              </div>
+            </PermissionGate>
+          )}
+        </div>
       </div>
 
       <Card padding="lg">
@@ -331,7 +345,7 @@ export const QuoteTemplateEditorPage: React.FC = () => {
                   <button type="button" onClick={() => moveSection(idx, -1)} aria-label="Move up" className="p-1 rounded hover:bg-hover"><ArrowUp className="w-4 h-4" /></button>
                   <button type="button" onClick={() => moveSection(idx, 1)} aria-label="Move down" className="p-1 rounded hover:bg-hover"><ArrowDown className="w-4 h-4" /></button>
                   <button type="button" onClick={() => setSections(draft.sections.filter((_, i) => i !== idx))} aria-label="Remove"
-                    className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600"><X className="w-4 h-4" /></button>
+                    className="p-1 rounded hover:bg-danger-soft text-danger-text"><X className="w-4 h-4" /></button>
                 </div>
               </div>
 
@@ -381,7 +395,7 @@ export const QuoteTemplateEditorPage: React.FC = () => {
                       </div>
                       <button type="button" aria-label="Remove"
                         onClick={() => updateSection(idx, { ...section, children: section.children.filter((_, i) => i !== cIdx) })}
-                        className="p-1 mt-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600"><X className="w-4 h-4" /></button>
+                        className="p-1 mt-1 rounded hover:bg-danger-soft text-danger-text"><X className="w-4 h-4" /></button>
                     </div>
                   ))}
                   <Button variant="outline" size="sm"

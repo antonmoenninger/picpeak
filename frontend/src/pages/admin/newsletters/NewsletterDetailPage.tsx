@@ -9,10 +9,10 @@
  * thing the operator can actually act on afterwards.
  */
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Ban } from 'lucide-react';
+import { Ban } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { Button, Card, Loading, useConfirm } from '../../../components/common';
@@ -21,20 +21,20 @@ import {
   newslettersService, type RecipientStatus,
 } from '../../../services/newsletters.service';
 import { StatusChip } from './NewsletterListPage';
+import { NewsletterComposerPage } from './NewsletterComposerPage';
 
 const RECIPIENT_STATUS_STYLES: Record<RecipientStatus, string> = {
   queued: 'text-soft',
-  sent: 'text-green-700 dark:text-green-400',
-  failed: 'text-red-700 dark:text-red-400',
+  sent: 'text-success-text',
+  failed: 'text-danger-text',
   cancelled: 'text-faint',
-  skipped_opt_out: 'text-amber-700 dark:text-amber-400',
+  skipped_opt_out: 'text-warning-text',
 };
 
 export const NewsletterDetailPage: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const campaignId = Number(id);
-  const navigate = useNavigate();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   // Cancel stops a live send, so it is a `send` action. Progress and the
@@ -91,6 +91,8 @@ export const NewsletterDetailPage: React.FC = () => {
 
   if (isLoading || !data) return <Loading />;
   const { campaign } = data;
+  // One page per campaign: a draft's page is its composer.
+  if (campaign.status === 'draft' && canSend) return <NewsletterComposerPage campaignId={campaignId} />;
   const inFlight = campaign.status === 'queued' || campaign.status === 'sending';
   const progress = campaign.recipientCount > 0
     ? Math.round(((campaign.sentCount + campaign.failedCount) / campaign.recipientCount) * 100)
@@ -98,21 +100,16 @@ export const NewsletterDetailPage: React.FC = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 gap-4">
-        <button
-          type="button"
-          onClick={() => navigate('/admin/clients/newsletters')}
-          className="flex items-center gap-1 text-sm text-soft hover:underline"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('newsletters.backToList', 'All campaigns')}
-        </button>
-        {inFlight && canSend && (
+      {/* Only rendered when the button is: with the back link gone this row
+          would otherwise be an empty 24px gap on a finished campaign, and
+          justify-between would park a lone button at the left edge. */}
+      {inFlight && canSend && (
+        <div className="flex items-center justify-end mb-6 gap-4">
           <Button variant="outline" onClick={cancelCampaign} leftIcon={<Ban className="w-4 h-4" />}>
             {t('newsletters.cancel', 'Cancel campaign')}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       <Card className="mb-6">
         <div className="flex items-start justify-between gap-4 mb-4">
@@ -128,8 +125,8 @@ export const NewsletterDetailPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-4 text-center">
           {([
             ['recipients', campaign.recipientCount, ''],
-            ['sent', campaign.sentCount, 'text-green-700 dark:text-green-400'],
-            ['failed', campaign.failedCount, campaign.failedCount > 0 ? 'text-red-700 dark:text-red-400' : ''],
+            ['sent', campaign.sentCount, 'text-success-text'],
+            ['failed', campaign.failedCount, campaign.failedCount > 0 ? 'text-danger-text' : ''],
           ] as const).map(([key, value, cls]) => (
             <div key={key} className="rounded-md bg-neutral-50 dark:bg-neutral-800/60 p-3">
               <div className={`text-2xl font-semibold tabular-nums ${cls}`}>{value}</div>

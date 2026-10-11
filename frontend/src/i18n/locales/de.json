@@ -1,24 +1,36 @@
 {
+  "externalSources": {
+    "title": "Eigentümer externer Quellen",
+    "info": "Nur der SuperAdmin kann einen Quellordner zuweisen oder übertragen. Unterordner gehören demselben Eigentümer; Quellordner dürfen sich nicht überschneiden.",
+    "owner": "Eigentümer der Quelle",
+    "chooseOwner": "Konto auswählen",
+    "assign": "Ausgewählten Ordner diesem Eigentümer zuweisen",
+    "revoke": "Zugriff entziehen",
+    "confirmRevoke": "Zugriff auf {{path}} entziehen? Vorhandene Galeriefotos werden nicht gelöscht.",
+    "unassigned": "Nur SuperAdmin",
+    "noSources": "Dir sind keine externen Quellordner zugewiesen. Bitte den SuperAdmin, einen Ordner zuzuweisen.",
+    "error": "Die Quellenzuweisung konnte nicht geändert werden. Prüfe, ob der Ordner existiert und keine andere Quelle überschneidet."
+  },
   "productUsagePrompt": {
     "title": "PicPeak mitgestalten?",
     "intro": "Helfen Sie, PicPeak mit freiwilligen Produktnutzungsberichten weiterzuentwickeln. Prüfen Sie vor Ihrer Entscheidung, welche pseudonymen Daten geteilt werden, wer sie sehen kann und wohin sie gesendet werden."
   },
   "productUsage": {
-    "fields": "usage.v5-Berichte enthalten einen Installationsfingerabdruck, die PicPeak-Version, UTC-Berichtsdatum und Erstellungszeit, Schema- und Signaturmetadaten, die Galerie-Layouts aus einer festen Liste, 87 Funktionssignale (64 Paare aus Konfiguriert und Genutzt, 23 reine Konfigurationswerte) sowie zwei Gesamtzahlen der Installation: gespeicherte Galerien und Fotoeinträge ohne Videos. Entwürfe, archivierte Galerien und deren erhaltene Fotoeinträge zählen mit. Der Katalog unten erklärt jedes Feld. Keine Aktionszähler, keine Beobachtung von Besuchern.",
-    "catalogTitle": "Vollständiger Katalog: 87 Funktionssignale und 2 Bestandszahlen (usage.v5)",
+    "fields": "usage.v6-Berichte enthalten einen Installationsfingerabdruck, die PicPeak-Version, UTC-Berichtsdatum und Erstellungszeit, Schema- und Signaturmetadaten, die Galerie-Layouts aus einer festen Liste, 87 Funktionssignale (64 Paare aus Konfiguriert und Genutzt, 23 reine Konfigurationswerte) sowie zwei Gesamtzahlen der Installation: gespeicherte Galerien und Fotoeinträge ohne Videos. Entwürfe, archivierte Galerien und deren erhaltene Fotoeinträge zählen mit. Der Katalog unten erklärt jedes Feld. Keine Aktionszähler, keine Beobachtung von Besuchern.",
+    "catalogTitle": "Vollständiger Katalog: 87 Funktionssignale und 2 Bestandszahlen (usage.v6)",
     "catalogExplanation": "„Konfiguriert“ beschreibt, ob eine Funktion technisch verfügbar oder eingerichtet ist. „Integriert“ heißt: immer verfügbar, ohne Nutzungsnachweis. „Genutzt“ ist ein einzelnes Ja/Nein für die ganze Installation seit der Zustimmung zu diesem Schema; ein angenommener Auftrag zählt als gestartet, nicht als abgeschlossen. Reine Konfigurationssignale haben kein Genutzt-Feld. Der Bestand enthält nur die aktuellen Gesamtzahlen der Galerie- und Fotoeinträge, ohne Aufschlüsselung nach Galerien. Nutzungsmarker speichern keine Personen, Objektkennungen, Zeitpunkte oder Häufigkeiten.",
     "catalogSearch": "Funktionsname oder Schlüssel suchen",
     "catalogEmpty": "Keine passenden Funktionen.",
     "configuredLabel": "Verfügbarkeit / Konfiguration",
     "usedLabel": "Genutzt",
     "configurationOnly": "Nur Konfiguration, die tatsächliche Nutzung wird nicht erfasst.",
-    "versionDisclosure": "Diese Zustimmung gilt für usage.v5 / usage-consent.v5: 87 Funktionen und dieselben zwei Bestandszahlen. Neue Ja/Nein-Werte unterscheiden echte CMS-, Vorlagen-, Branding-, SEO-, Kategorie- und Ereignistyp-Änderungen sowie die Annahme echter Vorlagen-E-Mails durch den Mailtransport (auch im Hintergrund) von Standards, unverändertem Speichern, Vorschauen und Tests. Inhalte, Empfänger, Vorlagenkennungen, Aktionszeitpunkte und Häufigkeiten werden nicht erfasst. Die Beobachtung beginnt erst nach bestätigter Zustimmung; Nein bedeutet nicht, dass noch Standards verwendet werden. Frühere Versionen behalten bis zum Upgrade Bedeutung und Umfang. Wartende Pakete bleiben unverändert; Markierungen starten nach Bestätigung neu.",
+    "versionDisclosure": "Diese Zustimmung gilt für usage.v6 / usage-consent.v6: dieselben 87 Funktionen und zwei Bestandszahlen wie usage.v5. Die eine Änderung: „Ausgehende Webhooks“ gilt nach jeder erfolgreichen Zustellung (HTTP 2xx) als genutzt, auch bei automatisch durch Ereignisse ausgelösten Zustellungen, nicht mehr nur nach einem expliziten Admin-Test/-Replay. Es bleibt ein einzelnes Ja/Nein für die ganze Installation; Ziele, Ereignistypen, Payloads, Zeitstempel und Zähler werden nicht erfasst. Die Beobachtung beginnt erst nach bestätigter Zustimmung. Frühere Versionen behalten bis zum Upgrade Bedeutung und Umfang. Wartende Pakete bleiben unverändert; Markierungen starten nach Bestätigung neu.",
     "currentSchema": "Aktuelles Berichtsschema: {{schema}}",
-    "reviewUpgrade": "Auf usage.v5 upgraden",
-    "upgrade": "usage.v5 ausdrücklich zustimmen",
+    "reviewUpgrade": "Auf usage.v6 upgraden",
+    "upgrade": "usage.v6 ausdrücklich zustimmen",
     "upgradeExplanation": "Deine bestehende Teilnahme behält ihren bisherigen Umfang. Sieh dir den erweiterten Katalog und die beiden Bestandszahlen an, bevor du dich entscheidest. Ablehnen beendet die Teilnahme nicht.",
     "upgradePending": "Die signierte Erweiterung wartet auf die Bestätigung des Collectors. Bis dahin wird nur der bisher bestätigte Umfang erfasst. Versuche es erneut, wenn der Collector erreichbar ist, oder deaktiviere die Teilnahme, um zu stoppen und zu löschen.",
-    "pendingBlocksActions": "Das v5-Upgrade und das Nutzungsportal sind gesperrt, bis der ausstehende Bericht erneut gesendet wurde oder zugestellt ist — nutze oben „Jetzt senden“.",
+    "pendingBlocksActions": "Das v6-Upgrade und das Nutzungsportal sind gesperrt, bis der ausstehende Bericht erneut gesendet wurde oder zugestellt ist — nutze oben „Jetzt senden“.",
     "pendingBlocksPortal": "Das Nutzungsportal ist gesperrt, bis der ausstehende Bericht erneut gesendet wurde oder zugestellt ist — nutze oben „Jetzt senden“.",
     "catalog": {
       "crm": {
@@ -267,7 +279,7 @@
       "webhooks": {
         "name": "Ausgehende Webhooks",
         "configured": "Mindestens ein aktiver Webhook ist konfiguriert; keine Ziele, Abonnements, Geheimnisse oder Zustellprotokolle.",
-        "used": "Erfolgreicher expliziter Admin-Webhook-Test/-Replay; keine automatischen oder durch Besucher ausgelösten Zustellungen."
+        "used": "Erfolgreiche Zustellung (HTTP 2xx) eines beliebigen ausgehenden Webhooks, ob automatisch durch ein Ereignis oder durch einen expliziten Admin-Test/-Replay ausgelöst; keine Ziele, Ereignistypen, Payloads, Zeitstempel oder Zähler."
       },
       "restore": {
         "name": "Wiederherstellung",
@@ -665,11 +677,19 @@
     "confirmEmailForSsoDialog": {
       "title": "Diese E-Mail für SSO bestätigen?",
       "message": "{{email}} als Adresse von {{name}} bestätigen? Eine Single-Sign-on-Anmeldung mit dieser verifizierten E-Mail-Adresse wird danach mit diesem Konto verknüpft. Die Adresse selbst wird nicht geändert. Bestätigen Sie nur, wenn Sie wissen, dass sie dieser Person gehört."
-    }
+    },
+    "creditNameHelp": "Wird bei Uploads dieses Kontos als Fotograf angegeben, wenn die Datei keinen Fotografennamen in den Metadaten enthält."
   },
   "systemHealth": {
-    "title": "Systemzustand",
-    "subtitle": "Hintergrundfehler, die Aufmerksamkeit erfordern.",
+    "backupAuthentication": {
+      "title": "Authentizität der Sicherung",
+      "keyReady": "Der externe Signaturschlüssel für Sicherungen ist verfügbar.",
+      "keyMissing": "Der Signaturschlüssel fehlt oder ist ungültig. Eine authentifizierte Wiederherstellung ist nicht bereit.",
+      "verified": "Das neueste Sicherungsmanifest wurde mit einem aufbewahrten Schlüssel authentifiziert.",
+      "unverified": "Das neueste Sicherungsmanifest ist nicht verfügbar oder nicht authentifiziert. Ein abgeschlossener Lauf allein belegt keine Authentizität.",
+      "legacy": "Das neueste Sicherungsmanifest wurde erstellt, bevor Manifeste authentifiziert wurden. Die nächste Sicherung wird authentifiziert; bis dahin lässt sich diese nur mit einer ausdrücklichen Wiederherstellungsfreigabe zurückspielen.",
+      "hint": "Bewahren Sie eine Kopie des Signaturschlüssels außerhalb dieses Hosts auf, bei der Person, die auch die Sicherungen verwahrt: Ohne ihn lässt sich eine Sicherung auf einem Ersatzhost nicht verifizieren. Übernehmen Sie ihn niemals aus der wiederherzustellenden Sicherung; entfernen Sie eine einmalige Freigabe für nicht authentifizierte Wiederherstellung anschließend."
+    },
     "retry": "Erneut versuchen",
     "dismiss": "Verwerfen",
     "retriedToast": "E-Mail erneut eingereiht.",
@@ -819,13 +839,42 @@
     "actions": "Aktionen",
     "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen.",
     "searching": "Wird gesucht…",
-    "language": "Sprache"
+    "language": "Sprache",
+    "hidePassword": "Passwort verbergen",
+    "showPassword": "Passwort anzeigen",
+    "loadFailed": "Konnte nicht geladen werden",
+    "moreActions": "Weitere Aktionen"
   },
   "upload": {
+    "capacity": {
+      "decoded": "Dieses Bild überschreitet die Bildverarbeitungsgrenzen des Servers.",
+      "imagePixels": "Dieses Bild ist größer als die {{max}} Megapixel, die dieser Server verarbeitet.",
+      "imageDimension": "Dieses Bild ist länger als die {{max}} px je Seite, die dieser Server verarbeitet.",
+      "imageFrames": "Diese Animation hat mehr als die {{max}} Einzelbilder, die dieser Server verarbeitet.",
+      "imageFileSize": "Diese Bilddatei ist größer als die {{max}} MB, die dieser Server verarbeitet.",
+      "imageMemory": "Dieses Bild benötigt mehr Arbeitsspeicher als die {{max}} MB, die dieser Server der Bildverarbeitung gibt.",
+      "processing": "Die Bildverarbeitung konnte innerhalb der Ressourcenlimits des Servers nicht abgeschlossen werden. Bitte den Eigentümer kontaktieren.",
+      "batch": "Dieser Upload überschreitet die Stapelgrenze des Servers oder das verbleibende Kontingent. Bitte weniger oder kleinere Dateien senden oder den Eigentümer kontaktieren.",
+      "lifetime": "Diese Galerie oder Dateianfrage hat ihr Upload-Kontingent erreicht. Bitte den Eigentümer kontaktieren.",
+      "busy": "Andere Uploads oder Verarbeitungsaufträge belegen die verfügbare Kapazität. Bitte später erneut versuchen.",
+      "rate": "Die Upload-Datengrenze für diese Stunde wurde erreicht. Bitte später erneut versuchen.",
+      "unavailable": "Die Speicherkapazität für Uploads ist nicht verfügbar. Bitte den Eigentümer kontaktieren.",
+      "timeout": "Der Upload hat zu lange gedauert. Bitte einen kleineren Stapel versuchen.",
+      "gone": "Diese Galerie oder Dateianfrage existiert nicht mehr."
+    },
+    "adminCapacity": {
+      "batch": "Dieser Upload ist größer, als der Server in einer Anfrage annimmt. Verringern Sie die Upload-Batchgröße in den Einstellungen.",
+      "busy": "Der Server war durchgehend mit anderen Uploads ausgelastet und hatte nicht rechtzeitig Platz für diese Dateien. Laden Sie sie gleich noch einmal hoch.",
+      "storage": "Auf dem Server ist zu wenig Speicherplatz frei. Schaffen Sie Platz und laden Sie diese Dateien dann erneut hoch.",
+      "unavailable": "Der Server konnte keinen Platz für diesen Upload reservieren. Prüfen Sie das Serverprotokoll und ADMIN_UPLOAD_LIMITS_JSON.",
+      "timeout": "Der Upload hat zu lange gedauert und wurde abgebrochen. Prüfen Sie die Verbindung und laden Sie diese Dateien erneut hoch.",
+      "waiting": "Warten auf freie Upload-Kapazität des Servers (Versuch {{attempt}} von {{total}})…"
+    },
     "photoCategory": "Fotokategorie",
     "noCategory": "Keine Kategorie",
     "eventSpecific": "(Veranstaltungsspezifisch)",
     "clickToUpload": "Klicken zum Hochladen oder per Drag & Drop",
+    "clickToUploadOrDropFolder": "Klicken zum Hochladen oder Dateien bzw. einen Ordner per Drag & Drop ablegen",
     "takePhoto": "Foto aufnehmen",
     "fileRequirements": "{{formats}} (max. {{sizeLimit}}MB pro Datei, {{limit}} Dateien pro Upload)",
     "videoSizeLimit": "Videos: max. {{sizeLimit}}MB pro Datei",
@@ -861,6 +910,7 @@
     "uploadMedia": "Fotos & Videos hochladen",
     "maxFilesReached": "Maximal {{limit}} Dateien erlaubt",
     "someFilesSkipped": "Nur {{allowed}} weitere Dateien erlaubt (Limit {{limit}})",
+    "folderTooLarge": "Der Ordner ist zu groß, um ihn vollständig zu durchsuchen. Es wurde nur ein Teil hinzugefügt; ziehe Unterordner einzeln hinein.",
     "tooManyFiles": "Maximal {{limit}} Dateien können gleichzeitig hochgeladen werden",
     "limitInfo": "{{selected}} von {{limit}} Dateien ausgewählt ({{remaining}} verbleibend)",
     "limitReached": "Upload-Limit erreicht ({{limit}} Dateien pro Vorgang)",
@@ -869,6 +919,7 @@
     "replacedFiles_other": "{{count}} Fotos ersetzt",
     "uploadingChunks_one": "{{count}} Teil wird hochgeladen",
     "uploadingChunks_other": "{{count}} Teile werden hochgeladen",
+    "invalidFileType": "Nicht unterstützter Dateityp: {{names}}",
     "fileTooLarge": "Datei zu groß: {{name}} (max. {{limit}}MB)",
     "uploadingAs": "Upload als {{name}}",
     "notYou": "Nicht du?",
@@ -886,14 +937,52 @@
       "uploaded_other": "{{count}} Dateien hochgeladen",
       "viewEvent": "Zur Veranstaltung",
       "statusUnavailable": "Der Verarbeitungsstatus konnte nicht gelesen werden — die Fotos sind in der Warteschlange und erscheinen, sobald sie verarbeitet sind."
-    }
+    },
+    "addFiles": "Dateien hinzufügen",
+    "chooseFolder": "Ordner wählen",
+    "structure": {
+      "galleryRoot": "Galerie-Hauptebene",
+      "folderCount_one": "{{count}} Ordner",
+      "folderCount_other": "{{count}} Ordner",
+      "uploadRequesting_one": "{{count}} Datei hochladen · {{folders}} anfragen",
+      "uploadRequesting_other": "{{count}} Dateien hochladen · {{folders}} anfragen",
+      "uploadIntoFolders_one": "{{count}} Datei in {{folders}} hochladen",
+      "uploadIntoFolders_other": "{{count}} Dateien in {{folders}} hochladen",
+      "tooManyFolders": "Diese Auswahl enthält mehr als {{limit}} Ordner. Laden Sie sie in Teilen hoch.",
+      "resolveFailed": "Die Ordner für diesen Upload konnten nicht vorbereitet werden. Es wurde nichts hochgeladen.",
+      "looseFilesGoTo": "Einzelne Dateien landen in",
+      "uploadInto": "Hochladen nach",
+      "statusNew": "Neu",
+      "statusNeedsAdmin": "Braucht Admin",
+      "statusExists": "Vorhanden",
+      "keepStructure": "Ordnerstruktur übernehmen",
+      "keepStructureHelp": "Unterordner werden zu Galerie-Ordnern. Die Voreinstellung kommt aus der Ordner-Einstellung des Events.",
+      "skipOuter": "Äußeren Ordner „{{name}}“ weglassen",
+      "skipOuterHelp": "Alles lag in einem einzigen Ordner, deshalb wird er weggelassen. Sonst müssten Gäste zuerst einen zusätzlichen Ordner öffnen.",
+      "previewFailed": "Die Ordnervorschau konnte nicht geladen werden. Beim Start des Uploads werden die Ordner erneut ermittelt.",
+      "loading": "Ordner werden geprüft …",
+      "firstLookRow": "→ Galerie-Hauptebene, markiert als „First look“",
+      "looseFiles_one": "{{count}} einzelne Datei → {{target}}",
+      "looseFiles_other": "{{count}} einzelne Dateien → {{target}}",
+      "hiddenSkipped_one": "{{count}} Datei in versteckten Ordnern wird übersprungen",
+      "hiddenSkipped_other": "{{count}} Dateien in versteckten Ordnern werden übersprungen",
+      "folded": "Ordner, die tiefer als {{depth}} Ebenen liegen, werden in ihren Ordner auf Ebene {{depth}} zusammengelegt.",
+      "needsAdminNotice_one": "{{count}} Ordner existiert noch nicht. Ihre Rolle darf hochladen, aber keine Ordner anlegen, deshalb geht er als Ordneranfrage an einen Admin. Bis ein Admin bestätigt, warten die {{files}} Fotos im nächstgelegenen vorhandenen Ordner (mit → angezeigt) und wandern nach der Bestätigung automatisch in den neuen Ordner.",
+      "needsAdminNotice_other": "{{count}} Ordner existieren noch nicht. Ihre Rolle darf hochladen, aber keine Ordner anlegen, deshalb gehen sie als Ordneranfragen an einen Admin. Bis ein Admin bestätigt, warten die {{files}} Fotos im nächstgelegenen vorhandenen Ordner (mit → angezeigt) und wandern nach der Bestätigung automatisch in die neuen Ordner.",
+      "firstLookCallout_one": "First-look-Ordner gefunden: „{{name}}“. Sein {{count}} Foto wird als „First look“ markiert, und die Galerie wechselt zur zweistufigen Auslieferung: Gäste sehen, dass weitere Fotos unterwegs sind, bis Sie die vollständige Galerie als fertig markieren.",
+      "firstLookCallout_other": "First-look-Ordner gefunden: „{{name}}“. Seine {{count}} Fotos werden als „First look“ markiert, und die Galerie wechselt zur zweistufigen Auslieferung: Gäste sehen, dass weitere Fotos unterwegs sind, bis Sie die vollständige Galerie als fertig markieren.",
+      "firstLookSettings": "Fälligkeit und Badge: Einstellungen dieser Galerie → Ordner & Auslieferung. Stichwörter: Einstellungen → Events.",
+      "nothingToUpload": "Keine der ausgewählten Dateien kann hochgeladen werden: Alle liegen in versteckten oder übersprungenen Ordnern.",
+      "keptForNext": "Dateien, die während der Vorbereitung der Ordner hinzukamen, sind noch ausgewählt: {{count}}."
+    },
+    "largeFileReplaceSkipped": "Ersetzen nach Dateiname ist für Dateien über der Stapelgröße nicht möglich; laden Sie die Datei ohne Ersetzen hoch.",
+    "removeFile": "{{name}} entfernen"
   },
   "navigation": {
     "dashboard": "Dashboard",
-    "events": "Veranstaltungen",
+    "events": "Galerien",
     "messages": "Nachrichten",
     "settings": "Einstellungen",
-    "systemHealth": "Systemzustand",
     "archives": "Archive",
     "transfers": "PicTransfer",
     "emailSettings": "E-Mail-Einstellungen",
@@ -906,16 +995,18 @@
     "clients": "CRM",
     "accounting": "Buchhaltung",
     "workflows": "Workflows",
-    "betaTag": "Beta"
+    "automation": "Automatisierung",
+    "sharing": "Teilen",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schliessen"
   },
   "transfers": {
     "title": "PicTransfer",
-    "subtitle": "Originaldateien aus beliebigen Events als Download-Link versenden.",
-    "new": "Neuer Transfer",
+    "subtitle": "Dateien an Kundinnen und Kunden senden – oder Dateien von ihnen anfordern.",
     "create": "Transfer erstellen",
     "created": "Transfer erstellt",
     "createFailed": "Transfer konnte nicht erstellt werden",
-    "empty": "Noch keine Transfers. Erstellen Sie einen, um Dateien zu teilen.",
+    "empty": "Noch nichts vorhanden. Senden Sie Dateien, oder fordern Sie welche an.",
     "untitled": "Unbenannter Transfer",
     "linkCopied": "Link in die Zwischenablage kopiert",
     "copyFailed": "Link konnte nicht kopiert werden",
@@ -929,14 +1020,9 @@
     "filesAdded": "Dateien hinzugefügt",
     "deleted": "Transfer gelöscht",
     "deleteConfirmTitle": "Transfer löschen?",
-    "deleteConfirmBody": "Dies entfernt den Link und alle Kunden-Uploads. Die Fotos der Quell-Events sind nicht betroffen.",
+    "deleteConfirmBody": "Damit wird der Link entfernt. Die Fotos in ihren Galerien bleiben unberührt.",
     "addImages": "Bilder hinzufügen",
-    "clientUpload": "Kunden-Upload",
-    "disableUploads": "Deaktivieren",
-    "enableUploads": "Upload-Link aktivieren",
-    "uploadEnabled": "Upload-Link aktiviert",
     "noUploads": "Der Kunde hat noch keine Dateien hochgeladen.",
-    "uploadHint": "Aktivieren Sie dies, um dem Kunden einen 6-stelligen Code zu geben, mit dem er Ihnen Dateien (Logos etc.) senden kann.",
     "createAndSend": "Erstellen & senden",
     "uploadedFiles": "Hochgeladene Dateien",
     "addFiles": "Dateien hinzufügen",
@@ -951,8 +1037,8 @@
       "files": "Dateien",
       "status": "Status",
       "downloads": "Downloads",
-      "expires": "Läuft ab",
-      "uploads": "Uploads"
+      "kind": "Typ",
+      "deadline": "Frist"
     },
     "status": {
       "active": "Aktiv",
@@ -966,7 +1052,6 @@
       "messagePlaceholder": "Wird dem Empfänger auf der Download-Seite angezeigt",
       "expiresInDays": "Link aktiv für (Tage)",
       "maxDownloads": "Max. Downloads (0 = unbegrenzt)",
-      "allowUploads": "Dem Kunden zusätzlich einen Upload-Link geben (für Logos etc.)",
       "files": "Dateien",
       "noFiles": "Noch keine Bilder ausgewählt.",
       "uploadFiles": "Eigene Dateien hochladen",
@@ -975,10 +1060,12 @@
       "delivery": "Zustellung",
       "recipients": "E-Mail-Adressen der Empfänger",
       "recipientsPlaceholder": "anna@example.com, ben@example.com",
-      "recipientsCount": "{{count}} Empfänger — jeder erhält den Download-Link",
       "recipientsHint": "Mehrere Adressen durch Kommas trennen. Jeder Empfänger erhält den Download-Link.",
-      "recipientsCount_one": "{{count}} Empfänger — er erhält den Download-Link",
-      "recipientsCount_other": "{{count}} Empfänger — jeder erhält den Download-Link"
+      "requestTitlePlaceholder": "z. B. Logo und Markenmaterial für Familie Schmidt",
+      "requestMessage": "Was benötigen Sie von ihnen? (optional)",
+      "requestMessagePlaceholder": "Wird dem Kunden auf der Upload-Seite angezeigt",
+      "uploadWindowDays": "Uploads annehmen für (Tage)",
+      "requestRecipientsHint": "Mehrere Adressen mit Komma trennen. Jede erhält den Upload-Link."
     },
     "picker": {
       "title": "Bilder aus anderen Events auswählen",
@@ -1019,21 +1106,70 @@
       "send": "{{count}} Dateien hochladen",
       "failed": "Upload fehlgeschlagen. Bitte erneut versuchen.",
       "send_one": "{{count}} Datei hochladen",
-      "send_other": "{{count}} Dateien hochladen"
-    }
+      "send_other": "{{count}} Dateien hochladen",
+      "typeRejected": "Kein akzeptierter Dateityp: {{names}}",
+      "tooBigNamed": "Zu groß (max. {{mb}} MB): {{names}}",
+      "toomany": "Es können nur die ersten {{count}} Dateien auf einmal hochgeladen werden.",
+      "someRejected": "Diese Dateien wurden nicht akzeptiert: {{names}}",
+      "anyType": "Jeder Dateityp wird akzeptiert.",
+      "acceptedTypes": "Akzeptiert: {{types}}",
+      "someFailed": "Diese Dateien konnten nicht gespeichert werden. Bitte erneut versuchen: {{names}}",
+      "removeFile": "{{name}} entfernen"
+    },
+    "newSend": "Dateien senden",
+    "newRequest": "Dateien anfordern",
+    "emptyTab": "In diesem Tab ist noch nichts vorhanden.",
+    "requestCreated": "Dateianfrage erstellt",
+    "requestCreateFailed": "Die Dateianfrage konnte nicht erstellt werden",
+    "createRequest": "Anfrage erstellen",
+    "createRequestAndSend": "Erstellen & anfragen",
+    "someRejected": "{{count}} Datei(en) hatten keinen erlaubten Typ und wurden übersprungen: {{names}}",
+    "uploadBy": "Nimmt Uploads an bis",
+    "filesReceived": "Erhaltene Dateien",
+    "closeRequest": "Anfrage schließen",
+    "requestClosed": "Anfrage geschlossen",
+    "resend": "Erneut senden",
+    "emailResent": "E-Mail erneut gesendet",
+    "askedOf": "Angefragt bei",
+    "uploadCode": "Kurzer Upload-Code",
+    "issueCode": "Code erstellen",
+    "rotateCode": "Neuer Code",
+    "revokeCode": "Zurückziehen",
+    "codeIssued": "Upload-Code erstellt",
+    "codeRevoked": "Upload-Code zurückgezogen",
+    "codeHint": "Optional: ein kurzer Code, den Sie am Telefon vorlesen können. Der vollständige Link oben funktioniert immer.",
+    "unscannedNote": "Diese Dateien werden genau so gespeichert, wie sie eingegangen sind, und von PicPeak nie geöffnet oder geprüft. Prüfen Sie sie, bevor Sie sie verwenden oder weitergeben.",
+    "deleteRequestConfirmTitle": "Dateianfrage löschen?",
+    "deleteRequestConfirmBody": "Damit wird der Upload-Link entfernt und jede vom Kunden gesendete Datei endgültig gelöscht.",
+    "tab": {
+      "all": "Alle",
+      "sent": "Gesendet",
+      "requested": "Angefordert"
+    },
+    "kind": {
+      "send": "Senden",
+      "request": "Anfrage"
+    },
+    "emptyReadOnly": "Noch nichts vorhanden.",
+    "someDropped": "{{count}} angehängte Datei(en) wurden nicht übernommen – eine Dateianfrage sammelt nur Dateien: {{names}}",
+    "deleteRequestAction": "Anfrage löschen",
+    "deleteAction": "Transfer löschen",
+    "loadFailed": "Die Transfers konnten nicht geladen werden"
   },
   "workflows": {
     "title": "Workflows",
     "subtitle": "Visuelle Automatisierungen – Auslöser, Bedingungen, Freigaben und Aktionen.",
     "new": "Neuer Workflow",
-    "empty": "Noch keine Workflows. Erstellen Sie einen, um Rechnungsstellung und Buchungsschritte zu automatisieren.",
+    "empty": "Erstellen Sie einen, um Rechnungsstellung und Buchungsschritte zu automatisieren.",
     "builtin": "integriert",
     "triggerLabel": "Auslöser",
     "enabled": "Aktiv",
     "disabled": "Inaktiv",
     "confirmDelete": "Diesen Workflow löschen?",
     "toggle": {
-      "confirmDisableBuiltin": "Das Deaktivieren dieses eingebauten Ablaufs stellt das vorherige Standardverhalten wieder her – die Automatisierung wird dadurch nicht abgeschaltet. Fortfahren?"
+      "confirmDisableBuiltin": "Das Deaktivieren dieses eingebauten Ablaufs stellt das vorherige Standardverhalten wieder her – die Automatisierung wird dadurch nicht abgeschaltet. Fortfahren?",
+      "disableBuiltinTitle": "Diesen eingebauten Workflow deaktivieren?",
+      "disableBuiltin": "Workflow deaktivieren"
     },
     "test": {
       "title": "Testlauf",
@@ -1059,7 +1195,9 @@
       "pendingTitle": "Offene Freigaben",
       "viewAll": "Alle Freigaben ansehen",
       "openEntity": "{{type}} #{{id}} öffnen",
-      "acted": "Erledigt"
+      "acted": "Erledigt",
+      "loadFailed": "Die Freigaben konnten nicht geladen werden",
+      "emptyHint": "Ein Workflow mit einer Bestätigungsstufe listet seine angehaltenen Durchläufe hier auf."
     },
     "editor": {
       "namePlaceholder": "Workflow-Name",
@@ -1111,7 +1249,11 @@
       "groups": "Kundengruppen",
       "groupsNoPermission": "Zum Auflisten der Kundengruppen ist die Berechtigung customers.view nötig.",
       "groupsHint": "Wird geprüft, wenn dieser Schritt läuft. Braucht einen Kunden im Ablauf: Kunden-, Angebots-, Vertrags- und Rechnungs-Auslöser haben einen; bei Galerie- und Event-Auslösern ist das Ergebnis immer „nein“."
-    }
+    },
+    "confirmDeleteNamed": "„{{name}}“ löschen? Laufende Durchläufe werden beendet und der Ablauf kann nicht wiederhergestellt werden.",
+    "deleteAction": "Workflow löschen",
+    "loadFailed": "Die Workflows konnten nicht geladen werden",
+    "emptyTitle": "Noch keine Workflows"
   },
   "eventTypes": {
     "title": "Veranstaltungsarten",
@@ -1148,7 +1290,7 @@
       "themePreset": "Standard-Theme",
       "slideshowPreset": "Diashow-Voreinstellung",
       "slideshowPresetHint": "Standard-Diashow-Stil für neue Events dieses Typs.",
-      "isActive": "Aktiv (sichtbar bei Veranstaltungserstellung)"
+      "isActive": "Aktiv (beim Erstellen einer Galerie wählbar)"
     },
     "validation": {
       "slugFormat": "Nur Buchstaben, Zahlen und Bindestriche erlaubt"
@@ -1160,7 +1302,8 @@
     "deleteConfirm": {
       "title": "Veranstaltungsart löschen",
       "message": "Sind Sie sicher, dass Sie löschen möchten",
-      "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Stellen Sie sicher, dass keine Veranstaltungen diesen Typ verwenden."
+      "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Stellen Sie sicher, dass keine Galerien diesen Typ verwenden.",
+      "action": "Veranstaltungsart löschen"
     }
   },
   "backup": {
@@ -1180,13 +1323,56 @@
       "restoreTitle": "Aus einer .picpeak-Datei wiederherstellen",
       "chooseFile": ".picpeak-Datei auswählen…",
       "restoreSummary": "{{tables}} Tabellen und {{files}} Dateien wiederhergestellt.",
+      "coordinatedTitle": "Koordinierte portable Wiederherstellung",
+      "coordinatedIntro": "Die Anwendung befindet sich im Wartungsmodus, solange die Wiederherstellung läuft. Diese Seite zeigt den Fortschritt weiter an, auch nachdem Ihre Sitzung beendet wurde.",
+      "awaitingProgress": "Warten auf den Wiederherstellungskoordinator…",
+      "progressUnavailable": "Der Koordinator ist vorübergehend nicht erreichbar. Erneuter Versuch; ein Abschluss wurde nicht bestätigt.",
+      "restartAllInstances": "Die Wiederherstellung ist abgeschlossen. Starten Sie das Backend einmal neu (jeden Backend-Prozess, falls mehrere laufen), damit es die wiederhergestellten Daten ausliefert.",
+      "rollbackVerified": "Die Wiederherstellung ist fehlgeschlagen. Die vorherige Datenbank und die Dateien wurden zurückgesetzt und geprüft, die Instanz läuft wieder mit den bisherigen Daten. Ein Neustart ist nicht nötig.",
+      "recoveryRequired": "Die Wiederherstellung wurde unterbrochen und wird zurückgesetzt. Die Anwendung bleibt bis dahin im Wartungsmodus. Falls sich das nicht ändert, hilft das Serverprotokoll weiter.",
+      "progressDenied": "Diese Fortschrittsberechtigung ist nicht mehr gültig. Sie gewährt keinen Anwendungszugriff.",
+      "returnToLogin": "Zur Anmeldung zurückkehren",
+      "restoreNotApplied": "Wiederherstellung nicht übernommen",
+      "restoreState": {
+        "open": "Wiederherstellung beendet",
+        "draining": "Warten, bis laufende Vorgänge beendet sind",
+        "restoring": "Wiederherstellung läuft",
+        "recovery_required": "Unterbrochene Wiederherstellung wird zurückgesetzt",
+        "restart_required": "Wiederhergestellt; warten auf den Neustart des Backends"
+      },
       "externalPathsFailedDetail": "Die externen Fotopfade wurden nicht umgestellt, deshalb ist derzeit kein referenziertes Original erreichbar. Führen Sie die Wiederherstellung oder die ausstehenden Migrationen erneut aus, sobald die Ursache behoben ist.",
       "externalMediaNote": "Dieses Backup verweist auf eine externe Medienbibliothek. Stellen Sie sicher, dass das Routing für externe Medien auf dieser Instanz eingerichtet ist.",
       "externalMediaLink": "Einrichtungsanleitung",
       "reload": "App neu laden",
       "confirmTitle": "Die Wiederherstellung löscht alle aktuellen Daten",
       "confirmBody": "Dies ersetzt ALLE Daten dieser Instanz dauerhaft durch das hochgeladene Backup — ausgenommen Ihr aktuelles Konto. Das kann nicht rückgängig gemacht werden.",
-      "confirmRestore": "Löschen & wiederherstellen"
+      "confirmRestore": "Löschen & wiederherstellen",
+      "unavailableTitle": "Das Wiederherstellen einer .picpeak-Datei ist auf diesem Server nicht verfügbar",
+      "unavailableHelp": "Alles andere, auch das Erstellen einer .picpeak-Datei, funktioniert wie gewohnt.",
+      "unavailable": {
+        "RESTORE_UNSUPPORTED_PLATFORM": "Dafür ist ein Linux-Host nötig. Die Docker-Images erfüllen das.",
+        "RESTORE_LEASE_UNAVAILABLE": "Die nativen Komponenten für die Wiederherstellung sind auf diesem Server nicht gebaut (cd backend && npm run build:native).",
+        "RESTORE_GUARD_UNAVAILABLE": "Der Prozesswächter kann den Wiederherstellungsprozess nicht überwachen. Erlauben Sie ptrace für den Container (das Standardprofil von Docker tut das).",
+        "RESTORE_STORAGE_UNSUPPORTED": "Der Speicherpfad liegt nicht auf einem lokalen Dateisystem (ext4, XFS, Btrfs, ZFS). Netzwerkspeicher wie NFS oder CIFS wird nicht unterstützt."
+      },
+      "restoreError": {
+        "RESTORE_MANIFEST_INVALID": "Die Datei ist kein Backup, das diese Instanz wiederherstellen kann.",
+        "RESTORE_PRIVILEGE_MISSING": "Der Datenbankbenutzer dieser Instanz darf keine Wiederherstellung ausführen (PostgreSQL-SUPERUSER ist erforderlich).",
+        "RESTORE_CAPACITY_LIMIT": "Auf dem Speichervolume ist nicht genug Platz für dieses Backup frei.",
+        "RESTORE_CAPACITY_UNKNOWN": "Der freie Platz auf dem Speichervolume konnte nicht ermittelt werden.",
+        "RESTORE_ARCHIVE_LIMIT": "Das Backup ist größer, als diese Instanz annimmt.",
+        "PORTABLE_ARCHIVE_REFUSED": "Die Backup-Datei ist beschädigt oder wurde nicht von PicPeak erstellt.",
+        "UNSUPPORTED_ARCHIVE_FILE": "Das Backup enthält eine Datei, die PicPeak nicht exportiert hätte.",
+        "RESTORE_TABLE_CHECKSUM": "Das Backup ist beschädigt: Eine Tabelle stimmt nicht mit ihrer gespeicherten Prüfsumme überein.",
+        "RESTORE_DRAIN_TIMEOUT": "Laufende Vorgänge wurden nicht rechtzeitig beendet, deshalb wurde die Wiederherstellung nicht gestartet. Versuchen Sie es erneut, wenn keine Uploads, Downloads oder Backups laufen.",
+        "RESTORE_ROLLED_BACK": "Die Wiederherstellung ist fehlgeschlagen und wurde zurückgesetzt.",
+        "RESTORE_CONFLICT": "Es läuft bereits eine andere Wiederherstellung.",
+        "RESTORE_MAINTENANCE": "Die Instanz befindet sich für eine Wiederherstellung im Wartungsmodus."
+      },
+      "failureReason": "Grund: {{reason}}",
+      "restoreNotStarted": "Die Wiederherstellung wurde nicht gestartet. Es wurde nichts geändert.",
+      "backToBackup": "Zurück zur Anwendung",
+      "restoreAborted": "Die Wiederherstellung wurde nicht durchgeführt, es wurde nichts geändert. Die Instanz läuft wieder."
     },
     "title": "Backup-Verwaltung",
     "subtitle": "Verwalten Sie System-Backups, konfigurieren Sie automatisierte Backups und stellen Sie vorherige Backups wieder her.",
@@ -1261,7 +1447,9 @@
         "path": "Pfad",
         "coverage": "Abdeckung",
         "featureFlag": "Feature-Flag",
-        "description": "Beschreibung"
+        "description": "Beschreibung",
+        "transferDescription": "Vom Admin bereitgestellte Transfer-Anhänge",
+        "watermarkDescription": "Verwaltete Galeriebilder mit Wasserzeichen"
       },
       "coverage": {
         "willScan": "Wird gescannt",
@@ -1374,16 +1562,17 @@
       },
       "fields": {
         "destinationPath": "Zielpfad",
-        "destinationPathHelp": "Lokaler Verzeichnispfad für Backup-Speicherung",
-        "destinationPathPlaceholder": "/pfad/zum/backup/verzeichnis",
+        "destinationPathHelp": "Verzeichnis aus Sicht des Backends. Unter Docker ist das ein Pfad im Backend-Container, nicht auf dem Host: Verwenden Sie ein Verzeichnis, das in den Container eingebunden ist.",
+        "destinationPathPlaceholder": "/app/storage/backups",
         "rsyncHost": "Remote-Host",
         "rsyncHostPlaceholder": "backup.beispiel.de",
+        "rsyncPort": "SSH-Port",
         "rsyncUser": "SSH-Benutzer",
         "rsyncUserPlaceholder": "backup-benutzer",
         "rsyncPath": "Remote-Pfad",
         "rsyncPathPlaceholder": "/home/backup/foto-sharing",
         "rsyncSshKey": "SSH-Schlüsseldatei",
-        "rsyncSshKeyHelp": "Absoluter Pfad zu einer privaten Schlüsseldatei, die das Backend lesen kann, zum Beispiel unter dem eingebundenen /app/data. Der Schlüssel selbst wird hier nicht eingetragen. Die Datei darf nur für den Backend-Benutzer lesbar sein (chmod 600). Optional; ohne Angabe verwendet ssh seine Standardkonfiguration.",
+        "rsyncSshKeyHelp": "Absoluter Pfad zu einer für das Backend lesbaren privaten Schlüsseldatei, zum Beispiel unter /app/data (chmod 600). Optional; Standardschlüssel oder ein SSH-Agent funktionieren ohne Angabe. Der unabhängig geprüfte Hostschlüssel des Ziels muss in BACKUP_SSH_KNOWN_HOSTS oder known_hosts neben dem Schlüssel hinterlegt sein; andernfalls gelten die vorab freigegebenen OpenSSH-Standarddateien. Unbekannte oder geänderte Schlüssel werden abgewiesen; bei einem anderen Port als 22 lautet der known_hosts-Eintrag [host]:port, wie ihn ssh-keyscan -p schreibt. SSH-Konfigurationsaliase und Proxys werden nicht verwendet.",
         "rsyncSshKeyPlaceholder": "/app/data/ssh/backup_ed25519",
         "s3Endpoint": "S3-Endpunkt",
         "s3EndpointHelp": "S3 API-Endpunkt (z.B. s3.amazonaws.com)",
@@ -1407,7 +1596,9 @@
         "customCronHelp": "Geben Sie einen gültigen Cron-Ausdruck ein (z.B. 0 3 * * *)",
         "retention": "Aufbewahrungszeitraum",
         "retentionDays": "Backups aufbewahren für",
-        "retentionHelp": "Tage (ältere Backups werden automatisch gelöscht)"
+        "retentionHelp": "Tage (ältere Backups werden automatisch gelöscht)",
+        "retentionCount": "Aufzubewahrende Wiederherstellungspunkte",
+        "retentionCountHelp": "Vollständige Wiederherstellungspunkte, die an einem lokalen oder S3-Ziel aufbewahrt werden. Ältere werden nach jedem erfolgreichen Backup gelöscht. 0 behält alle."
       },
       "whatToBackup": {
         "title": "Was soll gesichert werden",
@@ -1485,7 +1676,8 @@
         "ARTIFACT_OUT_OF_SCOPE": "Die Dateien dieses Backups liegen außerhalb des konfigurierten Backup-Ziels, daher wurde nichts gelöscht",
         "ARTIFACT_DELETE_FAILED": "Das Backup-Manifest konnte nicht entfernt werden, der Eintrag wurde behalten",
         "FORBIDDEN": "Du hast keine Berechtigung, Backups zu löschen"
-      }
+      },
+      "deleteAction": "Backup löschen"
     },
     "restore": {
       "superAdminOnly": "Das Wiederherstellen eines Backups ersetzt alle Daten dieser Instanz, einschließlich Benutzerkonten und Rollen, und ist daher nur einem Super Admin möglich.",
@@ -1643,6 +1835,11 @@
     },
     "errors": {
       "S3_PRIVATE_ENDPOINT": "Der S3-Endpunkt liegt in einem privaten oder internen Netzwerk. Ein Super-Admin muss genau diesen Endpunkt freigeben, bevor er genutzt werden kann.",
+      "RSYNC_CONFIG_INVALID": "Rsync-Host, Port, Benutzer, SSH-Schlüssel oder known_hosts-Pfad ist ungültig. Verwenden Sie einen Hostnamen oder eine öffentliche IP, einen Port von 1 bis 65535 sowie absolute Dateipfade ohne Leerzeichen oder Shell-Syntax.",
+      "RSYNC_HOST_FORBIDDEN": "Das Rsync-Ziel wird in eine private, interne oder reservierte Adresse aufgelöst. Jede DNS-Antwort muss öffentlich sein.",
+      "RSYNC_HOST_UNRESOLVED": "Der Hostname des Rsync-Ziels konnte nicht aufgelöst werden. Es wurde keine Verbindung gestartet.",
+      "RSYNC_SSH_TRUST_REQUIRED": "Hinterlegen Sie den unabhängig geprüften Hostschlüssel des Ziels in einer lesbaren known_hosts-Datei und setzen Sie BACKUP_SSH_KNOWN_HOSTS, oder legen Sie die Datei neben dem konfigurierten SSH-Schlüssel ab. Schreibgeschützte Dateien werden unterstützt.",
+      "RSYNC_SSH_HOST_KEY_UNTRUSTED": "Der Hostschlüssel des Ziels ist unbekannt oder wurde geändert. Prüfen Sie ihn unabhängig mit dem Serverbetreiber und hinterlegen Sie erst danach den freigegebenen known_hosts-Eintrag. Löschen Sie nicht einfach den alten Eintrag, um erneut zu verbinden.",
       "S3_ENDPOINT_FORBIDDEN": "Der S3-Endpunkt zeigt auf eine Link-Local-, Cloud-Metadaten- oder reservierte Adresse. Solche Ziele können nie freigegeben werden.",
       "S3_ENDPOINT_UNRESOLVED": "Der Hostname des S3-Endpunkts konnte nicht aufgelöst werden.",
       "S3_ENDPOINT_INVALID": "Der S3-Endpunkt ist keine gültige URL.",
@@ -1669,7 +1866,7 @@
     "sortByName": "Nach Name sortieren",
     "sortBySize": "Nach Größe sortieren",
     "tableHeaders": {
-      "event": "Veranstaltung",
+      "event": "Galerie",
       "type": "Typ",
       "archivedDate": "Archivierungsdatum",
       "size": "Größe",
@@ -1689,7 +1886,16 @@
     "confirmRestore": "Sind Sie sicher, dass Sie dieses Archiv wiederherstellen möchten? Die Veranstaltung wird wieder aktiv.",
     "confirmDelete": "Sind Sie sicher, dass Sie dieses Archiv dauerhaft löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "restoreSuccess": "Archiv erfolgreich wiederhergestellt",
-    "deleteSuccess": "Archiv dauerhaft gelöscht"
+    "deleteSuccess": "Archiv dauerhaft gelöscht",
+    "restoreTitle": "Archiv wiederherstellen?",
+    "confirmRestoreNamed": "„{{name}}“ wiederherstellen? Die Galerie wird wieder aktiv.",
+    "restoreAction": "Galerie wiederherstellen",
+    "deleteTitle": "Archiv löschen?",
+    "confirmDeleteNamed": "Das Archiv von „{{name}}“ mit allen Fotos endgültig löschen? Das kann nicht rückgängig gemacht werden.",
+    "deleteAction": "Archiv löschen",
+    "loadFailed": "Die Archive konnten nicht geladen werden",
+    "noArchivesMatchHint": "Nichts passt zu dieser Suche oder diesem Filter.",
+    "noArchivesHint": "Archivieren Sie eine Galerie über ihr Menü in der Galerieliste; sie erscheint dann hier."
   },
   "auth": {
     "password": "Passwort",
@@ -1747,9 +1953,23 @@
     "downloadAll": "Alle herunterladen",
     "downloadError": "Einige Fotos konnten nicht heruntergeladen werden",
     "selectPhotos": "Fotos auswählen",
+    "selectMedia": "Medien auswählen",
     "cancelSelection": "Auswahl abbrechen",
     "selectAll": "Alle auswählen",
     "deselectAll": "Auswahl aufheben",
+    "copyFilenames": {
+      "button": "Dateinamen kopieren",
+      "title": "Dateinamen kopieren",
+      "selectedCount": "Ausgewählte Fotos: {{count}}",
+      "favoritesCount": "Favorisierte Fotos: {{count}}",
+      "hint": "Fügen Sie die Liste in die Dateinamensuche Ihres RAW-Editors ein. Die Endungen fehlen, damit auch die RAW-Dateien gefunden werden.",
+      "separator": "Trennzeichen",
+      "separatorComma": "Komma",
+      "separatorSpace": "Leerzeichen",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "copyFailed": "Kopieren wurde blockiert. Der Text ist markiert, drücken Sie Strg+C oder Cmd+C, um ihn zu kopieren."
+    },
     "deleteSelected": "Ausgewählte löschen",
     "searchByFilename": "Nach Dateinamen suchen...",
     "uncategorized": "Ohne Kategorie",
@@ -1784,6 +2004,15 @@
     "downloading_other": "{{count}} Fotos werden heruntergeladen…",
     "photosSelected_one": "{{count}} Foto ausgewählt",
     "photosSelected_other": "{{count}} Fotos ausgewählt",
+    "favoriteSelected_one": "{{count}} Foto favorisieren",
+    "favoriteSelected_other": "{{count}} Fotos favorisieren",
+    "unfavoriteSelected_one": "{{count}} Favorit entfernen",
+    "unfavoriteSelected_other": "{{count}} Favoriten entfernen",
+    "favoritesAdded_one": "{{count}} Foto zu den Favoriten hinzugefügt",
+    "favoritesAdded_other": "{{count}} Fotos zu den Favoriten hinzugefügt",
+    "favoritesRemoved_one": "{{count}} Foto aus den Favoriten entfernt",
+    "favoritesRemoved_other": "{{count}} Fotos aus den Favoriten entfernt",
+    "favoriteSelectedError": "Einige Favoriten konnten nicht gespeichert werden",
     "downloadSelected_one": "{{count}} Foto herunterladen",
     "downloadSelected_other": "{{count}} Fotos herunterladen",
     "guestRecovery": {
@@ -1822,7 +2051,9 @@
       "forgetMeConfirmUploads": "Ihr Name wird von den Fotos entfernt, die Sie in diese Galerie hochgeladen haben.",
       "forgetMe": "Mich vergessen ({{name}})",
       "notYou": "Nicht Sie?",
-      "socials": "Soziale Netzwerke"
+      "socials": "Soziale Netzwerke",
+      "forgetMeTitle": "Mich vergessen?",
+      "forgetMeAction": "Mich vergessen"
     },
     "photosCount_one": "{{count}} Foto",
     "photosCount_other": "{{count}} Fotos",
@@ -1868,6 +2099,8 @@
     },
     "colorFilter": "Farbe",
     "filterByColor": "Nur {{color}} anzeigen",
+    "minRatingFilter": "Meine Bewertung",
+    "filterByMinRating": "Meine Bewertung: mindestens {{min}} Sterne",
     "folders": "Ordner",
     "openFolder": "Ordner {{name}} öffnen",
     "folderPhotoCount": "{{count}} Fotos",
@@ -1900,6 +2133,32 @@
       "photographer": "Fotograf",
       "uploadedBy": "Hochgeladen von {{name}}",
       "photoBy": "Foto von {{name}}"
+    },
+    "firstLook": "Erste Auswahl",
+    "viewAllPhotos": "Alle Fotos",
+    "viewSwitch": "Fotos anzeigen nach",
+    "folderRoot": "Galerie",
+    "folderPath": "Ordnerpfad",
+    "folderUp": "Zurück zu {{name}}",
+    "subfolderCount": "{{count}} Ordner",
+    "subfolderCount_one": "{{count}} Ordner",
+    "subfolderCount_other": "{{count}} Ordner",
+    "downloadFolderWithSubfolders": "Ordner inkl. Unterordner herunterladen ({{count}})",
+    "downloadFolderWithSubfolders_one": "Ordner inkl. Unterordner herunterladen ({{count}})",
+    "downloadFolderWithSubfolders_other": "Ordner inkl. Unterordner herunterladen ({{count}})",
+    "collapseFolder": "{{name}} zuklappen",
+    "expandFolder": "{{name}} aufklappen",
+    "delivery": {
+      "title": "Weitere Fotos folgen",
+      "progressWithDate": "{{delivered}} von ca. {{expected}} Fotos sind bereits da. Die restlichen Bilder sind noch in Bearbeitung – die vollständige Galerie folgt spätestens am {{date}}.",
+      "progress": "{{delivered}} von ca. {{expected}} Fotos sind bereits da. Die restlichen Bilder sind noch in Bearbeitung.",
+      "withDate": "Die restlichen Bilder sind noch in Bearbeitung – die vollständige Galerie folgt spätestens am {{date}}.",
+      "noDetails": "Die restlichen Bilder sind noch in Bearbeitung.",
+      "progressLabel": "Bisher gelieferte Fotos"
+    },
+    "preview": {
+      "title": "Theme-Vorschau",
+      "description": "So sehen Ihre Galerien mit den aktuellen Theme-Einstellungen aus."
     }
   },
   "categories": {
@@ -1915,7 +2174,7 @@
     "addCategory": "Kategorie hinzufügen",
     "categoryName": "Kategoriename",
     "noCategoriesYet": "Noch keine Kategorien. Erstellen Sie Ihre erste Kategorie, um Fotos zu organisieren.",
-    "deleteConfirm": "Sind Sie sicher, dass Sie \"{{name}}\" löschen möchten?",
+    "deleteConfirm": "Kategorie „{{name}}“ löschen? Eine Kategorie, die noch Fotos enthält, kann nicht gelöscht werden; verschieben Sie die Fotos zuerst. Das kann nicht rückgängig gemacht werden.",
     "setCoverPhoto": "Titelbild festlegen",
     "removeCoverPhoto": "Titelbild entfernen",
     "coverPhotoSet": "Titelbild erfolgreich festgelegt",
@@ -1940,7 +2199,8 @@
     "folderDisabled": "Diese Kategorie filtert die Galerie wieder",
     "failedToToggleFolder": "Ordner-Einstellung konnte nicht geändert werden",
     "disableFolderTitle": "Ordner: Diese Fotos sind im Hauptraster ausgeblendet und nur im Ordner sichtbar. Klicken, um wieder einen Filter daraus zu machen.",
-    "enableFolderTitle": "Filter: Diese Fotos bleiben im Hauptraster. Klicken, um einen Ordner daraus zu machen — blendet sie aus, schränkt den Zugriff aber NICHT ein."
+    "enableFolderTitle": "Filter: Diese Fotos bleiben im Hauptraster. Klicken, um einen Ordner daraus zu machen — blendet sie aus, schränkt den Zugriff aber NICHT ein.",
+    "nestedFoldersHint": "Ordner in Ordnern verwalten Sie in der Ordnerleiste im Fotos-Tab."
   },
   "events": {
     "revealMode": "Reveal-Modus (Galerie bis zur Freigabe verbergen)",
@@ -1955,6 +2215,12 @@
     "revealedToast": "Galerie freigegeben — Gäste sehen die Fotos jetzt",
     "revealError": "Galerie konnte nicht freigegeben werden",
     "totalPhotos": "Gesamtfotos",
+    "videos": "Videos",
+    "videoRuntime": "Videolaufzeit",
+    "photosCount_one": "{{count}} Foto",
+    "photosCount_other": "{{count}} Fotos",
+    "videosCount_one": "{{count}} Video",
+    "videosCount_other": "{{count}} Videos",
     "totalViews": "Gesamtaufrufe",
     "totalDownloads": "Gesamte Downloads",
     "uniqueVisitors": "Eindeutige Besucher",
@@ -1967,11 +2233,11 @@
     "useThemeOnly": "Nur Design-Vorlage verwenden",
     "customTemplate": "Benutzerdefinierte Vorlage",
     "createInvoice": "Rechnung erstellen",
-    "title": "Veranstaltungen",
-    "create": "Veranstaltung erstellen",
-    "createEvent": "Veranstaltung erstellen",
-    "eventDetails": "Veranstaltungsdetails",
-    "eventName": "Veranstaltungsname",
+    "title": "Galerien",
+    "create": "Galerie erstellen",
+    "createEvent": "Galerie erstellen",
+    "eventDetails": "Galeriedetails",
+    "eventName": "Galeriename",
     "eventType": "Veranstaltungstyp",
     "eventDate": "Veranstaltungsdatum",
     "fullDay": "Ganztägig",
@@ -1994,17 +2260,18 @@
     "linkCopied": "Link kopiert!",
     "viewGallery": "Galerie ansehen",
     "uploadPhotos": "Fotos hochladen",
-    "archiveEvent": "Veranstaltung archivieren",
-    "archiveConfirm": "Sind Sie sicher, dass Sie diese Veranstaltung archivieren möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "archiveEvent": "Galerie archivieren",
+    "archiveConfirm": "Sind Sie sicher, dass Sie diese Galerie archivieren möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "extendExpiration": "Um {{days}} Tage verlängern",
-    "backToEvents": "Zurück zu Veranstaltungen",
+    "backToEvents": "Alle Galerien",
     "loadingEventDetails": "Veranstaltungsdetails werden geladen...",
     "saveChanges": "Änderungen speichern",
-    "eventExpiresIn": "Diese Veranstaltung läuft in {{days}} Tagen ab",
+    "eventExpiresIn": "Diese Galerie läuft in {{days}} Tagen ab",
     "warningEmailsHaveBeenSent": "Warn-E-Mails wurden an den Kunden gesendet.",
     "extendSevenDays": "Um 7 Tage verlängern",
     "overview": "Übersicht",
     "photos": "Fotos",
+    "media": "Medien",
     "categories": "Kategorien",
     "eventInformation": "Veranstaltungsinformationen",
     "sourceMode": "Quellenmodus",
@@ -2014,7 +2281,7 @@
     "externalFolder": "Externer Ordner",
     "externalFolderHint": "Diese Ordner stammen aus dem /external-media Mount innerhalb des Containers oder Hosts.",
     "externalWatch": "Ordner auf neue Dateien überwachen",
-    "externalWatchHint": "Neue Bilder, die in diesen Ordner kopiert werden, werden automatisch importiert – genau wie über den Import-Button. Aus dem Ordner entfernte Dateien werden nie aus der Galerie gelöscht.",
+    "externalWatchHint": "Neue Bilder, die in diesen Ordner kopiert werden, werden automatisch importiert, ebenso Videos eines erlaubten Dateityps – genau wie über den Import-Button. Aus dem Ordner entfernte Dateien werden nie aus der Galerie gelöscht.",
     "externalWatchActive": "Ordner wird überwacht – neue Dateien werden automatisch importiert.",
     "externalWatchNoPermission": "Erfordert die Berechtigung, Fotos hochzuladen.",
     "externalFolderRequired": "Bitte wählen Sie vor dem Speichern einen externen Ordner aus.",
@@ -2045,7 +2312,8 @@
         "invalidSlug": "Kurz-URLs müssen aus Kleinbuchstaben, Ziffern und Bindestrichen bestehen (1–64 Zeichen)."
       },
       "hits_one": "{{count}} Aufruf",
-      "hits_other": "{{count}} Aufrufe"
+      "hits_other": "{{count}} Aufrufe",
+      "deleteAction": "Kurz-URL löschen"
     },
     "resetGalleryPassword": "Galerie-Passwort zurücksetzen",
     "resendCreationEmail": "Erstellungs-E-Mail erneut senden",
@@ -2061,7 +2329,9 @@
     "resendWithStoredPasswordHint": "Ist für diese Galerie ein Passwort hinterlegt, enthält die E-Mail es.",
     "passwordCopied": "Kopiert",
     "photoStatistics": "Fotostatistiken",
+    "mediaStatistics": "Medienstatistiken",
     "managePhotos": "Fotos verwalten",
+    "manageMedia": "Medien verwalten",
     "actions": "Aktionen",
     "archivingInfo": "Beim Archivieren wird eine ZIP-Datei aller Fotos erstellt und die Galerie aus dem öffentlichen Zugriff entfernt.",
     "archivedOn": "Archiviert am",
@@ -2069,7 +2339,6 @@
     "loadingPhotos": "Fotos werden geladen...",
     "photoCategories": "Fotokategorien",
     "organizeCategoriesInfo": "Organisieren Sie Ihre Fotos in Kategorien. Kategorien helfen Gästen, bestimmte Fototypen zu navigieren und zu finden.",
-    "categoriesTip": "Tipp: Kategorien sind spezifisch für jede Veranstaltung. Sie können auch globale Kategorien in den Einstellungen erstellen.",
     "galleryPassword": "Galerie-Passwort",
     "requirePasswordToggle": "Galerie mit Passwort schützen",
     "requirePasswordToggleHelp": "Deaktivieren Sie diese Option, wenn die Galerie ohne Passwort geteilt werden soll. Jeder mit dem Link kann die Fotos ansehen.",
@@ -2092,6 +2361,7 @@
       "submit": "Passwort zurücksetzen",
       "successHeading": "Passwort erfolgreich zurückgesetzt!",
       "emailSentNote": "Eine E-Mail-Benachrichtigung wurde an den Host gesendet.",
+      "emailNotSentNote": "Es wurde keine E-Mail gesendet: Die Galerie hat keine Kundenadresse, oder die E-Mail konnte nicht eingereiht werden. Teile das neue Passwort selbst mit.",
       "generatedLabel": "Automatisch generiertes Galerie-Passwort",
       "saveSecurelyNote": "Wichtig: Speichern Sie dieses Passwort sicher. Es kann nicht wiederhergestellt werden, sobald Sie dieses Fenster schließen.",
       "done": "Fertig",
@@ -2185,14 +2455,13 @@
     "inactive": "Inaktiv",
     "expired": "Abgelaufen",
     "draft": "Entwurf",
+    "publish": "Veröffentlichen",
     "publishAndNotify": "Veröffentlichen & Kunden benachrichtigen",
     "publishConfirm": "Dadurch wird die Galerie zugänglich und die Benachrichtigungs-E-Mail an den Kunden gesendet. Fortfahren?",
     "publishSuccess": "Galerie veröffentlicht und Kunde benachrichtigt!",
     "publishDialog": {
       "title": "Galerie veröffentlichen",
-      "descriptionWithEmail": "Die Galerie \"{{eventName}}\" wird zugänglich gemacht und die Benachrichtigungs-E-Mail an {{customerEmail}} gesendet.",
       "descriptionNoEmail": "Die Galerie \"{{eventName}}\" wird zugänglich gemacht. Es ist keine Kunden-E-Mail hinterlegt – es wird keine Benachrichtigung gesendet.",
-      "descriptionAssignedAccount": "Die Galerie \"{{eventName}}\" wird zugänglich gemacht. Die zugewiesenen Kundenkonten werden per E-Mail (in ihrer Sprache) benachrichtigt, dass sie verfügbar ist.",
       "justPublish": "Veröffentlichen",
       "passwordLabel": "Galerie-Passwort",
       "passwordPlaceholder": "Galerie-Passwort eingeben",
@@ -2202,8 +2471,7 @@
       "notifyHelp": "Abwählen, um still zu veröffentlichen — die Galerie geht online, es wird nichts versendet. Die E-Mail lässt sich später auf dieser Seite senden.",
       "descriptionQuiet": "Durch das Veröffentlichen wird \"{{eventName}}\" zugänglich. Es wird keine E-Mail versendet — Sie können sie später auf dieser Seite senden.",
       "descriptionWhatsapp": "Durch das Veröffentlichen wird \"{{eventName}}\" zugänglich. Sofern WhatsApp eingerichtet ist, wird der Kunde dort benachrichtigt.",
-      "descriptionAssignedAccount_one": "Die Galerie \"{{eventName}}\" wird zugänglich gemacht. Das zugewiesene Kundenkonto wird per E-Mail (in seiner Sprache) benachrichtigt, dass sie verfügbar ist.",
-      "descriptionAssignedAccount_other": "Die Galerie \"{{eventName}}\" wird zugänglich gemacht. Die zugewiesenen Kundenkonten werden per E-Mail (in ihrer Sprache) benachrichtigt, dass sie verfügbar ist."
+      "descriptionNotify": "Durch das Veröffentlichen wird \"{{eventName}}\" zugänglich. Benachrichtigt werden:"
     },
     "duplicateEvent": "Galerie duplizieren",
     "duplicateDialog": {
@@ -2222,21 +2490,21 @@
       "successToast": "Galerie dupliziert."
     },
     "draftBanner": "Diese Galerie befindet sich im Entwurfsmodus. Laden Sie Ihre Fotos hoch und veröffentlichen Sie, wenn Sie bereit sind.",
-    "subtitle": "Verwalten Sie Ihre Fotogalerien und Veranstaltungen",
-    "failedToLoadEvents": "Veranstaltungen konnten nicht geladen werden",
+    "subtitle": "Verwalten Sie Ihre Fotogalerien",
+    "failedToLoadEvents": "Galerien konnten nicht geladen werden",
     "tryAgain": "Erneut versuchen",
-    "eventExpiredMessage": "Diese Veranstaltung ist abgelaufen",
-    "guestsCannotAccessGallery": "Gäste können nicht mehr auf die Galerie zugreifen. Erwägen Sie, diese Veranstaltung zu archivieren.",
-    "bulkArchivePartial": "{{success}} Veranstaltungen archiviert, {{failed}} fehlgeschlagen",
+    "eventExpiredMessage": "Diese Galerie ist abgelaufen",
+    "guestsCannotAccessGallery": "Gäste können nicht mehr auf die Galerie zugreifen. Erwägen Sie, sie zu archivieren.",
+    "bulkArchivePartial": "{{success}} Galerien archiviert, {{failed}} fehlgeschlagen",
     "deleteSelected": "Ausgewählte löschen",
     "bulkDelete": {
       "warning": "Die ausgewählten Veranstaltungen, alle ihre Fotos, Archive und Audit-Logs werden endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
       "confirmLabel": "Geben Sie {{literal}} ein, um zu bestätigen",
       "confirmHelp": "Eine getippte Bestätigung verhindert versehentliche Löschungen und ist nicht von Browser-Autofill oder Passkey-Verknüpfungen betroffen.",
-      "successPartial": "{{success}} Veranstaltungen gelöscht, {{failed}} fehlgeschlagen",
-      "errorGeneric": "Veranstaltungen konnten nicht gelöscht werden",
-      "successAll_one": "{{count}} Veranstaltung dauerhaft gelöscht",
-      "successAll_other": "{{count}} Veranstaltungen dauerhaft gelöscht",
+      "successPartial": "{{success}} Galerien gelöscht, {{failed}} fehlgeschlagen",
+      "errorGeneric": "Galerien konnten nicht gelöscht werden",
+      "successAll_one": "{{count}} Galerie dauerhaft gelöscht",
+      "successAll_other": "{{count}} Galerien dauerhaft gelöscht",
       "title_one": "{{count}} Veranstaltung dauerhaft löschen?",
       "title_other": "{{count}} Veranstaltungen dauerhaft löschen?",
       "processing_one": "{{count}} Veranstaltung wird gelöscht. Dies kann einige Minuten dauern — bitte schließen Sie dieses Fenster nicht.",
@@ -2244,10 +2512,10 @@
       "submit_one": "{{count}} Veranstaltung löschen",
       "submit_other": "{{count}} Veranstaltungen löschen"
     },
-    "searchEventsPlaceholder": "Veranstaltungen suchen...",
+    "searchEventsPlaceholder": "Galerien suchen...",
     "all": "Alle",
     "expiring": "Läuft ab",
-    "event": "Veranstaltung",
+    "event": "Galerie",
     "type": "Typ",
     "date": "Datum",
     "status": "Status",
@@ -2255,9 +2523,9 @@
     "passwordProtected": "Passwortgeschützt",
     "newPasswordRequired": "Bitte legen Sie vor dem Aktivieren des Passwortschutzes ein Passwort fest.",
     "viewDetails": "Details anzeigen",
-    "archiveEventAction": "Veranstaltung archivieren",
+    "archiveEventAction": "Galerie archivieren",
     "downloadArchiveAction": "Archiv herunterladen",
-    "deleteEvent": "Veranstaltung löschen",
+    "deleteEvent": "Galerie löschen",
     "deleteEventConfirm": "Sind Sie sicher, dass Sie diese Veranstaltung löschen möchten?",
     "copy": "Kopieren",
     "copied": "Kopiert!",
@@ -2286,30 +2554,30 @@
       "warning3": "Fotodateien können umbenannt werden"
     },
     "stats": {
-      "totalEvents": "Gesamtveranstaltungen",
-      "activeEvents": "Aktive Veranstaltungen",
+      "totalEvents": "Galerien gesamt",
+      "activeEvents": "Aktive Galerien",
       "totalPhotos": "Gesamtfotos",
       "expiringEvents": "Bald ablaufend"
     },
     "clear": "Zurücksetzen",
     "archiveSelected": "Auswahl archivieren",
-    "noEventsFound": "Keine Veranstaltungen gefunden",
+    "noEventsFound": "Keine Galerien gefunden",
     "downloadArchiveSoon": "Archiv-Download bald verfügbar",
     "welcomeMessageLabel": "Willkommensnachricht",
     "archiveStatusTitle": "Archivstatus",
     "downloadingArchive": "{{name}}-Archiv wird heruntergeladen...",
     "downloadStarted": "Download gestartet",
     "failedToDownloadArchive": "Archiv-Download fehlgeschlagen",
-    "bulkArchiveSuccess_one": "{{count}} Veranstaltung erfolgreich archiviert",
-    "bulkArchiveSuccess_other": "{{count}} Veranstaltungen erfolgreich archiviert",
+    "bulkArchiveSuccess_one": "{{count}} Galerie erfolgreich archiviert",
+    "bulkArchiveSuccess_other": "{{count}} Galerien erfolgreich archiviert",
     "daysLeft_one": "({{count}} Tag verbleibend)",
     "daysLeft_other": "({{count}} Tage verbleibend)",
-    "eventsSelected_one": "{{count}} Veranstaltung ausgewählt",
-    "eventsSelected_other": "{{count}} Veranstaltungen ausgewählt",
+    "eventsSelected_one": "{{count}} Galerie ausgewählt",
+    "eventsSelected_other": "{{count}} Galerien ausgewählt",
     "paginationLabel": "{{from}}–{{to}} von {{total}}",
     "filtered": "gefiltert",
     "pageOf": "Seite {{page}} von {{totalPages}}",
-    "notFound": "Veranstaltung nicht gefunden",
+    "notFound": "Galerie nicht gefunden",
     "customerPhone": "Kundentelefon",
     "customerPhonePlaceholder": "+49 555 555 1234",
     "allowPresignedDownload": "Direkten S3-Download erlauben (kein Wasserzeichen, nur S3-Modus)",
@@ -2318,7 +2586,7 @@
     "devtoolsDetection": "DevTools-Erkennung",
     "watermarked": "Mit Wasserzeichen",
     "importExternal": "Aus externem Ordner importieren",
-    "externalImportInfo": "Alle Bilder aus dem ausgewählten Ordner werden importiert.",
+    "externalImportInfo": "Alle Bilder aus dem ausgewählten Ordner werden importiert. Videos werden ebenfalls importiert, wenn ihr Dateityp für Uploads erlaubt ist.",
     "selectExternalFolder": "Externen Ordner unter /external-media auswählen",
     "importFromSelectedFolder": "Aus ausgewähltem Ordner importieren",
     "promoBanner": {
@@ -2351,8 +2619,8 @@
       "confirm": "Galerie-E-Mail an {{recipient}} senden?",
       "success": "Galerie-E-Mail an {{recipient}} eingereiht.",
       "title": "Galerie-E-Mail senden",
-      "description": "Sendet den Galerie-Link für \"{{eventName}}\" an {{recipient}}.",
-      "passwordHelp": "Die E-Mail enthält genau diesen Text. Geben Sie das Galerie-Passwort erneut ein (oder wählen Sie ein neues) — das Backend hasht es neu, damit der Login weiter funktioniert."
+      "passwordHelp": "Die E-Mail enthält genau diesen Text. Geben Sie das Galerie-Passwort erneut ein (oder wählen Sie ein neues) — das Backend hasht es neu, damit der Login weiter funktioniert.",
+      "descriptionList": "Sendet den Galerie-Link für \"{{eventName}}\" an:"
     },
     "bulkArchive": {
       "title": "Massen-Archivierung bestätigen",
@@ -2394,7 +2662,263 @@
       "showToGuestsHelp": "Gäste sehen die Namen bei Uploads, die hochgeladen wurden, während dies eingeschaltet war; Namen aus der Zeit, in der es aus war, bleiben dir und dem Gastgeber vorbehalten. Ausschalten verbirgt alle Namen vor Gästen. Gilt auch für Fotografen-Angaben aus den EXIF-Daten.",
       "shownToGuests": "Für Gäste sichtbar",
       "hiddenFromGuests": "Nur für dich sichtbar"
-    }
+    },
+    "sortNameAsc": "A – Z",
+    "sortNameDesc": "Z – A",
+    "sortDateNewest": "Neueste zuerst",
+    "sortDateOldest": "Älteste zuerst",
+    "sortCreatedNewest": "Zuletzt erstellt",
+    "sortCreatedOldest": "Zuerst erstellt",
+    "sortPhotosMost": "Meiste Fotos",
+    "sortPhotosFewest": "Wenigste Fotos",
+    "sortStatusActive": "Aktive zuerst",
+    "sortStatusArchived": "Archivierte zuerst",
+    "sortExpiresSoonest": "Läuft zuerst ab",
+    "sortExpiresLatest": "Läuft zuletzt ab",
+    "filterAllTypes": "Alle Typen",
+    "filterByType": "Nach Typ filtern",
+    "sortByName": "Nach Name sortieren",
+    "sortByDate": "Nach Datum sortieren",
+    "sortByPhotos": "Nach Fotoanzahl sortieren",
+    "sortByStatus": "Nach Status sortieren",
+    "sortByExpiry": "Nach Ablauf sortieren",
+    "createSource": {
+      "importNow": "Direkt nach dem Erstellen importieren",
+      "importNowHelp": "Läuft im Hintergrund; du landest im Tab Fotos.",
+      "managedHelp": "Nach dem Erstellen im Tab Fotos hochladen.",
+      "watchHelp": "Neue Fotos im Ordner erscheinen von selbst."
+    },
+    "externalSource": {
+      "alreadyRunning": "Für diesen Ordner läuft bereits ein Import.",
+      "changeFolder": "Ordner ändern",
+      "importNow": "Jetzt importieren",
+      "importing": "Importiert…",
+      "lastScan": "Letzter Scan {{when}}",
+      "neverScanned": "Noch nicht gescannt",
+      "rescan": "Neu scannen",
+      "rescanDone": "Scan fertig: {{count}} neue Fotos",
+      "rescanFailed": "Scan fehlgeschlagen",
+      "source": "Quelle",
+      "watching": "Überwacht neue Dateien",
+      "retry": "Erneut versuchen",
+      "failedMissing": "Der letzte Import ist fehlgeschlagen: Der Ordner ist nicht mehr auffindbar.",
+      "failedPermission": "Der letzte Import ist fehlgeschlagen: PicPeak darf den Ordner nicht lesen.",
+      "failedGeneric": "Der letzte Import ist fehlgeschlagen.",
+      "applyStructure": "Ordnerstruktur übernehmen",
+      "applyStructureHint": "Unterordner auf Fotos übertragen, die importiert wurden, bevor die Ordnerstruktur aktiv war",
+      "applyStructureTitle": "Ordnerstruktur übernehmen?",
+      "applyStructureMessage": "Fotos, die noch in keinem Galerie-Ordner liegen, wandern in Ordner, die die Unterordner des externen Ordners abbilden. Fotos, die schon in einem Ordner liegen, bleiben, wo sie sind.",
+      "structureApplied_one": "{{count}} Foto in Ordner verschoben",
+      "structureApplied_other": "{{count}} Fotos in Ordner verschoben",
+      "structureNothing": "Alle Fotos aus Unterordnern liegen bereits in einem Ordner",
+      "structureFailed": "Die Ordnerstruktur konnte nicht übernommen werden"
+    },
+    "header": {
+      "moreActions": "Weitere Aktionen"
+    },
+    "overviewTab": {
+      "details": "Details",
+      "downloadsOn": "Erlaubt",
+      "extendDays": "+{{days}} Tage",
+      "helpClient": "Kunden unterstützen",
+      "helpClientHint": "Aktionen, die sofort wirken. Passwort und erneuter E-Mail-Versand sind in der Teilen-Karte oben.",
+      "openFeedback": "Gäste & Feedback öffnen",
+      "reminderOff": "Für diese Galerie aus",
+      "reminderOn": "An",
+      "reminderSent": "Gesendet {{date}}",
+      "setup": "Einrichtung",
+      "sourceExternal": "Externer Ordner",
+      "sourceUploads": "Uploads",
+      "sourceWatched": "Externer Ordner · überwacht",
+      "themeCustom": "Eigenes Design"
+    },
+    "settingsTab": {
+      "about": {
+        "access": "Wer die Galerie öffnen kann, und bis wann.",
+        "appearance": "Titelbild, Logo, Banner und das Aussehen der Galerie.",
+        "danger": "Diese Galerie archivieren oder löschen.",
+        "downloads": "Was Gäste herunterladen dürfen, in welcher Größe, und wie die Fotos geschützt sind.",
+        "faces": "Personen in den Fotos finden und gruppieren.",
+        "general": "Kunde, Kundenkonten und die Willkommensnachricht.",
+        "guests": "Uploads, Namen und Feedback der Gäste.",
+        "reminder": "Die Erinnerungs-E-Mail an den Kunden vor dem Event.",
+        "slideshow": "Ein Vollbild-Link für Beamer bei Live-Events.",
+        "source": "Woher die Fotos dieser Galerie kommen.",
+        "delivery": "Verschachtelte Ordner aus Uploads und eine erste Auswahl vor der vollständigen Galerie."
+      },
+      "access": "Zugang",
+      "appearance": "Erscheinungsbild",
+      "backToSections": "Alle Einstellungen",
+      "copiedBranding": "Globales Design übernommen. Zum Behalten speichern.",
+      "customStyling": "Eigenes Galerie-Design",
+      "customStylingHelp": "Aus: Diese Galerie nutzt das globale Design aus dem Branding und folgt jeder Änderung dort. An: Layout, Header, Bedienelemente, Farben, Schriften, CSS-Vorlage und eigenes CSS nur für diese Galerie überschreiben.",
+      "customStylingKept": "Beim Ausschalten bleiben diese Werte erhalten; beim Wiedereinschalten sind sie zurück.",
+      "danger": "Gefahrenbereich",
+      "default": "Standard",
+      "deleteConfirm": "„{{name}}“ und alle Fotos löschen? Das kann nicht rückgängig gemacht werden.",
+      "deleteHelp": "Entfernt die Galerie und ihre Fotos endgültig. Das kann nicht rückgängig gemacht werden.",
+      "deleteTitle": "Galerie löschen",
+      "deleted": "Galerie gelöscht",
+      "downloads": "Downloads",
+      "editGlobalTheme": "Globales Design bearbeiten",
+      "faces": "Gesichter",
+      "general": "Allgemein",
+      "globalTheme": "Globales Design (Branding)",
+      "group": {
+        "access": "Zugang & Downloads",
+        "basics": "Grundlagen",
+        "guests": "Gäste",
+        "photos": "Fotos & Automatisierung"
+      },
+      "guests": "Gäste-Interaktion",
+      "heroLogoBanners": "Titelbild, Logo & Banner",
+      "notSaved": "noch nicht gespeichert",
+      "passwordKeep": "Leer lassen, um das aktuelle Passwort zu behalten",
+      "readOnly": "Du kannst diese Einstellungen sehen, aber nicht ändern.",
+      "readOnlyArchived": "Diese Galerie ist archiviert. Ihre Einstellungen können nicht mehr geändert werden.",
+      "reminderOff": "Für diese Galerie wird keine Erinnerung gesendet.",
+      "reminderOffset": "Tage vor dem Event",
+      "reminderSend": "Erinnerung vor dem Event für diese Galerie senden",
+      "reminderWhen": "Wird am {{date}} gesendet",
+      "reminderWhenTo": "Wird am {{date}} an {{recipient}} gesendet",
+      "sections": "Einstellungsbereiche",
+      "source": "Fotoquelle",
+      "sourceImportHelp": "Importiert jetzt neue Fotos aus diesem Ordner. Läuft im Hintergrund; die Fotos erscheinen im Tab Fotos.",
+      "sourceImportSaveFirst": "Zuerst den neuen Ordner speichern, dann hier importieren.",
+      "sourceManagedHelp": "Fotos werden im Tab Fotos hochgeladen und von PicPeak gespeichert.",
+      "sourceReferenceHelp": "Fotos bleiben in deinem Ordner; PicPeak verlinkt sie.",
+      "summary": {
+        "clientAccounts_one": "{{count}} Kundenkonto",
+        "clientAccounts_other": "{{count}} Kundenkonten",
+        "danger": "Diese Galerie archivieren oder löschen",
+        "downloadLimit": "Limit {{count}}",
+        "downloadsOff": "Downloads aus",
+        "downloadsOn": "Downloads erlaubt",
+        "expires": "läuft ab am {{date}}",
+        "externalFolder": "Externer Ordner",
+        "faces": "Personen in den Fotos finden und gruppieren",
+        "feedbackOff": "Feedback aus",
+        "feedbackOn": "Feedback an",
+        "globalTheme": "Globales Design",
+        "interval": "{{seconds}} s pro Foto",
+        "linkActive": "Link aktiv",
+        "neverExpires": "läuft nie ab",
+        "noCustomerName": "Kein Kundenname",
+        "noLink": "Noch kein Link",
+        "ownStyling": "Eigenes Design",
+        "passwordOff": "Kein Passwort",
+        "passwordOn": "Passwort aktiv",
+        "reminderDays_one": "{{count}} Tag vorher",
+        "reminderDays_other": "{{count}} Tage vorher",
+        "reminderGlobal": "Globaler Zeitplan",
+        "reminderOff": "Für diese Galerie aus",
+        "reminderOn": "Versand am {{date}}",
+        "uploaded": "In PicPeak hochgeladen",
+        "uploadsOff": "Uploads aus",
+        "uploadsOn": "Uploads an",
+        "watching": "wird überwacht",
+        "watermarked": "mit Wasserzeichen",
+        "welcomeSet": "Willkommensnachricht gesetzt",
+        "folderStructureOn": "Ordnerstruktur an",
+        "folderStructureOff": "Uploads ohne Ordner",
+        "firstLookDue": "erste Auswahl, vollständige Galerie bis {{date}}",
+        "firstLook": "erste Auswahl, mehr folgt",
+        "teamMembers_one": "{{count}} Teammitglied",
+        "teamMembers_other": "{{count}} Teammitglieder",
+        "teamReview": "Team-Uploads werden geprüft"
+      },
+      "undoSection": "Diesen Bereich zurücksetzen",
+      "delivery": "Ordner & Auslieferung",
+      "passwordOwnerOnly": "Nur der Besitzer der Galerie kann das Passwort ändern oder ausschalten."
+    },
+    "folders": {
+      "sectionTitle": "Ordner",
+      "sectionHelp": "Unterordner eines Uploads oder des verknüpften externen Ordners werden zu verschachtelten Galerieordnern (höchstens drei Ebenen). Ausschalten betrifft nur neue Uploads und Scans; bestehende Ordner bleiben, wie sie sind.",
+      "mirror": "Ordnerstruktur bei Upload und Import übernehmen",
+      "mirrorHelp": "Im Upload-Dialog lässt sich das pro Upload umstellen."
+    },
+    "delivery": {
+      "sectionTitle": "Auslieferung in zwei Etappen",
+      "sectionHelp": "Jetzt eine erste Auswahl liefern, die vollständige Galerie später. Gäste sehen die ersten Fotos mit einem Badge, einen Hinweis, dass mehr kommt, und Platzhalter, bis Sie die vollständige Galerie als fertig markieren.",
+      "statusComplete": "Vollständig",
+      "statusPartial": "Erste Auswahl, mehr folgt",
+      "ofApprox": "von ~{{count}}",
+      "badged": "{{count}} Fotos mit Badge „{{label}}“",
+      "overdueSince": "Zugesagt bis {{date}} — überfällig",
+      "promisedBy": "Zugesagt bis {{date}} · in {{count}} Tagen",
+      "completeButton": "Vollständige Galerie ist fertig",
+      "completedOn": "Abgeschlossen am {{date}}. Die Badges der ersten Auswahl bleiben an ihren Fotos.",
+      "expected": "Erwartete Anzahl Fotos",
+      "expectedHelp": "Ungefähr. Wird nur für den Hinweis an Gäste und die Platzhalter verwendet.",
+      "dueAt": "Vollständige Galerie zugesagt bis",
+      "dueDefault": "Standard",
+      "dueHelp": "Wird Gästen angezeigt und für Ihre Erinnerung verwendet. Leer: Eventdatum plus Standard aus Einstellungen → Events.",
+      "badgeLabel": "Badge-Text",
+      "badgeHelp": "Zum Beispiel „Vorab für Social Media“. Das Badge bleibt an diesen Fotos, auch nachdem die vollständige Galerie da ist.",
+      "switchOffHint": "„Vollständig“ hier zu speichern entfernt nur Hinweis und Platzhalter — es wird keine E-Mail verschickt. Mit „Vollständige Galerie ist fertig“ informieren Sie den Kunden.",
+      "invalidExpected": "Die erwartete Anzahl Fotos muss eine ganze Zahl über 0 sein oder leer bleiben.",
+      "completeTitle": "Vollständige Galerie als fertig markieren?",
+      "completeBody": "Hinweis und Platzhalter verschwinden. Die Badges der ersten Auswahl bleiben. Gäste sehen danach {{count}} Fotos.",
+      "sendMail": "E-Mail „Ihre vollständige Galerie ist da“ senden",
+      "sendMailHelp": "Workflows können außerdem auf „gallery.completed“ reagieren.",
+      "removeDuplicates": "{{count}} Duplikate der ersten Auswahl entfernen",
+      "removeDuplicatesHelp": "Fotos der ersten Auswahl, die in der vollständigen Galerie erneut vorkommen: gleicher Originaldateiname, auf beiden Seiten eindeutig, und gleiche Aufnahmezeit (ohne Aufnahmezeit: gleiche Größe). Das Löschen ist endgültig; die Kopien in der vollständigen Galerie übernehmen das Badge.",
+      "removeDuplicatesNoPermission": "Zum Löschen von Fotos ist die Berechtigung photos.delete nötig.",
+      "completeAndNotify": "Als fertig markieren & benachrichtigen",
+      "completeOnly": "Als fertig markieren",
+      "completedMailed": "Die Galerie ist vollständig. Der Kunde wurde benachrichtigt.",
+      "completed": "Die Galerie ist vollständig.",
+      "completeFailed": "Die Galerie konnte nicht als vollständig markiert werden.",
+      "pill": "Erste Auswahl",
+      "pillOverdue": "Erste Auswahl · überfällig",
+      "pillDue": "Erste Auswahl · fällig in {{count}} T.",
+      "awaitingFilter": "Vollständige Galerie ausstehend",
+      "progressShort": "{{count}} von ~{{expected}} Fotos",
+      "progressNoExpected": "Bisher {{count}} Fotos",
+      "overdueShort": "Überfällig seit {{date}}",
+      "dueShort": "Fällig am {{date}}",
+      "viewAllAwaiting": "Alle anzeigen",
+      "promisedBy_one": "Zugesagt bis {{date}} · in {{count}} Tag",
+      "promisedBy_other": "Zugesagt bis {{date}} · in {{count}} Tagen",
+      "progressNoExpected_one": "Bisher {{count}} Foto",
+      "progressNoExpected_other": "Bisher {{count}} Fotos",
+      "removeDuplicates_one": "{{count}} Duplikat der ersten Auswahl entfernen",
+      "removeDuplicates_other": "{{count}} Duplikate der ersten Auswahl entfernen",
+      "duplicatesNotRemoved": "Die Galerie ist vollständig, aber die Duplikate der ersten Auswahl konnten nicht entfernt werden. Löschen Sie sie im Tab Fotos."
+    },
+    "recipients": {
+      "andMore": "{{names}} +{{count}} weitere",
+      "galleryEmail": "Galerie-E-Mail",
+      "portalEmail": "Kundenportal-E-Mail",
+      "previewTitle": "Benachrichtigt, wenn Sie die Galerie veröffentlichen:",
+      "generatedPasswordNote": "Kunden melden sich über ihr Kundenportal an und brauchen kein Galerie-Passwort. Damit der Galerie-Link geschützt bleibt, wird ein sicheres Passwort erzeugt. Wenn Sie später eine Kunden-E-Mail hinzufügen, legen Sie dann ein Passwort fest.",
+      "passwordForEmailRequired": "Legen Sie ein Galerie-Passwort fest, bevor Sie die Kunden-E-Mail hinzufügen — die Galerie-E-Mail enthält es.",
+      "passwordForEmailHint": "Diese Galerie wurde nur über das Kundenportal geteilt, daher wurde ihr Passwort erzeugt und niemand kennt es. Die Galerie-E-Mail an diese Adresse enthält das Passwort — legen Sie jetzt eines fest.",
+      "accountCount_one": "{{count}} Kundenkonto",
+      "accountCount_other": "{{count}} Kundenkonten",
+      "whatsapp": "WhatsApp",
+      "skippedAccounts_one": "{{count}} Kundenkonto wird nicht benachrichtigt — dafür ist die Berechtigung customers.events nötig",
+      "skippedAccounts_other": "{{count}} Kundenkonten werden nicht benachrichtigt — dafür ist die Berechtigung customers.events nötig"
+    },
+    "team": {
+      "label": "Teammitglieder",
+      "help": "Hier hinzugefügte Admin-Konten können an dieser Galerie wie Sie arbeiten, im Rahmen ihrer Rolle. Kunden- und Abrechnungsdaten bleiben bei Ihnen.",
+      "removeAria": "{{name}} entfernen",
+      "placeholder": "Admin-Konten suchen",
+      "loading": "Wird geladen …",
+      "loadFailed": "Die Admin-Konten konnten nicht geladen werden.",
+      "noResults": "Keine weiteren Admin-Konten gefunden.",
+      "reviewUploads": "Uploads von Teammitgliedern vor der Veröffentlichung prüfen",
+      "reviewUploadsHelp": "Betrifft Uploads von Teammitgliedern, deren Rolle die Berechtigung „Review Team Uploads“ nicht hat: Sie bleiben für Gäste und Kunden verborgen, bis Sie oder eine prüfende Person sie im Tab Fotos freigeben. Die Rollen Admin, Editor und Solo Photographer haben diese Berechtigung standardmäßig, ihre Uploads werden nie zurückgehalten.",
+      "reviewUploadsHelpMember": "Ihre Uploads in diese Galerie bleiben für Gäste und Kunden verborgen, bis der Galerie-Inhaber oder eine prüfende Person sie freigibt.",
+      "reviewUploadsHelpReviewer": "Uploads von Teammitgliedern ohne die Berechtigung „Review Team Uploads“ warten im Tab Fotos auf Freigabe. Ihre eigenen werden sofort veröffentlicht."
+    },
+    "deleteEventConfirmLoss": "„{{name}}“ mit allen Fotos löschen? Das kann nicht rückgängig gemacht werden.",
+    "noEventsMatchHint": "Nichts passt zu dieser Suche oder diesem Filter. Setzen Sie ihn zurück, um alle Galerien zu sehen.",
+    "noEventsYet": "Noch keine Galerien",
+    "noEventsYetHint": "Erstellen Sie eine Galerie, um Fotos mit einem Kunden zu teilen.",
+    "downloadLimitResetAction": "Downloads zurücksetzen",
+    "notFoundHint": "Sie wurde vielleicht gelöscht, oder der Link ist falsch."
   },
   "settings": {
     "title": "Systemeinstellungen",
@@ -2430,6 +2954,8 @@
       "maxFileSize": "Max. Dateigröße (MB)",
       "maxVideoSize": "Max. Videogröße (MB)",
       "maxVideoSizeHelp": "Eigenes Limit pro Videodatei, damit für Fotos ein kleineres Limit gelten kann.",
+      "videoWebRendition": "Browser-abspielbare Kopien von Videos",
+      "videoWebRenditionHelp": "Kodiert Videos, die ein Browser nicht abspielen kann (HEVC, QuickTime, nicht streambare MP4s), für die Wiedergabe in ein H.264-MP4 um. Zum Herunterladen bleibt das Original. Kostet CPU pro Video und eine zweite Datei; beim Einschalten werden die bereits hochgeladenen Videos eingereiht.",
       "maxFilesPerUpload": "Max. Dateien pro Upload",
       "maxFilesPerUploadHelp": "Maximale Anzahl an Fotos pro Upload-Vorgang (1-{{max}}).",
       "maxUploadBatchSize": "Max. Upload-Paketgröße (MB)",
@@ -2465,7 +2991,12 @@
       "timeFormat": "Zeitformat",
       "timeFormat24h": "24-Stunden (14:30)",
       "timeFormat12h": "12-Stunden (2:30 PM)",
-      "timeFormatHelp": "Steuert die Darstellung von Uhrzeiten in der Administration, auf kundenseitigen Seiten und in PDFs. Gespeichert wird weiterhin im 24-Stunden-Format (HH:mm) — nur die Anzeige ändert sich."
+      "timeFormatHelp": "Steuert die Darstellung von Uhrzeiten in der Administration, auf kundenseitigen Seiten und in PDFs. Gespeichert wird weiterhin im 24-Stunden-Format (HH:mm) — nur die Anzeige ändert sich.",
+      "adminLanguage": "Ihre Admin-Sprache",
+      "adminLanguageHelp": "Gilt für den Admin-Bereich, nur für Sie auf diesem Gerät. Die Änderung wirkt sofort — Speichern ist nicht nötig.",
+      "customerLanguage": "Sprache für Galerie & Gäste",
+      "accountCreditName": "Fotografen-Credit",
+      "accountCreditNameHelp": "Wird bei Ihren Uploads als Fotograf angegeben, wenn die Datei keinen Fotografennamen in den Metadaten enthält. Leer lassen für keinen Credit."
     },
     "publicSite": {
       "badge": "Öffentliche Landingpage",
@@ -2615,7 +3146,16 @@
       "keybindColors": "Nur Farben – 1 Grün, 2 Gelb, 3 Rot",
       "keybindLightroom": "Lightroom – 1–5 Sterne, 6–9 Farben",
       "defaultDownloadLimit": "Standard-Download-Limit",
-      "defaultDownloadLimitHelp": "Vorbelegung für neue Events: wie viele Fotos ein Kunde herunterladen kann. 0 = unbegrenzt."
+      "defaultDownloadLimitHelp": "Vorbelegung für neue Events: wie viele Fotos ein Kunde herunterladen kann. 0 = unbegrenzt.",
+      "defaultFolderStructure": "Ordnerstruktur in neuen Galerien übernehmen",
+      "defaultFolderStructureHelp": "Unterordner von Uploads und externen Ordnern werden zu verschachtelten Galerieordnern. Bestehende Galerien behalten ihre eigene Einstellung.",
+      "firstLookDetection": "Erste Auswahl über Stichwort-Ordner starten",
+      "firstLookDetectionHelp": "Ein Ordner auf oberster Ebene, dessen Name eines dieser Wörter enthält (z. B. „Hochzeit (FirstLook)“), wird nicht als Ordner angelegt: Seine Fotos erhalten ein Badge und die Galerie wechselt zur Auslieferung in zwei Etappen.",
+      "firstLookKeywords": "Stichwörter",
+      "firstLookKeywordsHelp": "Durch Kommas getrennt. Groß-/Kleinschreibung, Leerzeichen, Binde- und Unterstriche werden ignoriert, „FirstLook“ passt also auch auf „first-look“.",
+      "deliveryDays": "Vollständige Galerie fällig nach (Tagen)",
+      "deliveryDaysHelp": "Startet eine erste Auswahl ohne zugesagtes Datum, ist die vollständige Galerie so viele Tage nach dem Eventdatum fällig.",
+      "defaultAllowDecisions": "Freigabe / Ablehnung pro Foto"
     },
     "imageSecurity": {
       "title": "Bildschutz",
@@ -2718,7 +3258,7 @@
       "aboutText": "Globale Kategorien sind für alle Veranstaltungen verfügbar. Sie können auch veranstaltungsspezifische Kategorien erstellen, wenn Sie einzelne Veranstaltungen bearbeiten. Kategorien helfen beim Organisieren von Fotos und ermöglichen es Gästen, Fotos nach Typ in der Galerieansicht zu filtern."
     },
     "systemStatus": {
-      "title": "Systemstatus",
+      "title": "Status",
       "storageOverview": "Speicherübersicht",
       "systemInfo": "Systeminformationen",
       "databaseInfo": "Datenbankinformationen",
@@ -2744,7 +3284,8 @@
       "failed": "Fehlgeschlagen",
       "lastUpdate": "Letzte Aktualisierung",
       "emailProcessorStopped": "Läuft nicht — eingereihte E-Mails werden geschrieben, aber niemand versendet sie.",
-      "emailProcessorDegraded": "Läuft, aber der letzte Durchlauf konnte nicht senden: {{error}}"
+      "emailProcessorDegraded": "Läuft, aber der letzte Durchlauf konnte nicht senden: {{error}}",
+      "description": "Dienste, Warteschlangen, Speicher und Version — was diese Instanz gerade ausführt."
     },
     "photoDimensions": {
       "title": "Foto-Abmessungen",
@@ -2791,7 +3332,7 @@
       "filterDeleted": "Wortfilter erfolgreich gelöscht",
       "deleteError": "Wortfilter konnte nicht gelöscht werden",
       "wordRequired": "Bitte geben Sie ein Wort zum Filtern ein",
-      "confirmDelete": "Möchten Sie diesen Wortfilter wirklich löschen?",
+      "confirmDelete": "Diesen Wortfilter löschen? Kommentare werden nicht mehr damit geprüft. Das kann nicht rückgängig gemacht werden.",
       "loading": "Wortfilter werden geladen...",
       "noMatchingFilters": "Keine passenden Filter gefunden",
       "noFilters": "Noch keine Wortfilter konfiguriert",
@@ -2803,7 +3344,9 @@
       "lowDescription": "Wort wird zur Überprüfung markiert, aber nicht automatisch blockiert",
       "moderateDescription": "Kommentar erfordert manuelle Freigabe, bevor er sichtbar wird",
       "highDescription": "Kommentar wird automatisch ausgeblendet und erfordert Admin-Überprüfung",
-      "blockDescription": "Kommentar wird sofort abgelehnt und kann nicht eingereicht werden"
+      "blockDescription": "Kommentar wird sofort abgelehnt und kann nicht eingereicht werden",
+      "deleteAction": "Filter löschen",
+      "loadFailed": "Die Wortfilter konnten nicht geladen werden"
     },
     "styling": {
       "title": "Benutzerdefiniertes CSS"
@@ -2811,7 +3354,7 @@
     "analytics": {
       "title": "Analyse",
       "providerHeading": "Analytics-Anbieter",
-      "providerDescription": "Tracker für die öffentliche Galerie wählen oder eigenes Skript einfügen. Das Geräte-Diagramm im Admin-Dashboard wird nur bei Umami oder Rybbit angereichert — diese stellen eine Metrics-API bereit. Andere Anbieter (Plausible, Matomo, GA4, …) funktionieren über den Custom-Modus unten.",
+      "providerDescription": "Wählen Sie Umami oder Rybbit für öffentliche Galerie-Analysen. PicPeak leitet nur Daten weiter; eigene Tracker-Skripte werden nicht mehr unterstützt.",
       "providerLabel": "Anbieter",
       "provider": {
         "none": "Keiner",
@@ -2819,9 +3362,11 @@
         "rybbit": "Rybbit",
         "custom": "Custom (eigenes Skript einfügen)"
       },
-      "providerNoneInfo": "Kein externer Tracker eingebunden. Das Admin-Dashboard zeigt weiterhin Übersichtskarten + den Tagesverlauf aus PicPeaks eigenen access_logs; das Geräte-Diagramm verwendet eine grobe User-Agent-Heuristik.",
-      "proxiedNotice": "Wird über Ihre eigene Domain ausgeliefert",
-      "proxiedNoticeText": "PicPeak lädt das Tracker-Skript und leitet dessen Ereignisse über die eigene Domain weiter, deshalb ist keine Änderung an der Content-Security-Policy oder am Reverse-Proxy nötig — und Werbeblocker sehen First-Party-Anfragen. Ihr Tracker erhält weiterhin IP-Adresse und User-Agent jedes Besuchers (als X-Forwarded-For weitergereicht), Geräte- und Standort-Auswertungen funktionieren also unverändert. Die URL muss vom PicPeak-Server aus erreichbar sein und auf eine öffentliche Adresse auflösen.",
+      "providerNoneInfo": "Keine Ereignisse werden extern weitergeleitet. Das Admin-Dashboard zeigt weiterhin Übersicht und Tagesverlauf aus PicPeaks access_logs; Geräte werden grob anhand des User-Agents zugeordnet.",
+      "proxiedNotice": "Datenbasierte Analytics-Weiterleitung",
+      "customDisabled": "Eigene Skripte deaktiviert",
+      "customDisabledHelp": "Ihr bisheriges eigenes Snippet ist deaktiviert und wird nicht an Besucher gesendet. Wählen Sie Umami, Rybbit oder Keinen und speichern Sie, um das alte Snippet zu löschen.",
+      "proxiedNoticeText": "PicPeak leitet bereinigte Seitenaufrufe und Galerie-Ereignisse weiter, ohne Drittanbieter-Code zu laden. Der Anbieter erhält Besucher-IP und User-Agent, aber keine URL-Parameter, Seitentitel, Referrer, Tokens oder Konto-Kennungen. In Produktion muss der Anbieter HTTPS verwenden.",
       "customOnlyCspWarningText": "PicPeak liefert eine strikte CSP aus (`script-src 'self'; connect-src 'self'`). Anders als bei den Optionen Umami und Rybbit oben wird ein eingefügtes Snippet nicht über PicPeak geleitet — tragen Sie die Domain Ihres Trackers sowohl in `script-src` (zum Laden des Skripts) als auch in `connect-src` (für die gesendeten Ereignisse) Ihrer Reverse-Proxy- oder nginx-CSP-Konfiguration ein, sonst blockiert der Browser sie stillschweigend.",
       "rybbitUrl": "Rybbit-URL",
       "rybbitUrlHelp": "URL Ihrer Rybbit-Instanz — `https://app.rybbit.io` für SaaS oder `https://rybbit.ihre-domain.de` für selbst gehostet.",
@@ -2864,7 +3409,8 @@
       "system": "System",
       "appearance": "Inhalt & Erscheinungsbild",
       "communication": "Kommunikation",
-      "crm": "CRM-Einstellungen"
+      "crm": "CRM-Einstellungen",
+      "people": "Personen & Zugriff"
     },
     "contracts": {
       "title": "Verträge"
@@ -2895,7 +3441,9 @@
       "confirmRevoke": "\"{{name}}\" widerrufen? Bestehende Integrationen, die dieses Token nutzen, erhalten ab sofort 401.",
       "revoke": "Widerrufen",
       "empty": "Noch keine Tokens. Generieren Sie oben einen, um zu beginnen.",
-      "preview": "Vorschau"
+      "preview": "Vorschau",
+      "revokeAction": "Token widerrufen",
+      "loadFailed": "Die API-Tokens konnten nicht geladen werden"
     },
     "webhooks": {
       "title": "Webhooks",
@@ -2951,7 +3499,7 @@
         "eventType": "Ereignistyp",
         "total_one": "{{count}} gesamt",
         "total_other": "{{count}} gesamt",
-        "empty": "Noch keine Zustellungen. Erstellen Sie eine Veranstaltung oder senden Sie ein Testereignis, um hier etwas zu sehen.",
+        "empty": "Erstellen Sie eine Galerie oder senden Sie ein Testereignis, um hier Zustellungen zu sehen.",
         "colTime": "Zeit",
         "colEvent": "Ereignis",
         "colStatus": "Status",
@@ -2973,8 +3521,14 @@
           "pending": "ausstehend",
           "success": "erfolgreich",
           "failed": "fehlgeschlagen"
-        }
-      }
+        },
+        "emptyTitle": "Noch keine Zustellungen",
+        "loadFailed": "Dieser Webhook konnte nicht geladen werden",
+        "listLoadFailed": "Die Zustellungen konnten nicht geladen werden",
+        "notFoundHint": "Er wurde vielleicht gelöscht. Einstellungen › Webhooks listet die vorhandenen auf."
+      },
+      "deleteAction": "Webhook löschen",
+      "loadFailed": "Die Webhooks konnten nicht geladen werden"
     },
     "sectionLabel": "Einstellungsbereich",
     "navAriaLabel": "Einstellungsnavigation",
@@ -3016,7 +3570,6 @@
         "automation": "Automatisierung"
       },
       "status": {
-        "stable": "stabil",
         "beta": "beta",
         "new": "neu",
         "experimental": "experimentell",
@@ -3132,7 +3685,7 @@
       },
       "transfers": {
         "title": "PicTransfer",
-        "description": "Originaldateien aus beliebigen Events als sicheren, Token-geschützten Download-Link versenden – mit optionalem Kunden-Upload-Code, über den Kunden Ihnen Logos und Dateien zurücksenden können. Strikt optional.",
+        "description": "Dateien als sicheren, tokengeschützten Download-Link an Kunden senden – und über einen eigenen Upload-Link Dateien von Kunden anfordern. Strikt optional.",
         "sidebar": "PicTransfer"
       },
       "workflows": {
@@ -3148,6 +3701,14 @@
       "documents": {
         "title": "Kundendokumente",
         "description": "Teilen Sie Dokumente im Portal mit einem Kunden und erhalten Sie Dokumente von ihm. Kunden-Uploads bleiben gesperrt, bis Sie sie im Kundendatensatz als sauber markieren. Standardmäßig PDF; weitere Dateitypen, Größen- und Speichergrenzen unter Einstellungen → CRM."
+      },
+      "configure": "Konfigurieren",
+      "sidebarInSettings": "Kein Eintrag in der Seitenleiste — liegt in den Einstellungen",
+      "statusHelp": {
+        "new": "Neu veröffentlicht und einsatzbereit.",
+        "beta": "In Entwicklung: für echte Arbeit nutzbar, Details können sich noch ändern.",
+        "experimental": "Kann ausfallen oder wieder entfernt werden. Nicht für den produktiven Studiobetrieb.",
+        "roadmap": "Noch nicht gebaut."
       }
     },
     "customerSurface": {
@@ -3282,6 +3843,7 @@
     "sso": {
       "title": "Single Sign-On (OIDC)",
       "intro": "Admins melden sich über Ihren Identity Provider an (Keycloak, Authentik, Pocket ID oder jeder OIDC-konforme IdP). Die lokale Anmeldung mit E-Mail/Passwort bleibt als Fallback verfügbar.",
+      "superAdminOnly": "Nur ein Super-Admin kann den Identitätsanbieter ändern (Issuer-URL und Client-ID). Alles andere auf diesem Tab bleibt bearbeitbar.",
       "redirectUri": "Redirect-URI (beim IdP-Client registrieren)",
       "issuerUrl": "Issuer-URL",
       "issuerHint": "Die Basis-URL, die /.well-known/openid-configuration ausliefert.",
@@ -3389,7 +3951,236 @@
       "leaveTitle": "Ungespeicherte Änderungen verwerfen?",
       "leaveMessage": "Auf dieser Seite gibt es ungespeicherte Änderungen. Wenn du jetzt gehst, gehen sie verloren.",
       "leaveConfirm": "Verwerfen und verlassen",
-      "leaveCancel": "Hier bleiben"
+      "leaveCancel": "Hier bleiben",
+      "region": "Änderungen speichern oder verwerfen"
+    },
+    "health": {
+      "title": "Systemzustand",
+      "description": "Fehler im Hintergrund, die Aufmerksamkeit brauchen — hängende E-Mails, fehlgeschlagene Prüfungen und Aufräumarbeiten."
+    },
+    "search": {
+      "placeholder": "Einstellungen durchsuchen…",
+      "label": "Einstellungen durchsuchen",
+      "noResults": "Keine Einstellung passt zu „{{query}}“."
+    },
+    "keywords": {
+      "usage": [
+        "nutzung",
+        "lizenz",
+        "kontingent"
+      ],
+      "features": [
+        "funktionen",
+        "module",
+        "aktivieren",
+        "deaktivieren",
+        "schalter"
+      ],
+      "general": [
+        "sprache",
+        "zeitzone",
+        "datumsformat",
+        "uhrzeitformat",
+        "domain",
+        "konto",
+        "passwort"
+      ],
+      "events": [
+        "veranstaltungen",
+        "standardwerte",
+        "ablauf",
+        "uploadlimit"
+      ],
+      "eventTypes": [
+        "veranstaltungstypen",
+        "hochzeit",
+        "portrait"
+      ],
+      "users": [
+        "benutzer",
+        "rollen",
+        "berechtigungen",
+        "team",
+        "einladen",
+        "zugriff",
+        "mitarbeiter"
+      ],
+      "branding": [
+        "logo",
+        "farben",
+        "favicon",
+        "firmenname",
+        "erscheinungsbild"
+      ],
+      "categories": [
+        "kategorien",
+        "schlagworte"
+      ],
+      "thumbnails": [
+        "vorschaubilder",
+        "bildgröße"
+      ],
+      "downloads": [
+        "auflösung",
+        "originaldateien",
+        "herunterladen"
+      ],
+      "styling": [
+        "css",
+        "stylesheet",
+        "gestaltung"
+      ],
+      "cms": [
+        "impressum",
+        "datenschutz",
+        "agb",
+        "seiten",
+        "rechtliches"
+      ],
+      "email": [
+        "e-mail",
+        "smtp",
+        "imap",
+        "postfach",
+        "absender",
+        "signatur",
+        "vorlagen"
+      ],
+      "moderation": [
+        "moderation",
+        "feedback",
+        "kommentare",
+        "meldungen"
+      ],
+      "security": [
+        "sicherheit",
+        "anmeldung",
+        "sperre",
+        "sitzungen",
+        "passwortrichtlinie"
+      ],
+      "sso": [
+        "anmeldung",
+        "oidc",
+        "saml",
+        "identitätsanbieter",
+        "einmalanmeldung"
+      ],
+      "imageSecurity": [
+        "bildschutz",
+        "wasserzeichen",
+        "rechtsklick"
+      ],
+      "seo": [
+        "suchmaschine",
+        "robots",
+        "sitemap",
+        "indexierung"
+      ],
+      "apiTokens": [
+        "api",
+        "token",
+        "schlüssel",
+        "schnittstelle"
+      ],
+      "webhooks": [
+        "webhooks",
+        "rückrufe"
+      ],
+      "status": [
+        "systemstatus",
+        "dienste",
+        "warteschlange",
+        "speicher",
+        "version"
+      ],
+      "health": [
+        "systemzustand",
+        "hängende e-mails",
+        "diagnose",
+        "fehler",
+        "aufräumen"
+      ],
+      "analytics": [
+        "statistik",
+        "auswertung",
+        "besucher"
+      ],
+      "backup": [
+        "sicherung",
+        "wiederherstellung",
+        "export",
+        "import",
+        "datensicherung"
+      ],
+      "businessProfile": [
+        "firmenprofil",
+        "adresse",
+        "ust-idnr",
+        "steuernummer",
+        "iban",
+        "bank",
+        "rechnungssteller"
+      ],
+      "crm": [
+        "angebote",
+        "rechnungen",
+        "nummerierung",
+        "dokumente"
+      ],
+      "contracts": [
+        "verträge",
+        "klauseln",
+        "unterschrift",
+        "vorlagen",
+        "bausteine"
+      ],
+      "accounting": [
+        "buchhaltung",
+        "kontenplan",
+        "mwst",
+        "steuer",
+        "banana"
+      ],
+      "whatsapp": [
+        "whatsapp",
+        "telefon"
+      ],
+      "slideshow": [
+        "diashow",
+        "präsentation",
+        "kiosk"
+      ],
+      "transfers": [
+        "transfer",
+        "pictransfer",
+        "upload",
+        "dateitypen",
+        "mime",
+        "svg",
+        "erlaubte dateien",
+        "alle akzeptieren",
+        "dateigröße",
+        "dateien anfordern"
+      ]
+    },
+    "transfers": {
+      "title": "PicTransfer",
+      "description": "Welche Dateitypen Kunden Ihnen senden dürfen – und wie groß.",
+      "uploadsTitle": "Was Kunden Ihnen senden dürfen",
+      "uploadsIntro": "Gilt für Dateianfragen und für Dateien, die Sie einem Transfer anhängen. Ändert nicht, was in eine Galerie hochgeladen werden darf.",
+      "acceptAll": "Alle Dateitypen akzeptieren",
+      "acceptAllHint": "Jede Datei, die ein Kunde auswählt, wird angenommen. Größenlimit, Dateianzahl und Ablauf des Links gelten weiterhin.",
+      "acceptAllWarning": "Hochgeladene Dateien werden als undurchsichtige Downloads gespeichert und ausgeliefert. PicPeak öffnet, rendert und prüft sie nie und liefert sie nie als Webinhalt aus – kann Ihnen aber auch nicht sagen, ob eine Datei sicher ist. Prüfen Sie alles, was Sie öffnen oder weitergeben.",
+      "allowedTypes": "Erlaubte Dateitypen",
+      "addType": "Typ hinzufügen",
+      "allowedTypesHint": "Eine Datei wird angenommen, wenn ihr Typ passt und ihre Endung eine der aufgeführten ist. Endungen leer lassen, um nur auf den Typ zu prüfen.",
+      "noTypes": "Keine Typen aufgeführt. Fügen Sie mindestens einen hinzu oder aktivieren Sie „Alle Dateitypen akzeptieren“.",
+      "mime": "Dateityp",
+      "extensions": "Endungen",
+      "maxSize": "Maximale Dateigröße (MB)",
+      "maxSizeHint": "Gilt pro Datei, nicht pro Upload.",
+      "readOnly": "Nur Admins mit Bearbeitungsrechten für Einstellungen können ändern, was Kunden senden dürfen."
     }
   },
   "branding": {
@@ -3713,7 +4504,7 @@
     },
     "pdfTheme": {
       "title": "PDF-Design",
-      "description": "Farben, Schrift, Fußzeile und Seitenzahlen für Angebote, Rechnungen und Verträge. Leere Felder übernehmen die Werte von „Alle Dokumente“, danach aus Ihrem Unternehmensprofil.",
+      "description": "Farben, Schrift, Fusszeile und Seitenzahlen für Angebote, Rechnungen und Verträge. Leere Felder übernehmen die Werte aus „Alle Dokumente“, dann aus den Farben oben (die gefüllte Akzentfarbe für Überschriften) und aus Ihrem Unternehmensprofil.",
       "scopeLabel": "Dokumentart",
       "scope": {
         "default": "Alle Dokumente",
@@ -3729,7 +4520,6 @@
         "subtle": "Fußzeile und Seitenzahlen",
         "rule": "Linien"
       },
-      "inherited": "Übernommen",
       "inherit": "Übernehmen ({{value}})",
       "reset": "Zurücksetzen",
       "titleSize": "Titelgröße",
@@ -3757,12 +4547,9 @@
       "marginsNote": "Den oberen Rand bestimmen Adressfenster und Briefkopf. Die Unterschriftenseite eines Vertrags behält ihr festes Layout unabhängig von den Rändern, damit Unterschriften immer in ihren Feldern landen.",
       "preview": "PDF-Vorschau",
       "resetScope": "Auf übernommene Werte zurücksetzen",
-      "save": "Design speichern",
-      "saved": "PDF-Design gespeichert",
-      "saveFailed": "Das PDF-Design konnte nicht gespeichert werden",
       "previewFailed": "Die Vorschau konnte nicht erstellt werden",
       "presets": "Mit einer Vorlage beginnen",
-      "presetsHint": "Eine Vorlage füllt das Formular aus; gespeichert wird erst, wenn Sie das Design speichern.",
+      "presetsHint": "Eine Vorlage füllt das Formular aus; gespeichert wird erst, wenn Sie die Seite speichern.",
       "preset": {
         "classic": "Klassisch",
         "modern": "Modern",
@@ -3804,7 +4591,14 @@
       },
       "uploadedFonts": "Ihre Schriften",
       "uploadedFont": "Hochgeladene Schrift",
-      "fontUnavailable": "{{name}} (nicht mehr verfügbar)"
+      "fontUnavailable": "{{name}} (nicht mehr verfügbar)",
+      "fromAllDocuments": "Aus „Alle Dokumente“",
+      "fromBranding": "Aus Farben",
+      "builtIn": "Standard",
+      "followBranding": "Farben folgen",
+      "readOnly": "Sie können das PDF-Design sehen, aber nicht ändern.",
+      "invalid": "Das PDF-Design für {{scopes}} enthält einen ungültigen Rand oder eine ungültige Farbe. Bitte vor dem Speichern korrigieren.",
+      "saveFailedScopes": "PDF-Design konnte nicht gespeichert werden für: {{scopes}}"
     },
     "pdfFonts": {
       "title": "Ihre Schriften für PDFs",
@@ -3841,6 +4635,56 @@
         "FONT_BITMAP_ONLY": "Die Lizenz dieser Schrift erlaubt nur das Einbetten von Bitmaps, nicht der Umrisse, die PDFs benötigen."
       },
       "legacyFailed": "Die vor diesem Update eingestellte Schrift konnte nicht übernommen werden: {{reason}}"
+    },
+    "colorWarnings": {
+      "textOnBackground": "Text ist auf dem Hintergrund schwer lesbar ({{ratio}}:1, Ziel {{needed}}:1).",
+      "textOnSurface": "Text ist auf Karten schwer lesbar ({{ratio}}:1, Ziel {{needed}}:1).",
+      "textOnElevated": "Text auf erhöhten Flächen ist schwer lesbar ({{ratio}}:1, Ziel {{needed}}:1). Bei einer dunklen Palette hier eine dunkle Farbe wählen.",
+      "mutedOnSurface": "Gedämpfter Text ist auf Karten schwer lesbar ({{ratio}}:1, Ziel {{needed}}:1).",
+      "borderInvisible": "Rahmen sind auf Karten kaum zu sehen.",
+      "accentOnBackground": "Links und Symbole in dieser Farbe sind auf dem Hintergrund schwer zu erkennen ({{ratio}}:1, Ziel {{needed}}:1).",
+      "buttonLabel": "Beschriftungen auf Schaltflächen in dieser Farbe sind schwer lesbar ({{ratio}}:1, Ziel {{needed}}:1).",
+      "statusTooLight": "Zu hell: Beschriftungen in dieser Farbe verblassen auf Weiss.",
+      "statusLikeAccent": "Ähnelt Ihrer Akzentfarbe und wirkt deshalb eher wie eine Schaltfläche als wie ein Status.",
+      "statusLikeStatus": "Schwer von „{{other}}“ zu unterscheiden."
+    },
+    "status": {
+      "success": "Erfolg",
+      "warning": "Warnung",
+      "danger": "Fehler",
+      "info": "Info",
+      "storno": "Storniert (Storno)",
+      "successHelp": "Bezahlt, unterschrieben, veröffentlicht, erledigt.",
+      "warningHelp": "Bald fällig, braucht Aufmerksamkeit, noch nicht gespeichert.",
+      "dangerHelp": "Überfällig, fehlgeschlagen, löschen.",
+      "infoHelp": "Gesendet, in Bearbeitung, neutrale Hinweise.",
+      "stornoHelp": "Stornierte und gutgeschriebene Dokumente."
+    },
+    "useColorsForDark": "Diese Farben für Dunkel verwenden",
+    "useColorsForLight": "Diese Farben für Hell verwenden",
+    "surfacesReplacedDark": "Dunkel ist erzwungen, diese Palette ist aber für Hell eingerichtet. Besucher sehen deshalb die eingebauten dunklen Flächen und Textfarben statt der Farben unten.",
+    "surfacesReplacedLight": "Hell ist erzwungen, diese Palette ist aber für Dunkel eingerichtet. Besucher sehen deshalb die eingebauten hellen Flächen und Textfarben statt der Farben unten.",
+    "colorGroupStatus": "Status",
+    "colorGroupStatusHelp": "Eine Farbe pro Bedeutung, für Badges, Hinweise und Statusanzeigen im Admin, im Kundenportal und auf öffentlichen Seiten. Helle und dunkle Abstufungen werden daraus berechnet.",
+    "resetColor": "Standard",
+    "colorPreview": {
+      "statusSuccess": "Bezahlt",
+      "statusWarning": "Bald fällig",
+      "statusDanger": "Überfällig",
+      "statusInfo": "Gesendet",
+      "statusStorno": "Storniert",
+      "galleryAndPortal": "Galerie und Kundenportal",
+      "modeForced": "{{mode}}, erzwungen",
+      "galleryTitle": "Hochzeit Anna & Ben",
+      "galleryMeta": "12. Oktober 2026 · 248 Fotos",
+      "favourites": "Ihre Favoriten (12)",
+      "openGallery": "Galerie öffnen",
+      "share": "Teilen",
+      "downloadAll": "Alle herunterladen",
+      "admin": "Admin, hell und dunkel",
+      "save": "Speichern",
+      "colorsTab": "Farben",
+      "galleryTab": "Galerie"
     }
   },
   "admin": {
@@ -3848,13 +4692,14 @@
     "recentActivity": "Letzte Aktivitäten",
     "storageUsed": "Speicher verwendet",
     "totalPhotos": "Gesamte Fotos",
+    "totalMedia": "Medien gesamt",
     "storagePercent": "{{percent}}% des Limits {{limit}}",
     "darkMode": "Zum Dunkelmodus wechseln",
     "lightMode": "Zum Hellmodus wechseln",
     "storageSoftLimitConfigured": "Konfiguriertes Limit: {{limit}}",
     "storageSoftLimitRecommended": "Empfohlenes Limit: {{limit}}",
     "version": "Version",
-    "archivedEvents": "Archivierte Veranstaltungen",
+    "archivedEvents": "Archivierte Galerien",
     "systemHealth": "Systemstatus",
     "health": {
       "checking": "Prüfe...",
@@ -3910,7 +4755,62 @@
       "noReleases": "Keine Versionshinweise verfügbar.",
       "viewOnGitHub": "Auf GitHub ansehen",
       "noNotes": "Keine Versionshinweise hinterlegt.",
-      "dismissUntilNext": "Bis zur nächsten Version ausblenden"
+      "dismissUntilNext": "Bis zur nächsten Version ausblenden",
+      "selfUpdate": {
+        "title": "Direkt hier aktualisieren",
+        "description": "PicPeak sichert zuerst seine Datenbank und installiert dann die neueste Version seines Release-Kanals. Während des Neustarts ist die Seite ein bis zwei Minuten nicht erreichbar.",
+        "password": "Mit Ihrem Passwort bestätigen",
+        "submit": "Jetzt aktualisieren",
+        "submitting": "Wird gestartet…",
+        "onlySuperAdmin": "Ein Super-Admin kann PicPeak hier aktualisieren.",
+        "noAgent": "In-App-Updates sind aktiviert, aber der Updater ist nicht installiert oder nicht erreichbar. Nutzen Sie die Befehle unten oder richten Sie ihn wie in docs/self-update.md beschrieben ein.",
+        "unsupportedContract": "Der installierte Updater passt nicht zu dieser PicPeak-Version. Aktualisieren Sie ihn mit picpeak-setup.sh --update oder aktualisieren Sie den Updater-Container.",
+        "busyOther": "Es läuft bereits ein Update.",
+        "keepOpen": "Sie können dieses Fenster offen lassen. Die Seite ist ein bis zwei Minuten nicht erreichbar, während die neue Version startet.",
+        "reload": "PicPeak neu laden",
+        "manualInstead": "Stattdessen manuell aktualisieren",
+        "phase": {
+          "backingUp": "Datenbank wird gesichert…",
+          "waiting": "Warte darauf, dass der Updater startet…",
+          "waitingLong": "Der Updater hat die Anfrage noch nicht übernommen. Prüfen Sie, ob er auf dem Server läuft (journalctl -u picpeak-updater oder der Updater-Container).",
+          "restarting": "PicPeak startet neu…"
+        },
+        "step": {
+          "discover": "Installation wird geprüft…",
+          "pull": "Neue Version wird heruntergeladen…",
+          "verify": "Neue Version wird geprüft…",
+          "recreate": "Neue Version wird installiert…",
+          "health": "Warte, bis PicPeak gestartet ist…",
+          "rollback": "Die neue Version ist nicht gestartet. Die vorherige wird wiederhergestellt…",
+          "working": "Wird aktualisiert…"
+        },
+        "result": {
+          "succeeded": "PicPeak wurde aktualisiert.",
+          "upToDate": "PicPeak ist bereits auf der neuesten Version seines Kanals.",
+          "refused": "Das Update wurde nicht installiert. Es wurde nichts verändert.",
+          "failed": "Das Update ist fehlgeschlagen.",
+          "rolledBack": "Die neue Version ist nicht gestartet, deshalb wurde die vorherige Version wiederhergestellt.",
+          "backupFailed": "Die Datenbanksicherung ist fehlgeschlagen, deshalb wurde das Update nicht gestartet. Es wurde nichts verändert.",
+          "requestFailed": "Die Sicherung wurde erstellt, aber die Update-Anfrage konnte nicht abgelegt werden. Es wurde nichts verändert.",
+          "withdrawn": "Die Update-Anfrage wurde abgebrochen. Es wurde nichts verändert.",
+          "expired": "Der Updater hat die Anfrage nicht rechtzeitig übernommen, deshalb wurde sie zurückgezogen. Es wurde nichts verändert. Prüfen Sie, ob der Updater läuft, und versuchen Sie es erneut.",
+          "lost": "Die Update-Anfrage hat den Updater nicht erreicht (PicPeak wurde neu gestartet oder die Anfrage zurückgezogen). Es wurde nichts verändert."
+        },
+        "error": {
+          "badPassword": "Das Passwort ist falsch.",
+          "rateLimited": "Zu viele Versuche. Versuchen Sie es in ein paar Minuten erneut.",
+          "busy": "Es läuft bereits ein Update.",
+          "generic": "Das Update konnte nicht gestartet werden.",
+          "disabled": "In-App-Updates sind auf dieser Installation nicht aktiviert.",
+          "noAgent": "Der Updater ist nicht installiert oder nicht erreichbar.",
+          "unsupportedContract": "Der installierte Updater passt nicht zu dieser PicPeak-Version.",
+          "requestDirNotWritable": "PicPeak kann nicht in sein Update-Anfrageverzeichnis schreiben.",
+          "noLocalPassword": "In-App-Updates brauchen einen Super-Admin, der sich mit Passwort anmeldet."
+        },
+        "cancel": "Anfrage abbrechen",
+        "requestDirNotWritable": "PicPeak kann nicht in sein Update-Anfrageverzeichnis (update/request) schreiben und deshalb kein Update anfordern. Es muss für UID 1001 beschreibbar sein; siehe docs/self-update.md.",
+        "noLocalPassword": "In-App-Updates brauchen einen Super-Admin, der sich mit Passwort anmeldet. Ihr Konto meldet sich nur über SSO an."
+      }
     },
     "notifications": "Benachrichtigungen",
     "markAllRead": "Alle als gelesen markieren",
@@ -3954,6 +4854,7 @@
       "adminProfileUpdated": "Admin-Profil aktualisiert von {{actorName}}",
       "photosUploaded_one": "{{count}} Foto in \"{{eventName}}\" hochgeladen",
       "photosUploaded_other": "{{count}} Fotos in \"{{eventName}}\" hochgeladen",
+      "mediaUploaded": "{{media}} in \"{{eventName}}\" hochgeladen",
       "photosBulkDeleted_one": "{{count}} Foto aus \"{{eventName}}\" gelöscht",
       "photosBulkDeleted_other": "{{count}} Fotos aus \"{{eventName}}\" gelöscht",
       "bulkDownload_one": "{{count}} Foto aus \"{{eventName}}\" heruntergeladen",
@@ -4086,7 +4987,14 @@
       "apiPhotoDownloaded": "Original aus {{eventName}} mit API-Token #{{token_id}} heruntergeladen",
       "apiPhotosDownloaded_one": "API-Token „{{token_name}}“ hat {{count}} Original aus {{eventName}} heruntergeladen",
       "apiPhotosDownloaded_other": "API-Token „{{token_name}}“ hat {{count}} Originale aus {{eventName}} heruntergeladen",
-      "apiPhotosZipDownloaded": "API-Token „{{token_name}}“ hat ein ZIP mit {{photo_count}} Originalen aus {{eventName}} heruntergeladen"
+      "apiPhotosZipDownloaded": "API-Token „{{token_name}}“ hat ein ZIP mit {{photo_count}} Originalen aus {{eventName}} heruntergeladen",
+      "eventTeamChanged": "Team geändert für {{eventName}}",
+      "photosReviewApproved_one": "{{count}} Team-Upload in {{eventName}} freigegeben",
+      "photosReviewApproved_other": "{{count}} Team-Uploads in {{eventName}} freigegeben",
+      "photosReviewRejected_one": "{{count}} Team-Upload in {{eventName}} abgelehnt",
+      "photosReviewRejected_other": "{{count}} Team-Uploads in {{eventName}} abgelehnt",
+      "photoDecision": "Foto freigegeben oder abgelehnt in {{eventName}}",
+      "guestFeedbackDecision": "Gast hat ein Foto freigegeben oder abgelehnt in {{eventName}}"
     },
     "notificationToasts": {
       "markedAllRead": "Alle Benachrichtigungen als gelesen markiert",
@@ -4095,15 +5003,15 @@
     },
     "changePassword": "Passwort ändern",
     "loadingDashboard": "Dashboard wird geladen...",
-    "activeEvents": "Aktive Veranstaltungen",
+    "activeEvents": "Aktive Galerien",
     "expiringSoon": "Demnächst ablaufend",
     "next7Days": "Nächste 7 Tage",
     "totalViews": "Gesamtaufrufe",
     "downloads": "Downloads",
     "percentFromLastWeek": "{{percent}}% gegenüber letzter Woche",
     "dashboardSubtitle": "Willkommen zurück! Hier ist, was mit Ihren Galerien passiert.",
-    "eventsExpiringSoon": "Demnächst ablaufende Veranstaltungen",
-    "noEventsExpiring": "Keine Veranstaltungen laufen in den nächsten 7 Tagen ab",
+    "eventsExpiringSoon": "Demnächst ablaufende Galerien",
+    "noEventsExpiring": "Keine Galerien laufen in den nächsten 7 Tagen ab",
     "noRecentActivity": "Keine aktuellen Aktivitäten",
     "photos": {
       "hidden": "Versteckt",
@@ -4115,6 +5023,12 @@
       "processingStatus": "Wird verarbeitet…",
       "processingFailed": "Fehlgeschlagen",
       "retryQueued": "Wiederholung in Warteschlange",
+      "webCopyFailed": "Keine Web-Kopie",
+      "individualPhotos": "Einzelne Fotos",
+      "individualVideos": "Einzelne Videos",
+      "collages": "Collagen",
+      "noPosterFrame": "Kein Vorschaubild",
+      "noPosterFrameRetry": "Vorschaubild erneut erzeugen",
       "viewMode": "Ansicht",
       "gridView": "Rasteransicht",
       "listView": "Listenansicht",
@@ -4130,6 +5044,12 @@
         "downloads": "Downloads",
         "likes": "Likes",
         "credit": "Urheber"
+      },
+      "sort": {
+        "ratingHighest": "Beste Bewertung zuerst",
+        "ratingLowest": "Niedrigste Bewertung zuerst",
+        "sizeLargest": "Größte zuerst",
+        "sizeSmallest": "Kleinste zuerst"
       },
       "myMarks": "Ihre Markierungen",
       "myMarksHelp": "Nur für Sie sichtbar. Sie erscheinen nie in der Kundengalerie und werden als XMP nach Lightroom exportiert.",
@@ -4158,18 +5078,28 @@
         "filterLabel": "Nach Urheber filtern",
         "filterAll": "Alle Namen",
         "filterNone": "Kein Name"
-      }
+      },
+      "approvedBy": "Freigegeben: {{value}}",
+      "rejectedBy": "Abgelehnt: {{value}}",
+      "deleteOneConfirm": "„{{name}}“ löschen? Das Foto wird endgültig aus der Galerie entfernt. Das kann nicht rückgängig gemacht werden.",
+      "deleteOneAction": "Foto löschen",
+      "deleteManyConfirm_one": "{{count}} Foto löschen? Es wird aus der Galerie entfernt. Das kann nicht rückgängig gemacht werden.",
+      "deleteManyConfirm_other": "{{count}} Fotos löschen? Sie werden aus der Galerie entfernt. Das kann nicht rückgängig gemacht werden.",
+      "deleteManyAction_one": "{{count}} Foto löschen",
+      "deleteManyAction_other": "{{count}} Fotos löschen"
     },
     "events": {
       "tabs": {
         "guests": "Gäste",
-        "orders": "Bestellungen"
+        "orders": "Bestellungen",
+        "guestsFeedback": "Gäste & Feedback",
+        "settings": "Einstellungen"
       }
     },
     "daysLeft_one": "{{count}} Tag verbleibend",
     "daysLeft_other": "{{count}} Tage verbleibend",
-    "viewAllExpiringEvents_one": "Alle {{count}} ablaufenden Veranstaltungen anzeigen",
-    "viewAllExpiringEvents_other": "Alle {{count}} ablaufenden Veranstaltungen anzeigen",
+    "viewAllExpiringEvents_one": "Alle {{count}} ablaufenden Galerien anzeigen",
+    "viewAllExpiringEvents_other": "Alle {{count}} ablaufenden Galerien anzeigen",
     "guests": {
       "loading": "Wird geladen...",
       "aggregate": {
@@ -4254,6 +5184,7 @@
       "gallery_opened": "Galerie „{{eventName}}“ wurde geöffnet",
       "gallery_downloaded": "Fotos aus „{{eventName}}“ wurden heruntergeladen",
       "photos_uploaded": "{{count}} Fotos hochgeladen in {{eventName}}",
+      "media_uploaded": "{{media}} hochgeladen in {{eventName}}",
       "event_archived": "Ereignis archiviert: {{eventName}}",
       "archive_restored": "Archiv wiederhergestellt: {{eventName}}",
       "archive_deleted": "Archiv gelöscht: {{eventName}}",
@@ -4436,7 +5367,33 @@
       "api_photo_downloaded": "Original aus {{eventName}} mit API-Token #{{token_id}} heruntergeladen",
       "api_photos_downloaded_one": "API-Token „{{token_name}}“ hat {{count}} Original aus {{eventName}} heruntergeladen",
       "api_photos_downloaded_other": "API-Token „{{token_name}}“ hat {{count}} Originale aus {{eventName}} heruntergeladen",
-      "api_photos_zip_downloaded": "API-Token „{{token_name}}“ hat ein ZIP mit {{photo_count}} Originalen aus {{eventName}} heruntergeladen"
+      "api_photos_zip_downloaded": "API-Token „{{token_name}}“ hat ein ZIP mit {{photo_count}} Originalen aus {{eventName}} heruntergeladen",
+      "folder_created": "Ordner erstellt: {{name}}",
+      "folder_updated": "Ordner in {{eventName}} geändert",
+      "folder_deleted": "Ordner gelöscht: {{name}}",
+      "folders_created": "{{count}} Ordner in {{eventName}} erstellt",
+      "folder_requested": "{{count}} Ordner für {{eventName}} angefragt",
+      "folder_request_approved": "Ordneranfrage bestätigt: {{path}}",
+      "folder_request_rejected": "Ordneranfrage abgelehnt: {{path}}",
+      "folder_structure_applied": "Ordnerstruktur in {{eventName}} übernommen",
+      "delivery_first_look_started": "Erste Auswahl für {{eventName}} gestartet",
+      "delivery_completed": "Vollständige Galerie ausgeliefert: {{eventName}}",
+      "delivery_due_soon": "Vollständige Galerie für {{eventName}} ist bald fällig",
+      "delivery_overdue": "Vollständige Galerie für {{eventName}} ist überfällig",
+      "self_update_requested": "In-App-Update angefordert (von v{{from_version}})",
+      "self_update_refused": "In-App-Update abgelehnt ({{code}})",
+      "self_update_backup_failed": "In-App-Update nicht gestartet: Die Datenbanksicherung ist fehlgeschlagen",
+      "self_update_request_failed": "In-App-Update nicht gestartet: Die Anfrage konnte nicht abgelegt werden",
+      "self_update_expired": "In-App-Update-Anfrage zurückgezogen: Der Updater hat sie nicht übernommen",
+      "self_update_withdrawn": "In-App-Update-Anfrage abgebrochen",
+      "self_update_finished": "In-App-Update beendet: {{state}} ({{from_version}} → {{to_version}})",
+      "photo_decision": "Foto freigegeben oder abgelehnt in {{eventName}}",
+      "guest_feedback_decision": "Gast hat ein Foto freigegeben oder abgelehnt in {{eventName}}",
+      "event_team_changed": "Team geändert für {{eventName}}",
+      "photos_review_approved_one": "{{count}} Team-Upload in {{eventName}} freigegeben",
+      "photos_review_approved_other": "{{count}} Team-Uploads in {{eventName}} freigegeben",
+      "photos_review_rejected_one": "{{count}} Team-Upload in {{eventName}} abgelehnt",
+      "photos_review_rejected_other": "{{count}} Team-Uploads in {{eventName}} abgelehnt"
     },
     "people": {
       "title": "Personen in dieser Galerie",
@@ -4600,13 +5557,17 @@
     "errorDetails": "Fehlerdetails",
     "requiredFields": "Bitte füllen Sie alle Pflichtfelder aus",
     "enterTestEmail": "Bitte geben Sie eine Test-E-Mail-Adresse ein",
-    "eventCreationFailed": "Veranstaltung konnte nicht erstellt werden",
+    "eventCreationFailed": "Galerie konnte nicht erstellt werden",
     "noShareLink": "Kein Freigabe-Link verfügbar",
     "copyFailed": "Link konnte nicht kopiert werden"
   },
   "legal": {
     "impressum": "Impressum",
-    "datenschutz": "Datenschutzerklärung"
+    "datenschutz": "Datenschutzerklärung",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundBody": "Die gesuchte Seite gibt es nicht.",
+    "goHome": "Zur Startseite",
+    "copyright": "© {{year}} PicPeak. Alle Rechte vorbehalten."
   },
   "toast": {
     "saveSuccess": "Änderungen erfolgreich gespeichert",
@@ -4616,9 +5577,9 @@
     "uploadSuccess": "Upload erfolgreich abgeschlossen",
     "uploadError": "Upload fehlgeschlagen",
     "linkCopied": "Link in Zwischenablage kopiert",
-    "eventCreated": "Veranstaltung erfolgreich erstellt",
+    "eventCreated": "Galerie erfolgreich erstellt",
     "eventUpdated": "Veranstaltung erfolgreich aktualisiert",
-    "eventArchived": "Veranstaltung erfolgreich archiviert",
+    "eventArchived": "Galerie erfolgreich archiviert",
     "settingsSaved": "Einstellungen erfolgreich gespeichert",
     "themeUpdated": "Theme erfolgreich aktualisiert",
     "brandingUpdated": "Branding erfolgreich aktualisiert",
@@ -4631,6 +5592,9 @@
     "title": "Analytics Dashboard",
     "subtitle": "Galerie-Performance und Besucherengagement verfolgen",
     "detailedSubtitle": "Detaillierte Analysen mit Umami",
+    "embedUnavailable": "Externe Dashboards benötigen einen HTTPS-Host außerhalb des PicPeak-Cookie-Bereichs und einen Browser mit Unterstützung für Iframes ohne Zugangsdaten. Die integrierten Statistiken bleiben verfügbar.",
+    "embedCspHint": "Für die Einbettung muss zusätzlich der Ursprung des Dashboards in der frame-src-Direktive der Content-Security-Policy des Reverse-Proxys eingetragen sein; ohne diesen Eintrag bleibt der Rahmen leer.",
+    "openDashboard": "Dashboard in neuem Tab öffnen",
     "loadingAnalytics": "Analytik wird geladen...",
     "showSummaryView": "Zusammenfassungsansicht anzeigen",
     "fullDashboard": "Vollständiges Dashboard",
@@ -4654,18 +5618,23 @@
     "used": "Verwendet",
     "of": "von",
     "totalPhotos": "Gesamte Fotos",
-    "activeEvents": "Aktive Veranstaltungen",
+    "activeEvents": "Aktive Galerien",
     "notConfigured": "Umami Analytics nicht konfiguriert",
     "configureInstructions": "Um echte Analysedaten zu sehen, konfigurieren Sie Umami in Ihren Umgebungsvariablen und Admin-Panel-Einstellungen.",
     "catalogedMedia": "Katalogisierte Medien",
     "storageUnavailable": "nicht verfügbar",
-    "storageNoMeasurement": "keine Messung verfügbar"
+    "storageNoMeasurement": "keine Messung verfügbar",
+    "loadFailed": "Die Analysedaten konnten nicht geladen werden"
   },
   "email": {
     "title": "E-Mail-Konfiguration",
     "subtitle": "E-Mail-Einstellungen für Benachrichtigungen konfigurieren",
     "loadingSettings": "E-Mail-Einstellungen werden geladen...",
     "smtpConfiguration": "SMTP-Konfiguration",
+    "networkPolicyHelp": "SMTP- und IMAP-Verbindungen prüfen alle DNS-Antworten und behalten die TLS-Prüfung des Hostnamens bei. Private Mailserver benötigen eine genaue Freigabe in MAIL_PRIVATE_ENDPOINTS in der Bereitstellungskonfiguration.",
+    "networkPolicyForbidden": "Mailziel blockiert. Private Mailserver benötigen eine genaue Protokoll-/Host-/Port-Freigabe in MAIL_PRIVATE_ENDPOINTS. Metadaten- und reservierte Ziele sind nie erlaubt.",
+    "networkPolicyInvalid": "Ungültiger Mailhost, Port oder MAIL_PRIVATE_ENDPOINTS-Eintrag. Verwenden Sie einen Hostnamen oder eine IP und einen genauen Mailendpunkt mit explizitem Port.",
+    "networkPolicyUnresolved": "Der Name des Mailhosts konnte nicht aufgelöst werden. Bitte den Hostnamen prüfen.",
     "smtpHost": "SMTP-Host",
     "fromEmail": "Absender-E-Mail",
     "fromName": "Absendername",
@@ -4712,7 +5681,6 @@
       "user": "Benutzername",
       "pass": "Passwort",
       "folder": "Ordner",
-      "save": "Eingangs-E-Mail-Einstellungen speichern",
       "detectFolders": "Erkennen",
       "folderHint": "Host, Benutzername und Passwort eingeben, dann „Erkennen“, um die Postfach-Ordner aufzulisten.",
       "foldersDetected": "{{count}} Ordner gefunden.",
@@ -4738,7 +5706,8 @@
         "no_attachment": "Kein Anhang",
         "duplicate": "Duplikat",
         "error": "Fehler"
-      }
+      },
+      "loadFailed": "Empfangene E-Mails konnten nicht geladen werden"
     },
     "sentEmails": {
       "tab": "Gesendete E-Mails",
@@ -4766,7 +5735,8 @@
       "retries_one": "{{count}} Versuch",
       "retries_other": "{{count}} Versuche",
       "pagination_one": "Seite {{page}} von {{total}} · {{count}} E-Mail",
-      "pagination_other": "Seite {{page}} von {{total}} · {{count}} E-Mails"
+      "pagination_other": "Seite {{page}} von {{total}} · {{count}} E-Mails",
+      "loadFailed": "Gesendete E-Mails konnten nicht geladen werden"
     },
     "commonSmtpSettings": "Häufige SMTP-Einstellungen:",
     "editTemplate": "Vorlage bearbeiten",
@@ -4823,6 +5793,7 @@
     "containerBgColorHelp": "Die weiße Karte, die den E-Mail-Inhalt enthält. Entspricht Branding → Oberfläche.",
     "listBgColor": "Infopanel",
     "listBgColorHelp": "Hintergrund der Aufzählungs-Infopanels im E-Mail-Text. Entspricht Branding → Erhöht.",
+    "listContrastWarning": "Der Fließtext ist auf dem Infopanel schlecht lesbar (Kontrast {{ratio}}:1, empfohlen 4,5:1). E-Mails stellen den Text im Panel automatisch auf eine lesbare Farbe um, passende Farben sehen aber besser aus.",
     "bodyTextColor": "Fließtext",
     "bodyTextColorHelp": "Absatz- und Fetttext-Farbe. Entspricht Branding → Primärer Text.",
     "mutedTextColor": "Fußzeilentext",
@@ -4866,7 +5837,9 @@
     },
     "signatureOn": "Fusszeilen-Signatur ist an — Ihre Geschäftsadresse wird an automatische E-Mails angehängt. Antworten, die Sie unter Nachrichten schreiben, werden unverändert gesendet.",
     "signatureOff": "Fusszeilen-Signatur ist aus — E-Mails zeigen nur Logo und Firmenname.",
-    "signatureEdit": "Im Geschäftsprofil bearbeiten"
+    "signatureEdit": "Im Geschäftsprofil bearbeiten",
+    "followColors": "Farben folgen",
+    "primaryFollowsColors": "Folgt Branding › Farben"
   },
   "cms": {
     "title": "CMS-Seiten",
@@ -4965,10 +5938,12 @@
       }
     },
     "showInFooter": "In der Galerie-Fußzeile anzeigen",
-    "showInFooterHelp": "Wenn deaktiviert, wird diese Seite in der öffentlichen Galerie-Fußzeile ausgeblendet. Die Seite selbst bleibt über ihre direkte URL erreichbar."
+    "showInFooterHelp": "Wenn deaktiviert, wird diese Seite in der öffentlichen Galerie-Fußzeile ausgeblendet. Die Seite selbst bleibt über ihre direkte URL erreichbar.",
+    "discardOnSwitch": "Ungespeicherte Änderungen an dieser Seite verwerfen?",
+    "discardAndSwitch": "Verwerfen und wechseln"
   },
   "validation": {
-    "eventNameRequired": "Veranstaltungsname ist erforderlich",
+    "eventNameRequired": "Galeriename ist erforderlich",
     "hostEmailRequired": "Die E-Mail des Kunden ist erforderlich",
     "hostNameRequired": "Der Name des Kunden ist erforderlich",
     "adminEmailRequired": "Admin-E-Mail ist erforderlich",
@@ -5115,10 +6090,10 @@
       "enableRateLimiting": "Ratenbegrenzung aktivieren",
       "rateLimitingDesc": "Spam durch Begrenzung der Feedback-Häufigkeit verhindern",
       "timeWindow": "Zeitfenster (Minuten)",
-      "maxRequests": "Maximale Anfragen"
+      "maxRequests": "Maximale Anfragen",
+      "decisions": "Freigabe / Ablehnung pro Foto",
+      "decisionsDesc": "Gäste geben jedes Foto frei oder lehnen es ab, auf Wunsch mit Begründung. Du filterst und exportierst nach ihrer Entscheidung"
     },
-    "settingsUpdated": "Feedback-Einstellungen aktualisiert",
-    "settingsUpdateError": "Einstellungen konnten nicht aktualisiert werden",
     "moderated": "Feedback moderiert",
     "deleted": "Feedback gelöscht",
     "exported": "Feedback exportiert",
@@ -5127,7 +6102,6 @@
     "exportCSV": "CSV exportieren",
     "exportJSON": "JSON exportieren",
     "tabs": {
-      "settings": "Einstellungen",
       "feedback": "Feedback",
       "analytics": "Analytik",
       "moderation": "Moderation"
@@ -5138,7 +6112,8 @@
       "like": "Likes",
       "comment": "Kommentare",
       "favorite": "Favoriten",
-      "reaction": "Reaktionen"
+      "reaction": "Reaktionen",
+      "decision": "Freigabe / Ablehnung"
     },
     "allStatuses": "Alle Status",
     "status": {
@@ -5150,7 +6125,7 @@
     "approve": "Genehmigen",
     "hide": "Ausblenden",
     "unhide": "Einblenden",
-    "confirmDelete": "Dieses Feedback wirklich löschen?",
+    "confirmDelete": "Dieses Feedback löschen? Es wird endgültig entfernt. Das kann nicht rückgängig gemacht werden.",
     "avgRating": "Durchschnittsbewertung",
     "totalRatings_one": "{{count}} Bewertungen",
     "totalRatings_other": "{{count}} Bewertungen",
@@ -5169,6 +6144,7 @@
     "ratingError": "Bewertung konnte nicht abgegeben werden",
     "rateStar_one": "{{count}} Stern bewerten",
     "rateStar_other": "{{count}} Sterne bewerten",
+    "removeRating": "Bewertung entfernen",
     "ratingsCount_one": "{{count}} Bewertungen",
     "ratingsCount_other": "{{count}} Bewertungen",
     "likeError": "Like konnte nicht aktualisiert werden",
@@ -5215,7 +6191,28 @@
     "removeColorLabel": "Markierung {{color}} entfernen",
     "setColorLabel": "Als {{color}} markieren",
     "markedAs": "Markiert als {{color}}",
-    "alsoMarkedBy": "Auch von anderen markiert: {{colors}}"
+    "alsoMarkedBy": "Auch von anderen markiert: {{colors}}",
+    "decisions": {
+      "approved": "Freigegeben",
+      "rejected": "Abgelehnt"
+    },
+    "totalDecisions": "Freigegeben / abgelehnt",
+    "decisionsTitle": "Freigabe / Ablehnung",
+    "decisionApprove": "Freigeben",
+    "decisionReject": "Ablehnen",
+    "decisionClear": "Entscheidung zurücknehmen",
+    "decisionReasonEdit": "Warum? (optional)",
+    "decisionReasonLabel": "Warum lehnst du dieses Foto ab? (optional)",
+    "decisionReasonPlaceholder": "z. B. Augen zu, nicht meine beste Seite",
+    "decisionReasonSave": "Grund speichern",
+    "decisionReasonBlocked": "Dein Grund enthält Wörter, die hier nicht erlaubt sind.",
+    "decisionError": "Deine Entscheidung konnte nicht gespeichert werden",
+    "decisionType": "deine Entscheidung",
+    "youApproved": "Du hast dieses Foto freigegeben",
+    "youRejected": "Du hast dieses Foto abgelehnt",
+    "deleteAction": "Feedback löschen",
+    "panelTitle": "Feedback zum Foto",
+    "closePanel": "Feedback schließen"
   },
   "filter": {
     "feedbackFilters": "Feedback-Filter",
@@ -5225,6 +6222,7 @@
     "hasFavorites": "Hat Favoriten",
     "hasComments": "Hat Kommentare",
     "showingPhotos": "Fotos gesamt",
+    "showingMedia": "Medien gesamt",
     "withRatings": "Mit Bewertungen",
     "combineWith": "Kombinieren mit",
     "allPhotos": "Alle Fotos",
@@ -5237,7 +6235,11 @@
     "colorLabels": "Farbmarkierungen",
     "showOnlyColor": "Nur {{color}} anzeigen",
     "myColorLabels": "Ihre Markierungen",
-    "showOnlyMyColor": "Nur meine Markierungen in {{color}} anzeigen"
+    "showOnlyMyColor": "Nur meine Markierungen in {{color}} anzeigen",
+    "decisions": "Freigabe / Ablehnung",
+    "decisionApproved": "Freigegeben",
+    "decisionRejected": "Abgelehnt",
+    "decisionUndecided": "Offen"
   },
   "export": {
     "button": "Exportieren",
@@ -5359,6 +6361,7 @@
     "pinPlaceholder": "PIN eingeben",
     "enterPin": "Geben Sie die PIN ein, die Sie erhalten haben",
     "invalidPin": "Ungültige PIN. Bitte versuchen Sie es erneut.",
+    "linkInvalid": "Dieser Zugangslink ist nicht mehr gültig. Bitten Sie Ihren Fotografen um einen neuen Link.",
     "loginFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "loginButton": "Zugang erhalten",
     "guestHint": "Nur Fotos ansehen?",
@@ -5371,12 +6374,14 @@
     "enableToggle": "Kundenzugang aktivieren",
     "enableDescription": "Ermöglichen Sie Kunden, Fotos zu überprüfen und auszublenden, bevor die Galerie mit den Gästen geteilt wird.",
     "pinHelperText": "Der Kunde verwendet diese PIN, um die Überprüfungsseite aufzurufen. Mindestens 6 Zeichen.",
-    "linkAfterCreate": "Der Link für den Kundenzugang erscheint auf der Event-Seite, sobald das Event angelegt ist.",
+    "linkAfterCreate": "Der Link für den Kundenzugang erscheint auf der Galerie-Seite, sobald die Galerie angelegt ist.",
     "pinUpdated": "Kunden-PIN aktualisiert",
     "setPin": "PIN festlegen",
     "linkLabel": "Kundenzugangs-Link",
     "regenerateToken": "Link neu generieren",
-    "tokenRegenerated": "Kundenzugangs-Link neu generiert"
+    "tokenRegenerated": "Kundenzugangs-Link neu generiert",
+    "hiddenFromGuests": "Für Gäste ausgeblendet",
+    "visibleToGuests": "Für Gäste sichtbar"
   },
   "setup": {
     "title": "Willkommen bei PicPeak",
@@ -5646,7 +6651,97 @@
     "movedToCategory_other": "{{count}} Fotos nach {{category}} verschoben",
     "moveToCategoryFailed": "Fotos konnten nicht in die Kategorie verschoben werden",
     "moveToCategory": "In Kategorie verschieben",
-    "folderOption": "{{name}} (Ordner — im Hauptraster ausgeblendet)"
+    "folderOption": "{{name}} (Ordner — im Hauptraster ausgeblendet)",
+    "folders": {
+      "title": "Ordner",
+      "galleryRoot": "Galerie-Hauptebene",
+      "allPhotos": "Alle Fotos",
+      "breadcrumb": "Ordnerpfad",
+      "waitingView": "Warten auf Ordneranfragen",
+      "waitingChip": "Warten auf einen Ordner",
+      "noFolders": "Noch keine Ordner",
+      "name": "Ordnername",
+      "newFolder": "Neuer Ordner",
+      "newSubfolder": "Neuer Unterordner",
+      "newSubfolderIn": "Neuer Unterordner in „{{name}}“",
+      "create": "Erstellen",
+      "created": "Ordner erstellt",
+      "createFailed": "Der Ordner konnte nicht erstellt werden",
+      "rename": "Umbenennen",
+      "renameTitle": "Ordner umbenennen",
+      "renamed": "Ordner umbenannt",
+      "move": "Verschieben",
+      "moveTitle": "„{{name}}“ verschieben nach …",
+      "moveHint": "Unterordner und Fotos wandern mit. Ordner lassen sich höchstens {{depth}} Ebenen tief verschachteln.",
+      "moved": "Ordner verschoben",
+      "updateFailed": "Der Ordner konnte nicht geändert werden",
+      "maxDepthReached": "Ordner lassen sich höchstens {{depth}} Ebenen tief verschachteln",
+      "delete": "Ordner löschen",
+      "deleteTitle": "Ordner „{{name}}“ löschen?",
+      "deleteMessage": "Seine Fotos ({{photos}}) und Unterordner ({{folders}}) wandern nach {{parent}}. Es wird kein Foto gelöscht.",
+      "deleted": "Ordner gelöscht",
+      "deleteFailed": "Der Ordner konnte nicht gelöscht werden",
+      "allowDownloads": "Downloads in diesem Ordner erlauben",
+      "downloadsAllowed": "Downloads erlaubt",
+      "downloadsBlocked": "Downloads gesperrt",
+      "downloadsOn": "Downloads in diesem Ordner erlaubt",
+      "downloadsOff": "Downloads in diesem Ordner und seinen Unterordnern gesperrt",
+      "downloadsBlockedBy": "Ohnehin gesperrt durch den übergeordneten Ordner „{{name}}“.",
+      "downloadsInherit": "Unterordner übernehmen das: Sperrt ein Ordner Downloads, sind sie auch in allen Ordnern darunter gesperrt.",
+      "moveToFolder": "In Ordner verschieben …",
+      "moveToFolderTitle_one": "{{count}} Foto in einen Ordner verschieben",
+      "moveToFolderTitle_other": "{{count}} Fotos in einen Ordner verschieben",
+      "photosMoved_one": "{{count}} Foto nach {{folder}} verschoben",
+      "photosMoved_other": "{{count}} Fotos nach {{folder}} verschoben",
+      "moveFailed": "Die Fotos konnten nicht verschoben werden"
+    },
+    "folderRequests": {
+      "title_one": "{{count}} Ordneranfrage",
+      "title_other": "{{count}} Ordneranfragen",
+      "hint": "Die Fotos warten im nächstgelegenen vorhandenen Ordner, bis Sie entscheiden.",
+      "photoCount_one": "{{count}} Foto",
+      "photoCount_other": "{{count}} Fotos",
+      "waitIn": "wartet in {{folder}}",
+      "requestedBy": "angefragt von {{name}}",
+      "approve": "Bestätigen",
+      "approveAll": "Alle bestätigen",
+      "approveAs": "Bestätigen als …",
+      "approveAsTitle": "„{{path}}“ in einen vorhandenen Ordner legen",
+      "approveAsHint": "Statt den angefragten Ordner anzulegen, wandern seine Fotos in den gewählten Ordner (zum Beispiel „Samstag“ in „Saturday“).",
+      "reject": "Ablehnen",
+      "approved_one": "Ordneranfrage bestätigt, {{count}} Foto verschoben",
+      "approved_other": "Ordneranfrage bestätigt, {{count}} Fotos verschoben",
+      "approvedAll_one": "Alle Ordneranfragen bestätigt, {{count}} Foto verschoben",
+      "approvedAll_other": "Alle Ordneranfragen bestätigt, {{count}} Fotos verschoben",
+      "rejected": "Ordneranfrage abgelehnt; die Fotos bleiben, wo sie sind",
+      "failed": "Die Ordneranfrage konnte nicht bearbeitet werden",
+      "showWaiting": "Wartende Fotos anzeigen",
+      "waitingForAdmin_one": "{{count}} Ordneranfrage wartet auf einen Admin. Bis dahin liegen die {{photos}} Fotos im nächstgelegenen vorhandenen Ordner.",
+      "waitingForAdmin_other": "{{count}} Ordneranfragen warten auf einen Admin. Bis dahin liegen die {{photos}} Fotos im nächstgelegenen vorhandenen Ordner."
+    },
+    "review": {
+      "pendingOwner_one": "{{count}} Upload aus Ihrem Team wartet auf Ihre Prüfung",
+      "pendingOwner_other": "{{count}} Uploads aus Ihrem Team warten auf Ihre Prüfung",
+      "pendingMember_one": "{{count}} Team-Upload wartet auf die Prüfung durch den Inhaber",
+      "pendingMember_other": "{{count}} Team-Uploads warten auf die Prüfung durch den Inhaber",
+      "nonePending": "Keine Uploads warten auf Prüfung.",
+      "filterPending": "Zu prüfen ({{count}})",
+      "filterRejected": "Abgelehnt ({{count}})",
+      "showAll": "Alle Fotos",
+      "approve": "Freigeben",
+      "reject": "Ablehnen",
+      "approved_one": "{{count}} Foto freigegeben und veröffentlicht",
+      "approved_other": "{{count}} Fotos freigegeben und veröffentlicht",
+      "rejected_one": "{{count}} Foto abgelehnt",
+      "rejected_other": "{{count}} Fotos abgelehnt",
+      "failed": "Die Fotos konnten nicht geprüft werden",
+      "pendingBadge": "Zu prüfen",
+      "rejectedBadge": "Abgelehnt",
+      "uploadedBy": "Hochgeladen von {{name}}",
+      "hiddenUntilApproved": "Für Gäste und Kunden verborgen, bis es freigegeben ist",
+      "skippedOnShow_one": "{{count}} Foto wartet auf Prüfung und bleibt verborgen, bis es freigegeben ist",
+      "skippedOnShow_other": "{{count}} Fotos warten auf Prüfung und bleiben verborgen, bis sie freigegeben sind"
+    }
   },
   "customer": {
     "login": {
@@ -5763,8 +6858,6 @@
       "quotes": "Angebote",
       "bills": "Rechnungen",
       "profile": "Profil",
-      "soon": "Bald",
-      "new": "Neu",
       "contracts": "Verträge",
       "documents": "Dokumente"
     },
@@ -6095,7 +7188,8 @@
         "createFailed": "Eintrag konnte nicht erfasst werden"
       },
       "unbilledCount_one": "{{count}} offener Eintrag, total {{total}}",
-      "unbilledCount_other": "{{count}} offene Einträge, total {{total}}"
+      "unbilledCount_other": "{{count}} offene Einträge, total {{total}}",
+      "deleteEntry": "Eintrag löschen"
     },
     "create": {
       "openButton": "Passiven Kunden erstellen",
@@ -6144,7 +7238,7 @@
       "name": "Name",
       "email": "E-Mail",
       "company": "Firma",
-      "eventCount": "Events",
+      "eventCount": "Galerien",
       "lastLogin": "Letzte Anmeldung",
       "status": "Status",
       "groups": "Gruppen"
@@ -6187,7 +7281,9 @@
       "title": "Einladung stornieren?",
       "body": "Der Einladungslink funktioniert sofort nicht mehr.",
       "success": "Einladung storniert",
-      "error": "Einladung konnte nicht storniert werden"
+      "error": "Einladung konnte nicht storniert werden",
+      "action": "Einladung stornieren",
+      "keep": "Einladung behalten"
     },
     "detail": {
       "loadError": "Kunde konnte nicht geladen werden",
@@ -6200,8 +7296,8 @@
       "personalSection": "Persönliche Daten",
       "billingSection": "Adresse & Rechnung",
       "notesSection": "Interne Notizen",
-      "eventsSection": "Zugewiesene Events",
-      "noEvents": "Noch keinem Event zugewiesen. Fügen Sie diesen Kunden über das Event-Formular hinzu.",
+      "eventsSection": "Zugewiesene Galerien",
+      "noEvents": "Noch keiner Galerie zugewiesen. Fügen Sie über „Galerien verwalten“ welche hinzu.",
       "email": "E-Mail",
       "preferredLanguage": "Bevorzugte Sprache",
       "preferredLanguageHint": "Steuert die Portal-Sprache, Angebots-/Rechnungs-PDFs sowie Rechnungs-E-Mails (Erinnerungen/Mahnungen). Neue Kunden erben standardmässig die Sprache aus dem Geschäftsprofil ({{lang}}); hier kann pro Kunde überschrieben werden.",
@@ -6608,11 +7704,12 @@
         "referenceHint": "QR-/ESR-Referenz oder Mitteilung",
         "note": "Notiz",
         "noteHint": "Interne Notiz zu dieser Rechnung (optional)",
-        "passthroughCustomerHint": "Optional — einen Kunden zuordnen, um diese durchlaufende Position weiterzuverrechnen; leer lassen, um sie nur auf das Event zu buchen.",
+        "passthroughCustomerHint": "Optional — einen Kunden zuordnen, um diese durchlaufende Position weiterzuverrechnen; leer lassen, um sie nur auf die Galerie zu buchen.",
         "supplierCountry": "Lieferantenland",
         "supplierCountryNone": "— unbekannt —",
         "supplierCountryHint": "Setzt die Steuerbehandlung automatisch: ausserhalb Ihrer Vorsteuer-Länder → ausländische MwSt (nicht abziehbar)."
-      }
+      },
+      "loadFailed": "Die eingehenden Rechnungen konnten nicht geladen werden"
     },
     "expenseStatus": {
       "open": "Offen",
@@ -6631,9 +7728,9 @@
     "booking": {
       "label": "Buchen auf",
       "company": "Firma",
-      "event": "Event",
+      "event": "Galerie",
       "eventId": "Event-ID",
-      "inboundHint": "Auf welches Event diese Kosten in Auswertungen & Steuerexport entfallen (Firma = allgemeiner Aufwand). Unabhängig davon, an wen Sie weiterverrechnen."
+      "inboundHint": "Auf welche Galerie diese Kosten in Auswertungen & Steuerexport entfallen (Firma = allgemeiner Aufwand). Unabhängig davon, an wen Sie weiterverrechnen."
     },
     "incoming": {
       "triageTitle": "Eingangsrechnung kategorisieren",
@@ -6690,7 +7787,7 @@
       "other": "Sonstiges"
     },
     "ledger": {
-      "subtitle": "Interne Aufwände wie Kilometer, Spesenpauschalen und Barbelege, gebucht auf ein Event oder die Firma.",
+      "subtitle": "Interne Aufwände wie Kilometer, Spesenpauschalen und Barbelege, gebucht auf eine Galerie oder die Firma.",
       "allStatuses": "Alle Status",
       "allDispositions": "Alle Zuordnungen",
       "allKinds": "Alle Arten",
@@ -6720,20 +7817,20 @@
       "lockedHint": "Gesperrt — dieser Aufwand ist auf einer Kundenrechnung.",
       "description": "Beschreibung",
       "descriptionHint": "z. B. Kilometer, Spesenpauschale, Barbeleg",
-      "createdToast": "Aufwand hinzugefügt."
+      "createdToast": "Aufwand hinzugefügt.",
+      "loadFailed": "Die Ausgaben konnten nicht geladen werden"
     }
   },
   "projects": {
     "title": "Projektübersicht",
-    "subtitle": "Fasse Events zu Projekten zusammen und sieh jede E-Mail, jedes Dokument, jede Galerie und jede Stunde in einem Cockpit.",
+    "subtitle": "Fasse Galerien zu Projekten zusammen und sieh jede E-Mail, jedes Dokument und jede Stunde in einem Cockpit.",
     "search": "Nach Name oder Kunde suchen…",
-    "empty": "Noch keine Projekte. Erstellen Sie oben eines, oder vorhandene Events wurden automatisch gruppiert.",
+    "empty": "Erstellen Sie oben eines, oder vorhandene Galerien wurden automatisch gruppiert.",
     "notFound": "Projekt nicht gefunden",
-    "backToList": "Alle Projekte",
     "noCustomer": "Kein einzelner Kunde",
     "rename": "Umbenennen",
     "timeline": "Meilensteine",
-    "eventCount": "{{count}} Events",
+    "eventCount": "{{count}} Galerien",
     "totalHours": "{{hours}} erfasst",
     "create": {
       "label": "Name des neuen Projekts",
@@ -6743,7 +7840,7 @@
     "col": {
       "name": "Projekt",
       "customer": "Kunde",
-      "events": "Events",
+      "events": "Galerien",
       "value": "Wert",
       "status": "Status",
       "updated": "Aktualisiert"
@@ -6757,11 +7854,11 @@
       "paid": "bezahlt"
     },
     "events": {
-      "title": "Events",
-      "none": "Diesem Projekt sind noch keine Events zugeordnet.",
-      "searchPlaceholder": "Event zuordnen — nach Name suchen…",
-      "attached": "Event zugeordnet",
-      "attachFailed": "Event konnte nicht zugeordnet werden"
+      "title": "Galerien",
+      "none": "Diesem Projekt sind noch keine Galerien zugeordnet.",
+      "searchPlaceholder": "Galerie zuordnen — nach Name suchen…",
+      "attached": "Galerie zugeordnet",
+      "attachFailed": "Galerie konnte nicht zugeordnet werden"
     },
     "feed": {
       "title": "Aktivität",
@@ -6801,7 +7898,10 @@
       "archived": "Archiviert"
     },
     "eventCount_one": "{{count}} Event",
-    "eventCount_other": "{{count}} Events"
+    "eventCount_other": "{{count}} Events",
+    "loadFailed": "Die Projekte konnten nicht geladen werden",
+    "noMatches": "Keine Projekte passen zu dieser Suche",
+    "emptyTitle": "Noch keine Projekte"
   },
   "calendar": {
     "pageTitle": "Kalender",
@@ -6845,7 +7945,8 @@
       "lockedTooltip": "Bereits abgerechnet — Rechnung stornieren, um zu bearbeiten.",
       "noDescription": "Keine Beschreibung.",
       "untitledCustomer": "Stunden",
-      "customerLoggingDisabled": "Bei diesem Kunden ist die Stundenerfassung deaktiviert. Aktivieren Sie sie auf der Detailseite des Kunden, um Stunden zu erfassen."
+      "customerLoggingDisabled": "Bei diesem Kunden ist die Stundenerfassung deaktiviert. Aktivieren Sie sie auf der Detailseite des Kunden, um Stunden zu erfassen.",
+      "deleteAction": "Stunden löschen"
     }
   },
   "hoursLogging": {
@@ -7013,7 +8114,8 @@
       "number": "Kontonummer",
       "name": "Name",
       "type": "Art",
-      "confirmDelete": "Dieses Konto löschen?"
+      "confirmDelete": "Konto {{number}} „{{name}}“ löschen? Es kann danach nicht mehr für Buchungen oder den Export verwendet werden. Das kann nicht rückgängig gemacht werden.",
+      "deleteAction": "Konto löschen"
     },
     "vat": {
       "addTitle": "MWST-Code hinzufügen",
@@ -7024,8 +8126,9 @@
       "direction": "Richtung",
       "account": "MWST-Konto",
       "noAccount": "— keines —",
-      "confirmDelete": "Diesen MWST-Code löschen?",
-      "legacyRate": "{{rate}}% (nicht konfiguriert)"
+      "confirmDelete": "MWST-Code „{{code}}“ löschen? Er kann für neue Dokumente nicht mehr gewählt werden. Das kann nicht rückgängig gemacht werden.",
+      "legacyRate": "{{rate}}% (nicht konfiguriert)",
+      "deleteAction": "MWST-Code löschen"
     },
     "export": {
       "title": "Treuhänder-Export",
@@ -7070,6 +8173,7 @@
     "exportCsv": "CSV exportieren",
     "exportFailed": "Export fehlgeschlagen. Bitte erneut versuchen.",
     "errorTitle": "Steuerliste konnte nicht geladen werden",
+    "completeViewRequired": "Diese Auswertung umfasst alle Rechnungen des Studios. Ihr Konto sieht nur die eigenen Dokumente, deshalb steht sie Ihnen nicht zur Verfügung. Bitten Sie einen Super-Admin, sie zu erstellen.",
     "empty": "Keine Rechnungen in diesem Zeitraum.",
     "statusCancelled": "Storniert",
     "totalsByVatRate": "Summen nach MwSt-Satz",
@@ -7198,7 +8302,6 @@
       "customerMessage": "Nachricht des Kunden"
     },
     "savedToast": "Angebot als Entwurf gespeichert.",
-    "edit": "Angebot bearbeiten",
     "new": "Neues Angebot",
     "preview": "PDF-Vorschau",
     "saveAndSend": "Speichern & senden",
@@ -7252,11 +8355,15 @@
       "accepted": "Dieses Angebot wurde bereits angenommen und kann nicht mehr bearbeitet werden. Um es zu ändern, stellen Sie es neu aus: Das Angebot wird abgelehnt und als neuer Entwurf kopiert. Gilt es nicht mehr, lehnen Sie es im Namen des Kunden ab.",
       "acceptedConverted": "Dieses Angebot wurde bereits angenommen, und es gibt dazu schon einen Vertrag, einen Anlass oder eine Rechnung. Es kann nicht mehr geändert werden.",
       "declined": "Dieses Angebot wurde abgelehnt und kann nicht mehr bearbeitet werden. Duplizieren Sie es, um ein neues Angebot zu erstellen.",
-      "converted": "Dieses Angebot wurde bereits in einen Anlass oder eine Rechnung umgewandelt und kann nicht mehr geändert werden."
+      "converted": "Dieses Angebot wurde bereits in einen Anlass oder eine Rechnung umgewandelt und kann nicht mehr geändert werden.",
+      "replacedTitle": "Ersetzt durch {{number}}",
+      "replaced": "Dieses Angebot wurde neu ausgestellt; der Kunde arbeitet mit dem neuen.",
+      "acceptedTitle": "Angenommen{{at}}"
     },
     "catalog": {
       "addItem": "Leistung hinzufügen",
       "archive": "Archivieren",
+      "backToTemplates": "Zurück zu den Vorlagen",
       "archived": "Archiviert",
       "boundTo": "Menge",
       "boundToNone": "Feste Menge",
@@ -7420,7 +8527,18 @@
     "contractTemplate": "Vertragsvorlage",
     "convertToContractConfirm": "Vertrag entwerfen",
     "contractTemplateFromQuote": "Vorausgewählt durch die Offertvorlage: {{name}}",
-    "contractTemplateAuto": "Wie in der Offertvorlage festgelegt (sonst die Standardvorlage)"
+    "contractTemplateAuto": "Wie in der Offertvorlage festgelegt (sonst die Standardvorlage)",
+    "saveAndSendTitle": "Mit ungespeicherten Änderungen senden?",
+    "saveAndSendMessage": "Ihre Änderungen werden zuerst gespeichert, dann geht das Angebot an {{to}}.",
+    "reissueReason": "Grund",
+    "openReplacement": "{{number}} öffnen",
+    "sentNoticeTitle": "Gesendet {{at}}",
+    "sentNotice": "Sie können es noch ändern. Der Kunde sieht die Änderungen, nachdem Sie es erneut gesendet haben.",
+    "forCustomer": "für {{name}}",
+    "createdToast": "Entwurf erstellt.",
+    "createDraft": "Entwurf erstellen",
+    "unsavedSavedFirst": "Ihre ungespeicherten Änderungen werden zuerst gespeichert.",
+    "savedToastSent": "Angebot gespeichert."
   },
   "crm": {
     "lineItems": {
@@ -7638,7 +8756,6 @@
     "savedToast": "Rechnung gespeichert.",
     "savedToastMulti": "{{n}} Rechnungen erstellt.",
     "saveAndSpawn": "{{n}} Rechnungen erstellen",
-    "edit": "Rechnung bearbeiten",
     "customerSearch": "Kunde nach E-Mail oder Firma suchen…",
     "qrFormat": {
       "none": "Keiner (Override)",
@@ -7659,7 +8776,16 @@
       "sendWithCount": "Mit {{count}} Beleg(en) senden",
       "sendWithCount_one": "Mit {{count}} Beleg senden",
       "sendWithCount_other": "Mit {{count}} Belegen senden"
-    }
+    },
+    "saveAndSendTitle": "Mit ungespeicherten Änderungen senden?",
+    "saveAndSendMessage": "Ihre Änderungen werden zuerst gespeichert, dann geht die Rechnung an den Kunden.",
+    "saveAndSend": "Speichern & senden",
+    "cancelDraft": "Entwurf verwerfen",
+    "cancelWithStorno": "Mit Storno stornieren",
+    "forCustomer": "für {{name}}",
+    "issuedLockedTitle": "Ausgestellte Rechnungen können nicht geändert werden.",
+    "issuedLocked": "Zur Korrektur stornieren Sie sie mit einer Stornorechnung und stellen eine neue aus.",
+    "createDraft": "Rechnung erstellen"
   },
   "businessProfile": {
     "savedToast": "Geschäftsprofil gespeichert.",
@@ -7722,7 +8848,7 @@
       "pdfShowCompanyName": "Firmennamen im PDF-Briefkopf anzeigen",
       "pdfShowCompanyNameHelp": "Wenn deaktiviert, entfällt die Zeile mit dem Firmennamen (nützlich, wenn das Logo bereits eine Wortmarke mit dem Namen ist).",
       "pdfCompanyNameInline": "Firmennamen direkt über der Adresse darstellen",
-      "pdfCompanyNameInlineHelp": "Wenn aktiviert, erscheint der Firmenname als einfache Zeile direkt über der Strassenadresse (gleiche Grösse und Schriftstärke). Wenn deaktiviert, wird er als fetter Titel unter dem Logo dargestellt.",
+      "pdfCompanyNameInlineHelp": "Wenn aktiviert, erscheint der Firmenname als einfache Zeile direkt über der Strassenadresse (gleiche Größe und Schriftstärke). Wenn deaktiviert, wird er als fetter Titel unter dem Logo dargestellt.",
       "pdfQuoteShowNetDays": "Zahlungsfrist (Netto-Tage) auf Angebots-PDFs anzeigen",
       "pdfQuoteShowNetDaysHelp": "Wenn aktiviert, enthalten Angebots-PDFs die Zeile „X Tage ab Rechnungsdatum.“ im Block mit den Zahlungsbedingungen. Auf Rechnungen wird diese Zeile unabhängig davon immer angezeigt.",
       "pdfQuoteShowSkonto": "Skonto / Frühzahlerrabatt auf Angebots-PDFs anzeigen",
@@ -8039,11 +9165,11 @@
     "title": "Erinnerungs-E-Mails vor dem Anlass",
     "scheduleMoved": {
       "title": "Der Versandzeitpunkt liegt jetzt in den Workflows",
-      "body": "Ob Erinnerungen vor dem Anlass verschickt werden und wie viele Tage vorher, wird im Workflow „Erinnerung vor dem Anlass“ festgelegt. Auf dieser Seite werden die E-Mail-Vorlagen bearbeitet; anlassspezifische Überschreibungen bleiben auf der jeweiligen Anlass-Detailseite.",
+      "body": "Ob Erinnerungen vor dem Anlass verschickt werden und wie viele Tage vorher, wird im Workflow „Erinnerung vor dem Anlass“ festgelegt. Auf dieser Seite werden die E-Mail-Vorlagen bearbeitet; galeriespezifische Überschreibungen bleiben auf der jeweiligen Galerie-Detailseite.",
       "link": "Workflows öffnen"
     },
     "globalSection": "Globales Verhalten",
-    "globalHelp": "Standardmässig aus — aktiviere, um Erinnerungen zu senden. Der unten gesetzte Offset ist der Standard; jeder Anlass kann ihn auf der Detailseite überschreiben.",
+    "globalHelp": "Standardmässig aus — aktiviere, um Erinnerungen zu senden. Der unten gesetzte Offset ist der Standard; jede Galerie kann ihn auf ihrer Detailseite überschreiben.",
     "enableLabel": "Erinnerungs-E-Mails vor dem Anlass senden",
     "daysBeforeLabel": "Tage vor dem Anlass",
     "saveSettings": "Globale Einstellungen speichern",
@@ -8066,7 +9192,6 @@
   },
   "eventReminderOverride": {
     "title": "Erinnerung vor dem Event",
-    "save": "Override speichern",
     "help": "Event-spezifischer Override für die Kundenerinnerung. Globaler An/Aus-Schalter und Standard-Offset liegen unter Einstellungen → Erinnerungs-E-Mails. Was hier leer bleibt, übernimmt die globale Einstellung bzw. die aufgelöste Vorlage.",
     "disabledLabel": "Erinnerung für dieses Event deaktivieren (es wird keine E-Mail verschickt)",
     "offsetLabel": "Tage vor dem Event (Override) — leer lassen für Standard",
@@ -8196,9 +9321,7 @@
       "auditEmpty": "Noch keine Audit-Log-Einträge.",
       "auditTrail": "Audit-Verlauf",
       "auditTrailHelp": "Jedes auf diesem Vertrag erfasste Ereignis. Die Liste ist anhängend (append-only) und ist die Quelle der Wahrheit, falls der Vertrag angefochten wird.",
-      "back": "Zurück zur Liste",
       "blocks": "Enthaltene Bausteine",
-      "cancel": "Stornieren",
       "cancelConfirm": "Diesen Vertrag stornieren? Der Signatur-Link des Kunden wird ungültig.",
       "cancelError": "Stornierung fehlgeschlagen",
       "cancelledToast": "Vertrag storniert.",
@@ -8223,7 +9346,6 @@
       "dates": "Daten",
       "downloadPdf": "PDF herunterladen",
       "downloadSignedPdf": "Signiertes PDF herunterladen",
-      "edit": "Bearbeiten",
       "fromQuote": "Aus Angebot",
       "issued": "Ausgestellt",
       "linkedInvoice": "Rechnung",
@@ -8326,17 +9448,18 @@
         "collectHint": "Nur die erste unterzeichnende Person erhält jetzt einen Link, um ihre Angaben zu ergänzen. Vertrag, PDF und Preis werden erst danach erstellt und gehen dann an die übrigen Unterzeichnenden.",
         "requestDetails": "Angaben anfordern",
         "afterDetails": "Wird festgelegt, sobald die Kundschaft ihre Angaben ergänzt hat."
-      }
+      },
+      "saveAndSendTitle": "Mit ungespeicherten Änderungen senden?",
+      "saveAndSendMessage": "Ihre Änderungen werden zuerst gespeichert, dann prüfen Sie den Vertrag, bevor er verschickt wird.",
+      "saveAndReview": "Speichern & prüfen",
+      "cancelContract": "Vertrag stornieren"
     },
     "editor": {
-      "back": "Zurück zur Liste",
-      "backToDetail": "Zurück zum Vertrag",
       "create": "Entwurf erstellen",
       "createdToast": "Vertrag erstellt.",
       "customer": "Kunde",
       "disclaimerBody": "Die vorausgefüllten Baustein-Texte sind Beispiele des Maintainers, nicht von einem Anwalt verfasst. Lassen Sie die verwendeten Bausteine vor dem Versand für Ihre Rechtsordnung und Ihren Einsatzzweck prüfen — für den Inhalt des Vertrags bleiben Sie verantwortlich. Einen Entwurf können Sie trotzdem jederzeit speichern.",
       "disclaimerTitle": "Anwaltliche Prüfung empfohlen",
-      "saving": "Wird gespeichert…",
       "disclaimerLink": "CRM-Haftungshinweis lesen",
       "errors": {
         "createNotSaved": "Der Entwurf wurde nicht gespeichert.",
@@ -8377,20 +9500,13 @@
       "intro": "Einleitungstext (optional)",
       "issueDate": "Ausstellungsdatum",
       "language": "Sprache",
-      "locked": "Gesendete Verträge können nicht bearbeitet werden. Für Änderungen stornieren und einen neuen erstellen.",
       "noBlocksInSection": "Noch keine Bausteine für diesen Abschnitt.",
       "outro": "Schlusstext (optional)",
-      "popupBlocked": "Erlauben Sie Pop-ups für diese Seite, um die PDF-Vorschau anzuzeigen.",
-      "preview": "PDF-Vorschau",
-      "previewAfterSave": "Zuerst den Entwurf speichern, dann Vorschau anzeigen.",
-      "previewError": "Vorschau fehlgeschlagen",
-      "save": "Speichern",
       "saveError": "Speichern fehlgeschlagen",
       "savedToast": "Vertrag gespeichert.",
       "schriftformWarning": "Signaturtyp: einfache elektronische Signatur (EES). Ausreichend für routinemäßige Fotografieverträge in CH / DE / AT / FL. NICHT ausreichend für Dokumente, die gesetzlich Schriftform / forme qualifiée verlangen: Bürgschaft (DE § 766 BGB), Verbraucherdarlehensvertrag (DE § 492 BGB), befristete Arbeitsverträge (DE § 14 Abs. 4 TzBfG) und Ähnliches. Dafür ist eine qualifizierte elektronische Signatur (QES) eines Vertrauensdiensteanbieters erforderlich — picpeak bietet keine QES.",
       "searchCustomer": "Nach E-Mail suchen…",
       "systemBadge": "System",
-      "titleEdit": "Vertrag bearbeiten",
       "titleField": "Vertragstitel",
       "titleNew": "Neuer Vertrag",
       "titlePlaceholder": "z. B. Hochzeitsvertrag Doe / Müller",
@@ -8407,7 +9523,6 @@
       "takeTheirs": "Ihre übernehmen"
     },
     "blocks": {
-      "back": "Zurück zu den Verträgen",
       "title": "Vertragsbaustein-Bibliothek",
       "hideInactive": "Inaktive ausblenden",
       "disclaimerTitle": "Nur Beispiele — lassen Sie sie von Ihrem Anwalt prüfen",
@@ -8448,7 +9563,6 @@
     "templates": {
       "title": "Vertragsvorlagen",
       "intro": "Eine Vorlage legt fest, mit welchen Klauseln, in welcher Reihenfolge und mit welchem Wortlaut ein neuer Vertrag beginnt. Beim Veröffentlichen wird eine Version eingefroren; ein Vertrag behält die Version, aus der er erstellt wurde.",
-      "back": "Zurück zu den Verträgen",
       "backToTemplates": "Zurück zu den Vorlagen",
       "newName": "Name der neuen Vorlage",
       "create": "Vorlage erstellen",
@@ -8644,7 +9758,8 @@
         "compareTitle": "Was sich in „{{name}}“ geändert hat",
         "adopted_one": "{{count}} neue Klausel am Ende hinzugefügt",
         "adopted_other": "{{count}} neue Klauseln am Ende hinzugefügt",
-        "nothingNew": "Nichts Neues zu übernehmen — als geprüft markiert"
+        "nothingNew": "Nichts Neues zu übernehmen — als geprüft markiert",
+        "adopted": "{{count}} neue Klauseln am Ende hinzugefügt"
       }
     },
     "attachments": {
@@ -8836,7 +9951,8 @@
       "desktop": "Desktop",
       "phone": "Smartphone",
       "note": "Layout-Vorschau der Signierseite. Unterschrieben wird das PDF."
-    }
+    },
+    "forCustomer": "für {{name}}"
   },
   "messages": {
     "remoteContentBlocked": "Externe Bilder sind zum Schutz deiner Privatsphäre blockiert.",
@@ -8916,7 +10032,7 @@
     "createNewDoc": "Neues {{label}} erstellen",
     "existingDocs": "Oder ein bestehendes referenzieren",
     "noExistingDocs": "Für diesen Kunden gibt es noch keine Dokumente.",
-    "galleryCreateOnly": "Galerien sind event-basiert — dies öffnet den Event-Editor, wo Sie den Kunden zuweisen können.",
+    "galleryCreateOnly": "Damit öffnet sich der Galerie-Editor, in dem Sie den Kunden zuordnen können.",
     "syncOk": "Postfächer geprüft — {{count}} neu.",
     "syncDisabled": "Eingehende E-Mails sind deaktiviert — unter Einstellungen → Funktionen aktivieren.",
     "syncUnconfigured": "Zuerst ein Postfach unter Einstellungen → E-Mail konfigurieren.",
@@ -8924,7 +10040,10 @@
     "syncFailed": "Synchronisierung fehlgeschlagen.",
     "actionFailed": "Aktion fehlgeschlagen.",
     "syncOk_one": "Postfächer geprüft — {{count}} neu.",
-    "syncOk_other": "Postfächer geprüft — {{count}} neu."
+    "syncOk_other": "Postfächer geprüft — {{count}} neu.",
+    "body": "Nachricht",
+    "deleteForeverTitle": "Diese Nachricht endgültig löschen?",
+    "deleteForeverConfirm": "Die Nachricht und ihre Anhänge werden endgültig entfernt. Das kann nicht rückgängig gemacht werden."
   },
   "rebills": {
     "createInvoice": "Rechnung aus Weiterverrechnungen erstellen",
@@ -9142,10 +10261,7 @@
     "empty": "Noch keine Kampagnen.",
     "allStatuses": "Alle Status",
     "filterByStatus": "Nach Status filtern",
-    "backToList": "Alle Kampagnen",
     "recipientsTitle": "Empfänger",
-    "notEditable": "Diese Kampagne wurde bereits eingereiht und kann nicht mehr bearbeitet werden.",
-    "viewCampaign": "Kampagne ansehen",
     "status": {
       "draft": "Entwurf",
       "queued": "Eingereiht",
@@ -9196,7 +10312,6 @@
     "refreshPreview": "Vorschau aktualisieren",
     "previewTitle": "Newsletter-Vorschau",
     "sendTest": "Test",
-    "queueButton": "Kampagne einreihen",
     "queueBlocked": "Betreff, Inhalt und mindestens ein Empfänger werden zum Senden benötigt.",
     "queueTitle": "Diese Kampagne senden?",
     "queueBody": "Damit werden {{count}} Kunden mit {{rate}} pro Minute angeschrieben (rund {{minutes}} Min.). Sobald der Versand läuft, lässt sich das nicht rückgängig machen.",
@@ -9227,7 +10342,8 @@
       "advice": "Stellen Sie sicher, dass SPF, DKIM und DMARC für Ihre Versanddomain eingerichtet sind, senden Sie sich zuerst einen Test, und teilen Sie eine erste Kampagne nach Möglichkeit in mehrere kleinere Sendungen auf.",
       "duration": "Bei {{rate}}/Minute dauert dies etwa {{minutes}} Minuten. Die Versand-Warteschlange wird geteilt: Während der Kampagne können andere E-Mails — Galerie-Einladungen, Passwort-Zurücksetzungen — dahinter verzögert werden."
     },
-    "groupsHint": "Wer in den Gruppen ist, wird beim Versand ermittelt, nicht jetzt. Deaktivierte und abgemeldete Kunden werden ausgelassen."
+    "groupsHint": "Wer in den Gruppen ist, wird beim Versand ermittelt, nicht jetzt. Deaktivierte und abgemeldete Kunden werden ausgelassen.",
+    "queueShort": "Kampagne senden"
   },
   "documentVerification": {
     "title": "Bestätigen Sie, dass Sie es sind",
@@ -9420,6 +10536,28 @@
     },
     "legalNotice": {
       "title": "Rechtlicher Hinweis"
+    }
+  },
+  "search": {
+    "groups": {
+      "pages": "Seiten"
+    },
+    "palette": {
+      "label": "Admin-Bereich durchsuchen",
+      "placeholder": "Seiten und Einstellungen durchsuchen…",
+      "noResults": "Nichts passt zu „{{query}}“.",
+      "open": "Seiten und Einstellungen durchsuchen"
+    }
+  },
+  "automation": {
+    "empty": {
+      "title": "Keine Automatisierungsfunktionen aktiviert",
+      "body": "Aktivieren Sie Workflows oder Erinnerungs-E-Mails unter Einstellungen → Funktionen, um loszulegen.",
+      "noAccessTitle": "Hier gibt es nichts, was Sie öffnen können",
+      "noAccessBody": "Diese Funktionen sind aktiviert, aber Ihre Rolle kann keine ihrer Seiten öffnen. Bitten Sie eine Administratorin oder einen Administrator um Zugriff."
+    },
+    "subnav": {
+      "approvals": "Freigaben"
     }
   }
 }

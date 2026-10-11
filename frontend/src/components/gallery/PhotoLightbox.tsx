@@ -7,10 +7,12 @@ import { useSavePhotoToDevice } from '../../hooks/useGallery';
 import { AuthenticatedImage } from '../common';
 import { PhotoFeedback } from './PhotoFeedback';
 import { lightboxImageUrl } from './imageTiers';
-import { feedbackService, type ColorLabel, type KeybindMode } from '../../services/feedback.service';
+import { feedbackService, type ColorLabel, type KeybindMode, type PhotoDecision as Decision } from '../../services/feedback.service';
 import { PhotoColorLabels } from './PhotoColorLabels';
+import { PhotoDecision } from './PhotoDecision';
 import { resolveFeedbackKey, colorShortcutHints } from '../../utils/feedbackKeybinds';
 import { galleryService } from '../../services/gallery.service';
+import { analyticsService } from '../../services/analytics.service';
 import { FeedbackIdentityModal } from './FeedbackIdentityModal';
 import { VideoPlayer } from './VideoPlayer';
 import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
@@ -21,6 +23,7 @@ import { useFeedbackLimitModal } from '../../hooks/useFeedbackLimitModal';
 import { usePhotoSales } from '../../features/photo-sales/PhotoSalesContext';
 import { effectivePhotoPrice } from '../../features/photo-sales/photoSales';
 // PHOTO-SALES-EXTENSION END
+import { lockBodyScroll } from '../../utils/scrollLock';
 
 interface PhotoLightboxProps {
   photos: Photo[];
@@ -49,6 +52,9 @@ interface PhotoLightboxProps {
   // behind it, so the guest lands on the result rather than paging through
   // the old set.
   onSelectPerson?: (personId: number) => void;
+  // The photo on screen, on open and after every step — the host mirrors it
+  // to `?photo=` (issue 1733, photoLink.ts).
+  onCurrentPhotoChange?: (photoId: number) => void;
 }
 
 // Finger travel before a single-finger touch starts moving the carousel.
@@ -76,6 +82,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   showOriginalFilename = false,
   people,
   onSelectPerson,
+  onCurrentPhotoChange,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
@@ -117,6 +124,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     allow_comments?: boolean;
     allow_reactions?: boolean;
     allow_color_labels?: boolean;
+    allow_decisions?: boolean;
     keybind_mode?: KeybindMode;
     show_feedback_to_guests?: boolean;
     require_name_email?: boolean;
@@ -125,6 +133,9 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   const [myRating, setMyRating] = useState<number>(0);
   const [myColorLabel, setMyColorLabel] = useState<ColorLabel | null>(null);
   const [colorLabelCounts, setColorLabelCounts] = useState<Partial<Record<ColorLabel, number>>>({});
+  // Approve / reject (issue 744): the viewer's own decision and reason.
+  const [myDecision, setMyDecision] = useState<Decision | null>(null);
+  const [myDecisionReason, setMyDecisionReason] = useState<string | null>(null);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [totalRatings, setTotalRatings] = useState<number>(0);
@@ -180,6 +191,17 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
       galleryService.trackPhotoView(slug, currentPhotoId);
     }
   }, [slug, currentPhotoId]);
+
+  // Mirror the visible photo to the URL (issue 1733). Through a ref so an
+  // inline callback from the host does not re-fire this — and rewrite the
+  // address bar — on every render.
+  const onCurrentPhotoChangeRef = useRef(onCurrentPhotoChange);
+  onCurrentPhotoChangeRef.current = onCurrentPhotoChange;
+  useEffect(() => {
+    if (currentPhotoId !== undefined) {
+      onCurrentPhotoChangeRef.current?.(currentPhotoId);
+    }
+  }, [currentPhotoId]);
 
 
   // Save-aware download. On mobile (where Web Share + files is supported)
@@ -243,14 +265,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
       console.warn('DevTools detected in photo lightbox');
 
       // Track analytics
-      if (typeof window !== 'undefined' && (window as any).umami) {
-        (window as any).umami.track('lightbox_devtools_detected', {
-          photoId: currentPhoto.id,
-          protectionLevel,
-          zoom,
-          gallery: slug
-        });
-      }
+      analyticsService.track('lightbox_devtools_detected', { protectionLevel, zoom });
 
       // Close lightbox immediately for maximum protection
       if (protectionLevel === 'maximum') {
@@ -344,7 +359,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
+    const unlockScroll = lockBodyScroll();
     
     // Add protection class to body for maximum security
     if (protectionLevel === 'maximum') {
@@ -355,7 +370,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      unlockScroll();
       
       // Remove protection classes from body
       document.body.classList.remove('protection-maximum', 'protection-enhanced');
@@ -376,7 +391,25 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     return () => { mounted = false; };
   }, [slug]);
 
-  // Load my feedback for the current photo
+  // Seed from the list payload (issue 1733): a rating given on the tile is
+  // already in the gallery-photos cache, so the stars are right before the
+  // per-photo fetch below confirms them instead of flashing empty. Keyed on
+  // the value too, not only the photo: a tile POST that settles after the
+  // lightbox opened on the same photo still reaches the stars.
+  useEffect(() => {
+    setMyRating(currentPhoto?.my_rating ?? 0);
+  }, [currentPhoto?.id, currentPhoto?.my_rating]);
+  // Same seeding for the decision (issue 744).
+  useEffect(() => {
+    setMyDecision(currentPhoto?.my_decision ?? null);
+    setMyDecisionReason(currentPhoto?.my_decision_reason ?? null);
+  }, [currentPhoto?.id, currentPhoto?.my_decision, currentPhoto?.my_decision_reason]);
+
+  // Load my feedback for the current photo. Keyed on the row's my_rating as
+  // well: when a tile rating settles under an open lightbox, the request
+  // that was already out is dropped whole by the cleanup below — its stars
+  // AND its average / count are from before the rating — and a fresh one
+  // fetches what the server holds now.
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -388,6 +421,8 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
         setMyRating(data.my_feedback.rating || 0);
         setMyColorLabel((data.my_feedback.color_label as ColorLabel) || null);
         setColorLabelCounts(data.color_labels || {});
+        setMyDecision(data.my_feedback.decision ?? null);
+        setMyDecisionReason(data.my_feedback.decision_reason ?? null);
         setLikeCount(Number(data.summary?.like_count) || 0);
         setAvgRating(Number(data.summary?.average_rating) || 0);
         setTotalRatings(Number(data.summary?.total_ratings) || 0);
@@ -396,7 +431,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
       }
     })();
     return () => { mounted = false; };
-  }, [slug, currentPhoto?.id, feedbackSettings?.feedback_enabled]);
+  }, [slug, currentPhoto?.id, currentPhoto?.my_rating, feedbackSettings?.feedback_enabled]);
 
   const submitLike = async () => {
     // Guest identity mode: ensure we have a per-person guest token. The
@@ -1126,7 +1161,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               <div className="flex items-center gap-1">
                 <button
                   onClick={submitLike}
-                  className={`p-2 rounded-full transition-colors ${myLiked ? 'bg-red-500/80 hover:bg-red-500' : 'bg-white/10 hover:bg-white/20'}`}
+                  className={`p-2 rounded-full transition-colors ${myLiked ? 'bg-danger hover:opacity-90' : 'bg-white/10 hover:bg-white/20'}`}
                   aria-label={myLiked ? 'Unlike photo' : 'Like photo'}
                   title={myLiked ? 'Unlike' : 'Like'}
                 >
@@ -1159,7 +1194,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
                     aria-label={i === myRating ? 'Remove rating' : `Rate ${i} star${i>1?'s':''}`}
                     title={i === myRating ? 'Remove rating' : `Rate ${i}`}
                   >
-                    <Star className={`w-5 h-5 ${myRating >= i ? 'text-yellow-400 fill-yellow-400' : 'text-white/70'}`} />
+                    <Star className={`w-5 h-5 ${myRating >= i ? 'text-rating fill-rating' : 'text-white/70'}`} />
                   </button>
                 ))}
                 {/* The average is other guests' ratings: shown only when the
@@ -1191,6 +1226,25 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               </div>
             )}
 
+            {/* Approve / reject (issue 744), beside the colour labels for the
+                same reason: a proofing pass, not a panel detour. */}
+            {feedbackEnabled && feedbackSettings?.allow_decisions && (
+              <div className="flex items-center ml-1">
+                <PhotoDecision
+                  photoId={String(currentPhoto.id)}
+                  gallerySlug={slug}
+                  myDecision={myDecision}
+                  myReason={myDecisionReason}
+                  requireNameEmail={!!feedbackSettings?.require_name_email}
+                  onDecisionChange={(decision, reason) => {
+                    setMyDecision(decision);
+                    setMyDecisionReason(reason);
+                    if (onFeedbackChange) onFeedbackChange();
+                  }}
+                />
+              </div>
+            )}
+
             {/* Feedback button with indicator. Likes/ratings have their
                 own dedicated toolbar buttons above, so this panel toggle
                 only has work to do when comments (#518) or the emoji
@@ -1206,7 +1260,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               >
                 <MessageSquare className="w-5 h-5 text-white" />
                 {((currentPhoto.comment_count ?? 0) > 0 || (currentPhoto.average_rating ?? 0) > 0) && (
-                  <span className="absolute -top-1 -right-1 bg-accent-dark/150 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-accent-dark text-accent-fg text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {(currentPhoto.comment_count ?? 0) > 0 ? currentPhoto.comment_count ?? 0 : '★'}
                   </span>
                 )}
@@ -1266,10 +1320,10 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
                   />
                 ) : (
                   <AuthenticatedImage
-                    // The user is looking at this one right now: top tier,
-                    // ahead of both the grid backlog and the neighbour
-                    // prefetches enqueued around it (#1287).
-                    queuePriority="high"
+                    // One arrow-key press from being on screen: ahead of the
+                    // grid backlog, but never ahead of the slide being
+                    // viewed (#1287).
+                    queuePriority="prefetch"
                     // Prefer the lightbox preview tier when the admin
                     // opted in (#492). Falls back to `url` (the
                     // original) when preview_url is null — happens
@@ -1295,9 +1349,10 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               style={{ flex: '0 0 33.3333%' }}
             >
               <AuthenticatedImage
-                // One arrow-key press from being on screen: ahead of the grid
-                // backlog, but never ahead of the slide being viewed (#1287).
-                queuePriority="prefetch"
+                // The user is looking at this one right now: top tier, ahead of
+                // both the grid backlog and the neighbour prefetches enqueued
+                // around it (#1287).
+                queuePriority="high"
                 // Same preview-prefer-with-fallback logic as the
                 // off-screen tile above (#492).
                 src={lightboxImageUrl(photo)}
@@ -1323,14 +1378,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
                 onProtectionViolation={(violationType) => {
                   console.warn(`Protection violation in lightbox for photo ${photo.id}: ${violationType}`);
 
-                  if (typeof window !== 'undefined' && (window as any).umami) {
-                    (window as any).umami.track('lightbox_protection_violation', {
-                      photoId: photo.id,
-                      violationType,
-                      protectionLevel,
-                      zoom
-                    });
-                  }
+                  analyticsService.track('lightbox_protection_violation', { violationType, protectionLevel, zoom });
 
                   if (protectionLevel === 'maximum' &&
                       ['devtools_detected', 'print_screen_detected', 'canvas_access_blocked'].includes(violationType)) {
@@ -1416,13 +1464,14 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
       {/* Feedback Panel */}
       {showFeedback && (
-        <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[26rem] bg-surface shadow-xl z-20 overflow-y-auto flex flex-col border-l border-surface">
-          <div className="sticky top-0 bg-surface border-b border-surface px-4 py-3 flex items-center justify-between">
-            <h3 className="font-semibold" style={{ color: 'var(--color-text)' }}>Photo Feedback</h3>
+        <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[26rem] bg-surface text-theme shadow-xl z-20 overflow-y-auto flex flex-col border-l border-border-token">
+          <div className="sticky top-0 bg-surface border-b border-border-token px-4 py-3 flex items-center justify-between">
+            <h3 className="font-semibold text-theme">{t('feedback.panelTitle', 'Photo feedback')}</h3>
             <button
+              type="button"
               onClick={() => setShowFeedback(false)}
-              className="p-1 hover:bg-black/10 rounded transition-colors"
-              aria-label="Close feedback"
+              className="p-1 hover-surface rounded transition-colors"
+              aria-label={t('feedback.closePanel', 'Close feedback')}
             >
               <X className="w-5 h-5" />
             </button>

@@ -1,5 +1,5 @@
 import { api } from '../config/api';
-import type { Event, GuestNameMode } from '../types';
+import type { AssignedAdmin, Event, GuestNameMode } from '../types';
 import { normalizeRequirePassword } from '../utils/accessControl';
 import { toBoolean } from '../utils/parsers';
 
@@ -55,6 +55,17 @@ interface CreateEventData {
   // customer_accounts.id; backend service diffs against the existing
   // assignments and applies inserts/deletes inside the same transaction.
   customer_account_ids?: number[];
+  // Team members (issue 743): admin accounts that reach this gallery the way
+  // its creator does, and whether their uploads wait for review.
+  assigned_admin_ids?: number[];
+  review_contributor_uploads?: boolean;
+  // Custom styling switch; off = follow the global Branding theme.
+  custom_theme_enabled?: boolean;
+  // Photo source; import_now starts the folder's first import on create.
+  source_mode?: 'managed' | 'reference';
+  external_path?: string;
+  external_watch?: boolean;
+  import_now?: boolean;
 }
 
 interface UpdateEventData {
@@ -98,6 +109,44 @@ interface UpdateEventData {
   // Customer accounts (#354). Same semantics as on CreateEventData;
   // omit the field to leave assignments untouched, send [] to clear.
   customer_account_ids?: number[];
+  // Team members (issue 743), the owner's to change. Omit to leave the team
+  // untouched, send [] to clear.
+  assigned_admin_ids?: number[];
+  review_contributor_uploads?: boolean;
+}
+
+/** Two-stage delivery state of one gallery (issue 1562). */
+export interface DeliveryState {
+  status: 'complete' | 'partial';
+  expected_count: number | null;
+  due_at: string | null;
+  /** 'manual' | 'default' */
+  due_source: string | null;
+  badge_label: string | null;
+  completed_at: string | null;
+  delivered_count: number;
+  first_look_count: number;
+  /** First-look photos whose original filename arrived again in the full set. */
+  duplicate_count: number;
+}
+
+export interface CompleteDeliveryResult {
+  completed: boolean;
+  email_queued: boolean;
+  /** Who the "complete gallery" mail was queued for. */
+  recipients?: GalleryNoticeRecipients;
+  duplicate_photo_ids: number[];
+  state: DeliveryState;
+}
+
+/** Who a gallery notice was queued for (galleryNotificationService.describeRecipients). */
+export interface GalleryNoticeRecipients {
+  /** Got the standard gallery email. */
+  email: string | null;
+  /** How many accounts got their customer portal email. */
+  account_count: number;
+  /** Who they are — empty without customers.view. */
+  accounts: Array<{ id: number; name: string; email: string }>;
 }
 
 export interface DownloadLimitUsage {
@@ -106,7 +155,24 @@ export interface DownloadLimitUsage {
   downloads_remaining: number | null;
 }
 
-export type EventStatusFilter = 'active' | 'inactive' | 'archived' | 'draft' | 'expiring';
+export type EventStatusFilter = 'active' | 'inactive' | 'archived' | 'draft' | 'expiring' | 'awaiting_delivery';
+
+/**
+ * Columns the events list can be ordered by. Mirrors SORTABLE in
+ * backend/src/routes/adminEvents/listSort.js — `photo_count` and `status` are
+ * expressions there, not stored columns. Anything else falls back to
+ * created_at desc server-side rather than erroring.
+ */
+export type EventSortBy =
+  | 'event_name'
+  | 'event_type'
+  | 'event_date'
+  | 'created_at'
+  | 'updated_at'
+  | 'expires_at'
+  | 'slug'
+  | 'photo_count'
+  | 'status';
 
 interface EventsListResponse {
   events: Event[];
@@ -118,16 +184,27 @@ interface EventsListResponse {
   };
 }
 
+/** Query options for the admin events list. */
+export interface EventsListParams {
+  page?: number;
+  limit?: number;
+  status?: EventStatusFilter;
+  search?: string;
+  /** event_types.slug_prefix, as stored on events.event_type. */
+  type?: string;
+  sortBy?: EventSortBy;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export const eventsService = {
-  // Get all events (admin)
-  async getEvents(
-    page: number = 1,
-    limit: number = 20,
-    status?: EventStatusFilter,
-    search?: string,
-    sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
-  ): Promise<EventsListResponse> {
+  // Get all events (admin).
+  //
+  // Takes an options object rather than positional arguments: with page,
+  // limit, status, search, type, sortBy and sortOrder the positional form had
+  // callers writing `getEvents(1, 100, undefined, undefined, 'event_date')`,
+  // where one misplaced undefined silently sorts by the wrong column.
+  async getEvents(options: EventsListParams = {}): Promise<EventsListResponse> {
+    const { page = 1, limit = 20, status, search, type, sortBy, sortOrder } = options;
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -138,6 +215,9 @@ export const eventsService = {
     }
     if (search) {
       params.append('search', search);
+    }
+    if (type) {
+      params.append('type', type);
     }
     if (sortBy) {
       params.append('sortBy', sortBy);
@@ -156,6 +236,12 @@ export const eventsService = {
     return data;
   },
 
+  // Admin accounts a gallery's team can be picked from (issue 743).
+  async getAssignableAdmins(): Promise<AssignedAdmin[]> {
+    const response = await api.get<{ admins: AssignedAdmin[] }>('/admin/events/assignable-admins');
+    return response.data.admins;
+  },
+
   // Get single event details (admin)
   async getEvent(id: number): Promise<Event> {
     const response = await api.get<Event>(`/admin/events/${id}`);
@@ -163,9 +249,9 @@ export const eventsService = {
   },
 
   // Create new event (admin)
-  async createEvent(data: CreateEventData): Promise<Event> {
-    const response = await api.post<Event>('/admin/events', data);
-    return normalizeEvent(response.data as Event);
+  async createEvent(data: CreateEventData): Promise<Event & { import_started?: boolean }> {
+    const response = await api.post<Event & { import_started?: boolean }>('/admin/events', data);
+    return { ...normalizeEvent(response.data as Event), import_started: response.data.import_started === true };
   },
 
   // Download limit usage (issue 1560). The limit itself is set through
@@ -184,6 +270,23 @@ export const eventsService = {
   // Reveal now (#838): stamps revealed_at so the gallery opens for guests.
   async revealEvent(id: number): Promise<{ revealed_at: string }> {
     const response = await api.post(`/admin/events/${id}/reveal`);
+    return response.data;
+  },
+
+  // Two-stage delivery (issue 1562): the state read-out for the Delivery
+  // section and the event header.
+  async getDelivery(id: number): Promise<DeliveryState> {
+    const response = await api.get<DeliveryState>(`/admin/events/${id}/delivery`);
+    return response.data;
+  },
+
+  // "Full gallery is ready". Returns the first-look photos that arrived again
+  // in the full set; the caller deletes them through the regular photo delete
+  // when the admin asked for it.
+  async completeDelivery(id: number, options: { sendEmail: boolean }): Promise<CompleteDeliveryResult> {
+    const response = await api.post<CompleteDeliveryResult>(`/admin/events/${id}/delivery/complete`, {
+      send_email: options.sendEmail,
+    });
     return response.data;
   },
 
@@ -353,7 +456,7 @@ export const eventsService = {
   async sendGalleryEmail(
     eventId: number,
     options?: { password?: string },
-  ): Promise<{ message: string; recipient: string }> {
+  ): Promise<{ message: string; recipient: string; recipients?: GalleryNoticeRecipients }> {
     const body = options?.password ? { password: options.password } : undefined;
     const response = await api.post(`/admin/events/${eventId}/send-gallery-email`, body);
     return response.data;

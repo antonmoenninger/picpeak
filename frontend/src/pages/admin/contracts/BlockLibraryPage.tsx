@@ -23,11 +23,10 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { ScrollText, ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
-import { Button, Card, Loading } from '../../../components/common';
+import { ScrollText, Plus, Trash2, Save } from 'lucide-react';
+import { Button, Card, Loading, useConfirm } from '../../../components/common';
 import { SUPPORTED_LANGUAGES } from '../../../components/common/LanguageSelector';
 import { useMutationWithToast } from '../../../hooks';
 import {
@@ -70,6 +69,7 @@ type Selection =
 
 export const BlockLibraryPage: React.FC = () => {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [selection, setSelection] = useState<Selection>(null);
   const [editingLang, setEditingLang] = useState<string>('en');
@@ -237,15 +237,6 @@ export const BlockLibraryPage: React.FC = () => {
     // bare layout; adding our own container made the contracts grid
     // measurably narrower than the email grid.
     <div>
-      <div className="mb-3">
-        <Link
-          to="/admin/clients/contracts"
-          className="inline-flex items-center gap-1 text-sm text-soft hover:text-accent-dark"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('contracts.blocks.back', 'Back to contracts')}
-        </Link>
-      </div>
       <SectionPageHeader
         icon={ScrollText}
         title={t('contracts.blocks.title', 'Contract block library')}
@@ -262,7 +253,7 @@ export const BlockLibraryPage: React.FC = () => {
       {/* Disclaimer banner — kept; the seeded blocks come with a legal
           disclaimer per the maintainer's "legal/financial defaults are
           examples only" rule. */}
-      <div className="mb-4 p-3 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-sm text-amber-900 dark:text-amber-200">
+      <div className="mb-4 p-3 rounded-md border border-warning-line bg-warning-soft text-sm text-warning-text">
         <p className="font-medium mb-1">
           {t('contracts.blocks.disclaimerTitle', 'Examples only — have your lawyer review')}
         </p>
@@ -418,10 +409,12 @@ export const BlockLibraryPage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          if (window.confirm(t('contracts.blocks.deleteConfirm', 'Delete this block?') as string)) {
-                            deleteMutation.mutate(selection.block.id);
-                          }
+                        onClick={async () => {
+                          if (await confirm({
+                            message: t('contracts.blocks.deleteConfirm', 'Delete this block?'),
+                            variant: 'danger',
+                            confirmLabel: t('contracts.blocks.delete', 'Delete'),
+                          })) deleteMutation.mutate(selection.block.id);
                         }}
                         leftIcon={<Trash2 className="w-4 h-4" />}
                       >
@@ -459,7 +452,7 @@ export const BlockLibraryPage: React.FC = () => {
                         <span>{lang.name}</span>
                         {!filled && lang.code !== 'en' && (
                           <span
-                            className="w-1.5 h-1.5 rounded-full bg-amber-400"
+                            className="w-1.5 h-1.5 rounded-full bg-warning"
                             title={t('contracts.blocks.noTranslation', 'No translation yet') as string}
                           />
                         )}
@@ -533,7 +526,7 @@ export const BlockLibraryPage: React.FC = () => {
                       to know the table existed (it appears in the PDF
                       but nowhere in the block editor). */}
                   {selection.mode === 'edit' && selection.block.slug === 'quote_line_items_table' && (
-                    <div className="rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-3 text-sm text-blue-900 dark:text-blue-200">
+                    <div className="rounded-md border border-info-line bg-info-soft p-3 text-sm text-info-text">
                       <p className="font-medium mb-1">
                         {t('contracts.blocks.quoteLineItems.calloutTitle',
                           'Auto-generated table follows the body')}

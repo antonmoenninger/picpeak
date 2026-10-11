@@ -1,4 +1,5 @@
 const { isGalleryAvailable } = require('../../utils/galleryLifecycle');
+const { publicThemeFields } = require('../../services/galleryTheme');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -14,6 +15,7 @@ const { NotFoundError } = require('../../utils/errors');
 const { setGalleryAuthCookies } = require('../../utils/tokenUtils');
 const { getSlideshowGlobals } = require('../../utils/slideshowGlobals');
 const { isFeatureEnabled } = require('../../middleware/requireFeatureFlag');
+const { slideshowCredentialClaim } = require('../../utils/galleryCredentialCutoff');
 
 function slideshowPhotosQuery(eventId, categoryId = null) {
   const q = db('photos')
@@ -235,6 +237,9 @@ router.get('/:slug/show/:token/session', noStoreCache, handleAsync(async (req, r
     // so one guest's logout would revoke every same-second login (#1357).
     jti: crypto.randomUUID(),
     accessLevel: 'slideshow',
+    // Bound to this link: rotating or disabling it ends the session
+    // (assertGalleryCredentialCurrent).
+    ...slideshowCredentialClaim(event),
     loginTime: Date.now()
   }, process.env.JWT_SECRET, {
     expiresIn: '12h',
@@ -253,7 +258,7 @@ router.get('/:slug/show/:token/session', noStoreCache, handleAsync(async (req, r
     event: {
       event_name: event.event_name,
       event_type: event.event_type,
-      color_theme: event.color_theme
+      color_theme: (await publicThemeFields(event)).color_theme
     },
     settings: await slideshowSettings(event, req),
     photo_count: parseInt(count, 10) || 0,

@@ -11,6 +11,7 @@ import Captions from 'yet-another-react-lightbox/plugins/captions';
 import 'yet-another-react-lightbox/styles.css';
 import 'yet-another-react-lightbox/plugins/thumbnails.css';
 import { ColorLabelBadge } from '../ColorLabelBadge';
+import { FirstLookBadge } from '../GalleryTileBadges';
 import 'yet-another-react-lightbox/plugins/captions.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download as DownloadIcon, Heart, Check, Star, MessageSquare, Package, LogOut } from 'lucide-react';
@@ -130,10 +131,23 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
       <ColorLabelBadge
         colorLabel={photo.my_color_label}
         otherColorLabels={photo.other_color_labels}
+        decision={photo.my_decision}
       />
 
       {/* Overlay Gradient */}
       <div className="gallery-premium-photo-overlay" />
+
+      {/* First look (issue 1562): bottom-left like the shared card, lifted
+          above the feedback indicators that own that corner here. No folder
+          hint (issue 1786) on this card: its top corners hold the checkbox and
+          a like button that is always shown on touch. */}
+      <FirstLookBadge
+        photo={photo}
+        className={feedbackEnabled && (likeCount > 0 || averageRating > 0 || commentCount > 0 || isLiked)
+          ? 'bottom-10 left-2'
+          : 'bottom-2 left-2'}
+      />
+
 
       {/* Selection Checkbox */}
       <button
@@ -166,17 +180,17 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
         <div className="gallery-premium-feedback">
           {(likeCount > 0 || isLiked) && (
             <span className="gallery-premium-feedback-indicator" title="Liked">
-              <Heart className="w-3.5 h-3.5 text-red-500" fill="currentColor" />
+              <Heart className="w-3.5 h-3.5 text-danger" fill="currentColor" />
             </span>
           )}
           {averageRating > 0 && (
             <span className="gallery-premium-feedback-indicator" title="Rated">
-              <Star className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" />
+              <Star className="w-3.5 h-3.5 text-rating" fill="currentColor" />
             </span>
           )}
           {commentCount > 0 && (
             <span className="gallery-premium-feedback-indicator" title="Commented">
-              <MessageSquare className="w-3.5 h-3.5 text-blue-500" fill="currentColor" />
+              <MessageSquare className="w-3.5 h-3.5 text-info" fill="currentColor" />
             </span>
           )}
         </div>
@@ -193,6 +207,7 @@ interface GalleryPremiumLayoutProps extends BaseGalleryLayoutProps {
 export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
   // #1160: folder-only root — render the shell, skip the empty message.
   suppressEmptyState = false,
+  afterGrid,
   photos,
   slug,
   onPhotoClick: _onPhotoClick,
@@ -217,6 +232,8 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
   heroPhotoOverride,
   onLogout,
   showOriginalFilename = false,
+  openPhotoId,
+  onLightboxPhotoChange,
 }) => {
   // These props are passed by parent but we use our own lightbox, so mark as intentionally unused
   void _onPhotoClick;
@@ -278,6 +295,48 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
   }, [photos, activeCategory]);
 
   const currentLightboxPhoto = lightboxIndex >= 0 ? filteredPhotos[lightboxIndex] : null;
+
+  // The photo the lightbox is on, by id: `lightboxIndex` is a position in
+  // `filteredPhotos`, which a filter or category change can shift under it.
+  // When that photo leaves the list while others remain, the slide at the
+  // old index is a different photo and YARL fires no `view` for it, so the
+  // URL would keep the old `?photo=`. Clamp onto a neighbour and report the
+  // step, as the standard lightbox does; with no slides left, close.
+  const lightboxPhotoIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (lightboxIndex < 0 || lightboxPhotoIdRef.current === null) return;
+    if (filteredPhotos.some((photo) => photo.id === lightboxPhotoIdRef.current)) return;
+    if (filteredPhotos.length === 0) {
+      lightboxPhotoIdRef.current = null;
+      setLightboxIndex(-1);
+      onLightboxPhotoChange?.(null, 'close');
+      return;
+    }
+    const next = Math.min(lightboxIndex, filteredPhotos.length - 1);
+    lightboxPhotoIdRef.current = filteredPhotos[next].id;
+    setLightboxIndex(next);
+    onLightboxPhotoChange?.(filteredPhotos[next].id, 'step');
+  }, [filteredPhotos, lightboxIndex, onLightboxPhotoChange]);
+
+  // Link to a single photo (issue 1733): open on the photo the URL asks for,
+  // close on null. This layout filters by category on its own, so a linked
+  // photo hidden by that chip clears it first; an id not in `photos` opens
+  // nothing.
+  useEffect(() => {
+    if (openPhotoId === undefined) return;
+    if (openPhotoId === null) {
+      setLightboxIndex(-1);
+      return;
+    }
+    const index = filteredPhotos.findIndex((photo) => photo.id === openPhotoId);
+    if (index >= 0) {
+      lightboxPhotoIdRef.current = openPhotoId;
+      setLightboxIndex(index);
+    } else if (photos.some((photo) => photo.id === openPhotoId)) {
+      setActiveCategory(null);
+    }
+  }, [openPhotoId, filteredPhotos, photos]);
+
   const reactionsActive = feedbackEnabled && !!feedbackOptions?.allowReactions;
 
   // Fetch the current photo's reaction tallies + my selection when the
@@ -520,7 +579,7 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
   if (photos.length === 0 && !suppressEmptyState) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">{t('gallery.noPhotosFound')}</p>
+        <p className="text-muted-theme">{t('gallery.noPhotosFound')}</p>
       </div>
     );
   }
@@ -662,16 +721,22 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
         <MasonryPhotoAlbum
           photos={albumPhotos}
           render={{
-            photo: (_props, { photo, width, height }) => {
+            photo: (_props, { photo, index: photoIndex, width, height }) => {
+              // `index` is the position in `albumPhotos`, a 1:1 map of
+              // `filteredPhotos`, so it is the lightbox index too — no
+              // per-tile `findIndex` (issue 1733).
               const originalPhoto = (photo as any)._photo as Photo;
-              const photoIndex = filteredPhotos.findIndex(p => p.id === originalPhoto.id);
 
               return (
                 <PhotoCard
                   photo={originalPhoto}
                   width={width}
                   height={height}
-                  onClick={() => setLightboxIndex(photoIndex)}
+                  onClick={() => {
+                    lightboxPhotoIdRef.current = originalPhoto.id;
+                    setLightboxIndex(photoIndex);
+                    onLightboxPhotoChange?.(originalPhoto.id, 'open');
+                  }}
                   onLike={(e) => handleLike(originalPhoto, e)}
                   onSelect={(e) => {
                     e.stopPropagation();
@@ -702,6 +767,8 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
         />
       </main>
 
+      {afterGrid && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{afterGrid}</div>}
+
       {/* Footer */}
       <footer className="gallery-premium-footer">
         <PoweredBy />
@@ -711,7 +778,11 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
       {/* Lightbox */}
       <Lightbox
         open={lightboxIndex >= 0}
-        close={() => setLightboxIndex(-1)}
+        close={() => {
+          lightboxPhotoIdRef.current = null;
+          setLightboxIndex(-1);
+          onLightboxPhotoChange?.(null, 'close');
+        }}
         index={lightboxIndex}
         slides={slides}
         // View beacon (#895): yarl fires `view` on open and on every
@@ -722,7 +793,11 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
             // the slides array; otherwise YARL jumps back to the opening photo.
             setLightboxIndex(index);
             const photo = filteredPhotos[index];
-            if (photo) galleryService.trackPhotoView(slug, photo.id);
+            if (photo) {
+              lightboxPhotoIdRef.current = photo.id;
+              galleryService.trackPhotoView(slug, photo.id);
+              onLightboxPhotoChange?.(photo.id, 'step');
+            }
           },
         }}
         plugins={[

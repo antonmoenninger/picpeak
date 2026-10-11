@@ -7,6 +7,8 @@ import { thumbnailUrlForTile } from './imageTiers';
 import { FeedbackIdentityModal } from './FeedbackIdentityModal';
 import { feedbackService } from '../../services/feedback.service';
 import { ColorLabelBadge } from './ColorLabelBadge';
+import { TileRating } from './TileRating';
+import { FirstLookBadge, FolderHintPill } from './GalleryTileBadges';
 import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
 import { useDownloadQuota } from '../../contexts/DownloadQuotaContext';
 import { downloadLimitReachedMessage } from '../../utils/downloadLimit';
@@ -18,7 +20,10 @@ import { effectivePhotoPrice, snipcartItemProps } from '../../features/photo-sal
 // PHOTO-SALES-EXTENSION END
 import type { Photo } from '../../types';
 
-export interface PhotoCardFeedbackOptions {
+export /** Action buttons (36px) + gap + rating pill (28px); below this the row would overlap the buttons. */
+const MIN_TILE_HEIGHT_FOR_RATING_ROW = 104;
+
+interface PhotoCardFeedbackOptions {
   allowLikes?: boolean;
   allowFavorites?: boolean;
   allowRatings?: boolean;
@@ -47,8 +52,9 @@ export interface PhotoCardProps {
    * Outer band, in `rootMargin` form. When set, a tile that leaves it is
    * unmounted again rather than kept for the life of the page (#1287). Opt-in
    * per layout: only a layout whose skeleton holds the tile's box can release
-   * without reflowing, which today is Grid (`aspect-square`) and Mosaic (an
-   * explicit `aspectRatio` on the tile).
+   * without reflowing. Since issue 1733 that is every grid layout — each one
+   * sizes its tile from the stored dimensions (`aspect-square`, an explicit
+   * `aspectRatio`, or a computed px box) rather than from the image.
    */
   releaseRootMargin?: string;
   skeletonClassName?: string;
@@ -74,6 +80,8 @@ export interface PhotoCardProps {
   identityMode?: 'self' | 'parent';
   savedIdentity?: { name: string; email: string } | null;
   onRequireIdentity?: (action: 'like', photoId: number) => void;
+  /** Identity collected by the tile's rating control; the layout stores it as savedIdentity. */
+  onIdentitySaved?: (identity: { name: string; email: string }) => void;
   /** Use Like/Unlike toggle labels on the like button (Masonry columns). */
   likeToggleLabels?: boolean;
   /** Render the Like button before the Comment button (Mosaic/Timeline). */
@@ -86,6 +94,11 @@ export interface PhotoCardProps {
   afterOverlay?: React.ReactNode;
   /** Rendered after the selection checkbox. */
   children?: React.ReactNode;
+  /**
+   * Where the first-look pill sits (issue 1562). Bottom-left by default; a
+   * layout that keeps its own chips in that corner lifts it above them.
+   */
+  firstLookClassName?: string;
 }
 
 export const PhotoCard: React.FC<PhotoCardProps> = ({
@@ -102,7 +115,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   lazy = false,
   inViewRootMargin,
   releaseRootMargin,
-  skeletonClassName = 'skeleton w-full h-full rounded-lg',
+  skeletonClassName = 'skeleton bg-border-token w-full h-full rounded-lg',
   fadeInWhenVisible = false,
   overlayBaseClassName,
   actionVariant = 'light',
@@ -117,12 +130,14 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   identityMode = 'parent',
   savedIdentity,
   onRequireIdentity,
+  onIdentitySaved,
   likeToggleLabels = false,
   likeBeforeComment = false,
   checkboxTestId = false,
   beforeOverlay,
   afterOverlay,
   children,
+  firstLookClassName = 'bottom-2 left-2',
 }) => {
   const { t } = useTranslation();
   const guestIdentity = useGuestIdentityOptional();
@@ -158,7 +173,9 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   const [pendingAction, setPendingAction] = useState<null | { type: 'like'; photoId: number }>(null);
   const [selfIdentity, setSelfIdentity] = useState<{ name: string; email: string } | null>(null);
 
-  const savedIdentityValue = identityMode === 'self' ? selfIdentity : savedIdentity;
+  // Self mode still honours an identity the layout already holds (typed into
+  // another tile), so one viewer is asked once per gallery, not once per card.
+  const savedIdentityValue = identityMode === 'self' ? (selfIdentity ?? savedIdentity ?? null) : savedIdentity;
 
   const hideOverlay = useCallback(() => {
     if (overlayTimeoutRef.current !== null && typeof window !== 'undefined') {
@@ -222,18 +239,22 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
     threshold: 0,
     rootMargin: releaseRootMargin,
   });
+  // The self-managed identity modal lives inside the released subtree and
+  // does not lock page scrolling, so a tile that let go while the form was
+  // open threw away a half-typed name and email (issue 1733). Hold it.
+  const holdsModal = identityMode === 'self' && showIdentityModal;
   const [rendered, setRendered] = useState(false);
   useEffect(() => {
     if (!releases) return;
     if (withinLoadBand) setRendered(true);
-    else if (!withinKeepBand) setRendered(false);
-  }, [releases, withinLoadBand, withinKeepBand]);
+    else if (!withinKeepBand && !holdsModal) setRendered(false);
+  }, [releases, withinLoadBand, withinKeepBand, holdsModal]);
   const inView = !lazy || (releases ? rendered : withinLoadBand);
 
   // Tile width for the responsive tier (#1095), measured rather than inferred.
-  // The observer entry only exists for `lazy` cards, and Masonry and
-  // Timeline do not pass it — those are exactly the layouts a breakpoint
-  // guess gets most wrong.
+  // Measured for lazy and eager cards alike: Masonry and Timeline were eager
+  // when this landed, and those are exactly the layouts a breakpoint guess
+  // gets most wrong.
   //
   // Gated: the image is not rendered until this has run, so AuthenticatedImage
   // never mounts with a src it would have to replace. Attaching the observer
@@ -262,6 +283,27 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
 
   const showFeedbackActions = feedbackEnabled && Boolean(feedbackOptions);
 
+  // The rating row needs its own band under the centred action buttons:
+  // 36px of buttons, a gap, and a 28px pill. On a panoramic Mosaic/Masonry
+  // tile shorter than that the row would sit on the buttons and take their
+  // clicks, so it is withheld there (the lightbox still rates). Measured
+  // with a ResizeObserver; where none exists (old WebView, jsdom) the row
+  // stays, as it did before the measurement existed.
+  const wantsRatingRow = showFeedbackActions && Boolean(feedbackOptions?.allowRatings) && Boolean(slug);
+  const [tooShortForRating, setTooShortForRating] = useState(false);
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!wantsRatingRow || !node || typeof ResizeObserver === 'undefined') return undefined;
+    const check = (height: number) => setTooShortForRating(height > 0 && height < MIN_TILE_HEIGHT_FOR_RATING_ROW);
+    check(node.offsetHeight);
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      check(entry?.contentRect?.height ?? node.offsetHeight);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [wantsRatingRow, inView]);
+
   // #1263 - opacity hides pixels, not hit-testing. An `opacity-0` control is
   // still tappable, and on a touchscreen (no hover) it is invisible for good,
   // so a tap in the middle of a tile silently downloaded or liked instead of
@@ -288,6 +330,12 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   const checkboxVisibilityClass = revealed(
     isSelected || isSelectionMode || overlayVisible,
   );
+
+  // The folder hint ("All photos", issue 1786) shares the top-right corner
+  // with the checkbox, so it steps aside whenever the checkbox shows.
+  const folderHintVisibilityClass = isSelected || isSelectionMode || overlayVisible
+    ? 'opacity-0'
+    : isTouchDevice ? 'opacity-100' : 'opacity-100 group-hover:opacity-0';
 
   const buttonType = actionVariant === 'dark' ? ('button' as const) : undefined;
   const actionButtonClass =
@@ -389,7 +437,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
     showFeedbackActions && feedbackOptions?.allowLikes ? (
       <button
         className={`p-2 rounded-full transition-colors ${
-          liked ? 'bg-red-500/90 hover:bg-red-500' : 'bg-white/90 hover:bg-white'
+          liked ? 'bg-danger hover:opacity-90' : 'bg-white/90 hover:bg-white'
         }`}
         onClick={handleLike}
         aria-label={likeToggleLabels && liked ? 'Unlike photo' : 'Like photo'}
@@ -398,6 +446,37 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
       >
         <Heart className={`w-5 h-5 ${liked ? 'text-white fill-white' : 'text-neutral-800'}`} />
       </button>
+    ) : null;
+
+  // Star rating on the tile (issue 1733, A3a). Its own row under the action
+  // buttons rather than in them: five stars beside three or four round
+  // buttons overflow a two-column phone tile, and the corners are already
+  // taken (badge, checkbox, indicators, video chip). Absolute inside the
+  // overlay, so it reveals and hides with it and inherits its hit-testing.
+  // Just under the centre on a normal tile, but never past the bottom edge:
+  // a panoramic Mosaic tile can be ~50px high and clips with overflow-hidden,
+  // so the row stops one pill height above the bottom.
+  const ratingRow =
+    wantsRatingRow && !tooShortForRating && feedbackOptions?.allowRatings && slug ? (
+      <div
+        className="absolute inset-x-0 flex justify-center"
+        style={{ top: 'min(calc(50% + 1.5rem), calc(100% - 1.75rem))' }}
+      >
+        <TileRating
+          photo={photo}
+          slug={slug}
+          variant={actionVariant}
+          requireNameEmail={feedbackOptions.requireNameEmail}
+          savedIdentity={savedIdentityValue}
+          onIdentitySaved={(identity) => {
+            // One identity per viewer, not per tile: the like button on this
+            // card and every other tile (through the layout) reuse it.
+            if (identityMode === 'self') setSelfIdentity(identity);
+            onIdentitySaved?.(identity);
+          }}
+          onDone={hideOverlay}
+        />
+      </div>
     ) : null;
 
   // Responsive grid tier (#1095). Applied here rather than in each layout
@@ -433,7 +512,11 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
           <ColorLabelBadge
             colorLabel={photo.my_color_label}
             otherColorLabels={photo.other_color_labels}
+            decision={photo.my_decision}
           />
+
+          <FirstLookBadge photo={photo} className={firstLookClassName} />
+          <FolderHintPill photo={photo} className={`top-2 right-2 ${folderHintVisibilityClass}`} />
 
           {beforeOverlay}
 
@@ -499,6 +582,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
                     {likeButton}
                   </>
                 )}
+                {ratingRow}
               </>
             )}
           </div>
@@ -510,6 +594,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
               onClose={() => { setShowIdentityModal(false); setPendingAction(null); }}
               onSubmit={async (name, email) => {
                 setSelfIdentity({ name, email });
+                onIdentitySaved?.({ name, email });
                 setShowIdentityModal(false);
                 if (pendingAction) {
                   if (pendingAction.type === 'like' && onLikeSuccess) {

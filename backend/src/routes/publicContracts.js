@@ -32,7 +32,7 @@ const verification = require('../services/publicDocumentVerificationService');
 const { clientIpForAudit } = require('../utils/clientIp');
 const { loadActionToken, preMulterTokenGuard } = require('../utils/publicTokenGuards');
 const {
-  signedPdfUpload,
+  signedPdfSingle,
   uploadSignedPdfSettingGuard,
   finishSignedPdfUpload,
 } = require('../utils/contractSignedPdfUpload');
@@ -48,6 +48,7 @@ const KIND = 'contract';
 const TABLE = 'contract_action_tokens';
 
 const router = express.Router();
+router.use(require('../database/crmAccess').crmCapabilityRouter('public contract action-token capability'));
 
 const previewLimiter = rateLimit({
   windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, keyGenerator: rateLimitKey,
@@ -163,7 +164,7 @@ router.post(
   uploadSignedPdfSettingGuard,
   preMulterTokenGuard(TABLE),
   requireGrant(KIND),
-  signedPdfUpload.single('file'),
+  signedPdfSingle,
   handleAsync(async (req, res) => finishSignedPdfUpload(req, res)),
 );
 

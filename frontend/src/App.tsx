@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,8 +25,10 @@ import {
   ArchivesPage,
   AnalyticsPage,
   SettingsPage,
-  SystemHealthPage,
-  UserManagementPage,
+  // SystemHealthPage and UserManagementPage are no longer routed from here:
+  // they render as the Settings > Health and Settings > Users tabs, and
+  // SettingsPage imports them itself. /admin/system-health and /admin/users
+  // redirect to those tabs, further down.
   CustomerManagementPage,
   CustomerDetailPage,
   WebhookDeliveriesPage,
@@ -44,7 +46,6 @@ import { CrmDevelopmentPage } from './pages/admin/clients/CrmDevelopmentPage';
 // Newsletter campaigns (#1264). Gated by the `newsletters` flag inside the
 // Clients block; the API refuses these routes independently when it is off.
 import { NewsletterListPage } from './pages/admin/newsletters/NewsletterListPage';
-import { NewsletterComposerPage } from './pages/admin/newsletters/NewsletterComposerPage';
 import { NewsletterDetailPage } from './pages/admin/newsletters/NewsletterDetailPage';
 import { TaxReportPage } from './pages/admin/clients/TaxReportPage';
 import { HoursLoggingPage } from './pages/admin/clients/HoursLoggingPage';
@@ -64,6 +65,7 @@ import { WorkflowApprovalsPage } from './pages/admin/workflows/WorkflowApprovals
 import { WorkflowEditorPage } from './pages/admin/workflows/WorkflowEditorPage';
 import { ContractsListPage } from './pages/admin/contracts/ContractsListPage';
 import { ContractEditorPage } from './pages/admin/contracts/ContractEditorPage';
+import { RedirectToRecord } from './components/admin/RedirectToRecord';
 import { ContractDetailPage } from './pages/admin/contracts/ContractDetailPage';
 import { BlockLibraryPage } from './pages/admin/contracts/BlockLibraryPage';
 import { ContractTemplatesPage } from './pages/admin/contracts/ContractTemplatesPage';
@@ -71,6 +73,9 @@ import { ContractAttachmentsPage } from './pages/admin/contracts/ContractAttachm
 import { PaymentCheckPage } from './pages/public/PaymentCheckPage';
 import { AcceptInvitePage } from './pages/public/AcceptInvitePage';
 import { TransfersPage } from './pages/admin/transfers/TransfersPage';
+import { AutomationLayout } from './components/admin/AutomationLayout';
+import { RequirePermission } from './components/admin/RequirePermission';
+import { ReminderTemplatesPage } from './pages/admin/settings/ReminderTemplatesPage';
 import { TransferDownloadPage } from './pages/public/TransferDownloadPage';
 import { TransferUploadPage } from './pages/public/TransferUploadPage';
 import {
@@ -115,74 +120,17 @@ const queryClient = new QueryClient({
   },
 });
 
-// Bootstraps the analytics tracker from /public/settings. Lives inside
-// QueryClientProvider so it shares the public-settings cache with every
-// other consumer of usePublicSettings. Dispatches based on the
-// `analytics_tracker_provider` switch (#663 Phase 1) — Umami / Rybbit /
-// Custom / None. Back-compat: when the provider field is missing or unset,
-// falls through to the legacy `umami_enabled`-based behaviour so installs
-// that haven't picked yet keep working.
+// The backend owns provider configuration and protocol translation. The
+// browser only runs PicPeak's fixed data-only client; no env/snippet fallback.
 function AnalyticsBootstrap() {
   const { data: settings, isError } = usePublicSettings();
-
   useEffect(() => {
     if (!settings && !isError) return;
-
-    const envUmamiUrl = import.meta.env.VITE_UMAMI_URL;
-    const envUmamiWebsiteId = import.meta.env.VITE_UMAMI_WEBSITE_ID;
-    const provider = settings?.analytics_tracker_provider;
-
-    if (provider === 'rybbit' && settings?.rybbit_url && settings.rybbit_website_id) {
-      analyticsService.initialize({
-        provider: 'rybbit',
-        hostUrl: settings.rybbit_url,
-        websiteId: settings.rybbit_website_id,
-        doNotTrack: true,
-        // Mask every /gallery/* path (they embed the share token) so Rybbit's
-        // auto-tracked page views never carry the secret (GHSA-7m6c).
-        maskPatterns: ['/gallery/**'],
-      });
-      return;
-    }
-
-    if (provider === 'custom') {
-      analyticsService.initialize({
-        provider: 'custom',
-        customHeadHtml: settings?.analytics_custom_head_html || '',
-      });
-      return;
-    }
-
-    // Umami: explicit provider OR legacy umami_enabled path.
-    if (
-      (provider === 'umami' || settings?.umami_enabled)
-      && settings?.umami_url && settings?.umami_website_id
-    ) {
-      analyticsService.initialize({
-        provider: 'umami',
-        hostUrl: settings.umami_url,
-        websiteId: settings.umami_website_id,
-        // autoTrack omitted → data-auto-track="false": Umami must NOT read the
-        // raw window.location (token leak). Page views come from the manual,
-        // sanitized AnalyticsRouteTracker instead (GHSA-7m6c).
-        doNotTrack: true,
-      });
-      return;
-    }
-
-    // Env-var fallback (legacy deploys). Only when no DB config and
-    // analytics aren't disabled at the public-site level.
-    if (envUmamiUrl && envUmamiWebsiteId && (isError || settings?.enable_analytics !== false)) {
-      analyticsService.initialize({
-        provider: 'umami',
-        hostUrl: envUmamiUrl,
-        websiteId: envUmamiWebsiteId,
-        // autoTrack omitted → data-auto-track="false" (see above, GHSA-7m6c).
-        doNotTrack: true,
-      });
-    }
+    const explicit = settings?.analytics_tracker_provider;
+    const provider = explicit === 'umami' || explicit === 'rybbit' ? explicit
+      : !explicit && settings?.umami_enabled ? 'umami' : 'none';
+    analyticsService.initialize({ provider: settings?.enable_analytics === false ? 'none' : provider });
   }, [settings, isError]);
-
   return null;
 }
 
@@ -195,6 +143,28 @@ function AnalyticsBootstrap() {
 function RedirectCustomerDetail() {
   const { id } = useParams();
   return <Navigate to={`/admin/clients/accounts/${id}`} replace />;
+}
+
+/**
+ * Settings, with one redirect in front of it.
+ *
+ * `?tab=reminderTemplates` moved out of Settings into the Automation section.
+ * A query string cannot be matched by a Route path, and doing the check inside
+ * SettingsPage lost a race with that page's own URL-sync effect, which rewrites
+ * an unknown ?tab= to the default before a redirect rendered there can fire.
+ * Sitting above the page, this runs before any of that.
+ */
+function SettingsRoute() {
+  const [params] = useSearchParams();
+  if (params.get('tab') === 'reminderTemplates') {
+    return <Navigate to="/admin/automation/reminder-templates" replace />;
+  }
+  return <SettingsPage />;
+}
+
+function RedirectWorkflowEditor() {
+  const { id } = useParams();
+  return <Navigate to={`/admin/automation/workflows/${id}`} replace />;
 }
 
 function App() {
@@ -265,19 +235,17 @@ function App() {
                       <Route path="events/new" element={<CreateEventPage />} />
                       <Route path="events/:id" element={<EventDetailsPage />} />
                       <Route path="events/:id/feedback" element={<EventFeedbackPage />} />
-                      <Route path="archives" element={<ArchivesPage />} />
+                      {/* Archives is a sub-page of the Events section now —
+                          an archived event is still an event. Static segment,
+                          so it outranks events/:id. */}
+                      <Route path="events/archives" element={<ArchivesPage />} />
+
                       {/* PicTransfer (#997) — cross-event file transfers.
-                          Gated by the `transfers` flag (strictly opt-in). */}
+                          Gated by the `transfers` flag (strictly opt-in). It
+                          keeps this URL and joins Events and Archives in the
+                          Sharing section, which activates on both trees. */}
                       <Route element={<RequireFeature flag="transfers" />}>
                         <Route path="transfers" element={<TransfersPage />} />
-                      </Route>
-
-                      {/* Feature-gated surfaces — redirect to /admin/dashboard when flag is off. */}
-                      <Route element={<RequireFeature flag="analytics" />}>
-                        <Route path="analytics" element={<AnalyticsPage />} />
-                      </Route>
-                      <Route element={<RequireFeature flag="userManagement" />}>
-                        <Route path="users" element={<UserManagementPage />} />
                       </Route>
                       <Route element={<RequireFeature flag="messaging" />}>
                         <Route path="messages" element={
@@ -285,6 +253,11 @@ function App() {
                             <MessagesPage />
                           </Suspense>
                         } />
+                      </Route>
+
+                      {/* Feature-gated surfaces — redirect to /admin/dashboard when flag is off. */}
+                      <Route element={<RequireFeature flag="analytics" />}>
+                        <Route path="analytics" element={<AnalyticsPage />} />
                       </Route>
                       {/* Clients section (#354 follow-up). Parent route
                           gated by the top-level `clients` flag — when off
@@ -313,7 +286,7 @@ function App() {
                             <Route path="quotes/catalog/templates/:id" element={<QuoteTemplateEditorPage />} />
                             <Route path="quotes/new" element={<QuoteEditorPage />} />
                             <Route path="quotes/:id" element={<QuoteDetailPage />} />
-                            <Route path="quotes/:id/edit" element={<QuoteEditorPage />} />
+                            <Route path="quotes/:id/edit" element={<RedirectToRecord base="/admin/clients/quotes" />} />
                           </Route>
                           {/* Project Overview (CRM) — admin-only grouping
                               layer above events, gated by `projects`. */}
@@ -326,7 +299,7 @@ function App() {
                             <Route path="bills" element={<BillsListPage />} />
                             <Route path="bills/new" element={<BillEditorPage />} />
                             <Route path="bills/:id" element={<BillDetailPage />} />
-                            <Route path="bills/:id/edit" element={<BillEditorPage />} />
+                            <Route path="bills/:id/edit" element={<RedirectToRecord base="/admin/clients/bills" />} />
                           </Route>
 
                           {/* Contracts (CRM) — gated by `contracts`. Independent
@@ -340,7 +313,7 @@ function App() {
                             <Route path="contracts/templates/:id" element={<Suspense fallback={<Loading />}><ContractTemplateEditorPage /></Suspense>} />
                             <Route path="contracts/attachments" element={<ContractAttachmentsPage />} />
                             <Route path="contracts/:id" element={<ContractDetailPage />} />
-                            <Route path="contracts/:id/edit" element={<ContractEditorPage />} />
+                            <Route path="contracts/:id/edit" element={<RedirectToRecord base="/admin/clients/contracts" />} />
                           </Route>
 
                           {/* Hour logging (standalone surface) — gated by
@@ -375,7 +348,7 @@ function App() {
                           <Route element={<RequireFeature flag="newsletters" />}>
                             <Route path="newsletters" element={<NewsletterListPage />} />
                             <Route path="newsletters/:id" element={<NewsletterDetailPage />} />
-                            <Route path="newsletters/:id/edit" element={<NewsletterComposerPage />} />
+                            <Route path="newsletters/:id/edit" element={<RedirectToRecord base="/admin/clients/newsletters" />} />
                           </Route>
                           {/* Developer tools — gated by `crmDevelopment`. */}
                           <Route element={<RequireFeature flag="crmDevelopment" />}>
@@ -424,17 +397,56 @@ function App() {
                       <Route path="customers"     element={<Navigate to="/admin/clients/accounts" replace />} />
                       <Route path="customers/:id" element={<RedirectCustomerDetail />} />
 
-                      {/* Workflows (automation engine) — top-level area gated
-                          by the `workflows` flag. */}
-                      <Route element={<RequireFeature flag="workflows" />}>
-                        <Route path="workflows" element={<WorkflowsListPage />} />
-                        <Route path="workflows/approvals" element={<WorkflowApprovalsPage />} />
-                        <Route path="workflows/:id" element={<WorkflowEditorPage />} />
+                      {/* Automation section — the workflow engine plus the
+                          reminder email templates it sends. Reminder emails
+                          came from Settings; the page already pointed at
+                          Workflows for its schedule, so the two now sit in one
+                          section. Each sub-area keeps its own flag. */}
+                      <Route path="automation" element={<AutomationLayout />}>
+                        {/* Both gates, for the same reason reminder-templates
+                            carries them: a section opens as soon as ANY item
+                            in it is permitted, so `reminderEmails` alone would
+                            otherwise let a role without workflows.view open
+                            the builder and watch its queries 403. */}
+                        <Route element={<RequireFeature flag="workflows" />}>
+                          <Route element={<RequirePermission permission="workflows.view" />}>
+                            <Route path="workflows" element={<WorkflowsListPage />} />
+                            {/* Flattened out from under workflows/ so the
+                                Workflows entry doesn't stay highlighted here. */}
+                            <Route path="approvals" element={<WorkflowApprovalsPage />} />
+                            <Route path="workflows/:id" element={<WorkflowEditorPage />} />
+                          </Route>
+                        </Route>
+                        {/* Reminder emails needs BOTH gates. As a Settings tab
+                            it was gated by living in Settings, which filters
+                            tabs by permission and snaps away from one the role
+                            cannot see. A section page has no such inheritance:
+                            the section opens as soon as ANY item in it is
+                            permitted, so a workflows-only role would otherwise
+                            reach this page and watch its queries 403. */}
+                        <Route element={<RequireFeature flag="reminderEmails" />}>
+                          <Route element={<RequirePermission permission="email.view" />}>
+                            <Route path="reminder-templates" element={<ReminderTemplatesPage />} />
+                          </Route>
+                        </Route>
                       </Route>
 
-                      <Route path="settings" element={<SettingsPage />} />
-                      <Route path="system-health" element={<SystemHealthPage />} />
+                      <Route path="settings" element={<SettingsRoute />} />
                       <Route path="webhooks/:id/deliveries" element={<WebhookDeliveriesPage />} />
+
+                      {/* Navigation cleanup — Archives, Messages, PicTransfer,
+                          Workflows, Users and System health are no longer
+                          top-level. Kept indefinitely as redirects: these paths
+                          are bookmarked and appear in already-sent email.
+                          Messages and PicTransfer are absent on purpose — they
+                          keep the URLs they always had. */}
+                      <Route path="archives"           element={<Navigate to="/admin/events/archives" replace />} />
+                      <Route path="workflows"          element={<Navigate to="/admin/automation/workflows" replace />} />
+                      <Route path="workflows/approvals" element={<Navigate to="/admin/automation/approvals" replace />} />
+                      <Route path="workflows/:id"      element={<RedirectWorkflowEditor />} />
+                      {/* Users and System health became Settings tabs. */}
+                      <Route path="users"              element={<Navigate to="/admin/settings?tab=users" replace />} />
+                      <Route path="system-health"      element={<Navigate to="/admin/settings?tab=health" replace />} />
 
                       {/* Old top-level routes — these surfaces now live as
                           Settings tabs (#feature-flags-settings-reorg).

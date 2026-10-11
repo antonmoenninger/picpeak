@@ -1,30 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useLeaveGuard } from '../../contexts/UnsavedChangesContext';
+import { useGuardedLinkClick, useLeaveGuard } from '../../contexts/UnsavedChangesContext';
 import {
   ArrowLeft,
   LayoutDashboard,
-  Calendar,
-  Archive,
   BarChart3,
   Settings,
-  Activity,
   X,
-  Users,
   Briefcase,
   Landmark,
   Mail,
+  Share2,
   Workflow,
   PanelLeftClose,
   PanelLeftOpen,
   Github,
-  Send,
+  Search,
   type LucideIcon,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { settingsService } from '../../services/settings.service';
 import { VersionInfo } from './VersionInfo';
+import { DashboardHomeLink } from './DashboardHomeLink';
 import { repoUrl } from '../../utils/githubReleaseUrl';
 import { usePermissions } from '../../contexts/PermissionsContext';
 import { useAdminDarkMode } from '../../contexts/AdminDarkModeContext';
@@ -35,11 +33,14 @@ import {
   DEFAULT_SETTINGS_TAB,
   SETTINGS_PATH,
   isValidSettingsTab,
+  searchScore,
   settingsTabHref,
   useSettingsNavGroups,
 } from '../../features/settings/settingsNav';
 import { useClientsNavItems } from './ClientsLayout';
 import { useAccountingNavItems } from './AccountingLayout';
+import { useSharingNavItems, SHARING_PATHS } from './sharingNav';
+import { useAutomationNavItems } from './AutomationLayout';
 
 // A section that takes over the sidebar while the admin is inside it:
 // the main menu is replaced by the section's own navigation, with a
@@ -52,6 +53,8 @@ interface SidebarSectionItem {
   active: boolean;
   /** Navigate with history.replace (tab switches inside one page). */
   replace?: boolean;
+  /** Extra search terms, so the Settings filter finds a tab by what it does. */
+  keywords?: string[];
 }
 interface SidebarSectionGroup {
   /** Omitted for sections with a single, unlabelled list. */
@@ -60,8 +63,13 @@ interface SidebarSectionGroup {
 }
 interface SidebarSection {
   key: string;
-  /** Route prefix that activates the section. */
-  path: string;
+  /**
+   * Route prefixes that activate the section, and the first of them is where
+   * the main-menu entry points by default. Usually one, but Sharing spans
+   * /admin/events and /admin/transfers: a section is a grouping of pages, and
+   * pages it groups need not share a URL prefix.
+   */
+  paths: string[];
   title: string;
   icon: LucideIcon;
   groups: SidebarSectionGroup[];
@@ -99,29 +107,47 @@ interface NavItem {
   permissionAny?: string[];
 }
 
-// Sidebar shape after the Settings reorg (#feature-flags-settings-reorg).
+// Sidebar shape after the Settings reorg (#feature-flags-settings-reorg)
+// and the navigation cleanup that followed it.
 //
 // Removed (now live as Settings tabs, with redirects from the old
 // top-level paths so bookmarks keep working):
 //   /admin/email, /admin/branding, /admin/event-types, /admin/backup,
-//   /admin/cms.
+//   /admin/cms, /admin/users, /admin/system-health.
+//
+// Folded into sections (same: redirects kept):
+//   /admin/archives  → Events section
+//   /admin/transfers → Sharing section (same URL, new home)
+//   /admin/workflows → Automation section
+//
+// What is left is eight entries, of which four disappear entirely on an
+// install with the matching features off.
 //
 // Feature-gated (only render when the corresponding feature flag is on):
-//   Analytics → flags.analytics
-//   Users     → flags.userManagement
+//   Analytics  → flags.analytics
+//   Messages   → flags.messaging
+//   Automation → flags.workflows | flags.reminderEmails
 // Exported so Settings → Features can render its "Sidebar preview" against
 // the same declaration the real sidebar uses (it used to keep a second,
 // hand-maintained array that only knew about 2 of the feature gates).
+//
+// Section entries (Sharing, Automation, Settings) carry their
+// FLAGS here — the preview reads them and applies nothing else — but no
+// permission fields. Their visibility is decided in the sidebar by asking the
+// section's own nav hook whether it has anything to show, which cannot drift
+// from what is inside the way a duplicated permission list can.
 export const adminNavigation: NavItem[] = [
   { nameKey: 'navigation.dashboard', href: '/admin/dashboard', icon: LayoutDashboard, permission: false },
-  { nameKey: 'navigation.events',    href: '/admin/events',    icon: Calendar,        permission: 'events.view' },
-  { nameKey: 'navigation.archives',  href: '/admin/archives',  icon: Archive,         permission: 'archives.view' },
-  { nameKey: 'navigation.transfers', href: '/admin/transfers', icon: Send,            permission: 'events.view', featureFlag: 'transfers' },
-  { nameKey: 'navigation.messages',  href: '/admin/messages', icon: Mail,             permission: 'email.view',     featureFlag: 'messaging' },
-  { nameKey: 'admin.analytics',      href: '/admin/analytics', icon: BarChart3,       permission: 'analytics.view', featureFlag: 'analytics' },
-  { nameKey: 'navigation.settings',  href: '/admin/settings',  icon: Settings,        permission: 'settings.view' },
-  { nameKey: 'navigation.systemHealth', href: '/admin/system-health', icon: Activity,  permission: 'settings.view' },
-  { nameKey: 'navigation.users',     href: '/admin/users',     icon: Users,           permission: 'users.view',     featureFlag: 'userManagement' },
+  // Sharing section — the three ways files reach someone: the galleries, the
+  // archived ones, and a direct PicTransfer link.
+  { nameKey: 'navigation.sharing',   href: '/admin/events',    icon: Share2 },
+  // Messages is a single page, so it stays a plain entry. It briefly shared a
+  // "Communication" section with PicTransfer; sending files is not messaging,
+  // and a section wrapping one page is worse than the page itself.
+  {
+    nameKey: 'navigation.messages', href: '/admin/messages', icon: Mail,
+    permission: 'email.view', featureFlag: 'messaging',
+  },
   // Clients section (#354 follow-up) — admin-side surface for the
   // CRM-area sub-features. Today this entry leads to /admin/clients
   // which renders a Settings-style sub-nav with one item (Accounts).
@@ -170,13 +196,57 @@ export const adminNavigation: NavItem[] = [
     permission: 'accounting.view',
     featureFlag: 'accounting',
   },
-  // Workflows (automation engine) — top-level, gated by the `workflows` flag.
+  // Automation section — the workflow engine plus the reminder email
+  // templates it sends (which came here from Settings).
   {
-    nameKey: 'navigation.workflows', href: '/admin/workflows', icon: Workflow,
-    permission: 'workflows.view',
-    featureFlag: 'workflows',
+    nameKey: 'navigation.automation', href: '/admin/automation', icon: Workflow,
+    featureFlagsAny: ['workflows', 'reminderEmails'],
   },
+  { nameKey: 'admin.analytics',      href: '/admin/analytics', icon: BarChart3,       permission: 'analytics.view', featureFlag: 'analytics' },
+  { nameKey: 'navigation.settings',  href: '/admin/settings',  icon: Settings },
 ];
+
+/**
+ * Does this main-menu entry pass its declared permission and feature gates?
+ *
+ * Exported because the command palette indexes the same menu and must not
+ * offer a destination the sidebar hides. Section entries are NOT decided here
+ * — their visibility follows the item count inside the section (see
+ * `sectionItemCounts`), which is narrower and cannot drift.
+ */
+/**
+ * Main-menu entries that open a section rather than a page.
+ *
+ * The sidebar decides these from the section's own contents and the command
+ * palette indexes their sub-pages instead of the entry, so both need the same
+ * list — and a section added to one but not the other would be indexed through
+ * `navItemAllowed`, which returns true for everyone because a section entry
+ * carries no permission of its own.
+ */
+export const SECTION_PATHS: readonly string[] = [
+  SETTINGS_PATH, ...SHARING_PATHS,
+  '/admin/automation', '/admin/clients', '/admin/accounting',
+];
+
+export function navItemAllowed(
+  item: NavItem,
+  hasPermission: (p: string) => boolean,
+  flags: ReturnType<typeof useFeatureFlags>['flags'],
+): boolean {
+  if (item.permission && !hasPermission(item.permission as string)) return false;
+  if (item.permissionAny?.length
+    && !item.permissionAny.some((p) => hasPermission(p))) return false;
+  if (item.featureFlag && !flags[item.featureFlag]) return false;
+  // featureFlagsAny: entry is hidden when none of the listed
+  // sub-flags are on, even if the parent flag IS on. Used by
+  // the Clients section so the sidebar entry only appears when
+  // there's at least one sub-feature it can link to.
+  if (item.featureFlagsAny && item.featureFlagsAny.length > 0
+      && !item.featureFlagsAny.some((k) => flags[k])) {
+    return false;
+  }
+  return true;
+}
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, collapsed = false, onToggleCollapse }) => {
   const location = useLocation();
@@ -184,14 +254,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
   const { confirmLeave, isAnyDirty } = useLeaveGuard();
   // A settings form with unsaved edits gets to say no before the sidebar
   // navigates away from it (UnsavedChangesProvider).
-  const guardedClick = (e: React.MouseEvent, href: string, replace: boolean | undefined, after: () => void) => {
-    // A modified click (Cmd/Ctrl, Shift, middle button) opens another tab
-    // and leaves this form where it is, so there is nothing to guard.
-    const modified = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0;
-    if (!isAnyDirty || modified) { after(); return; }
-    e.preventDefault();
-    void confirmLeave().then((ok) => { if (ok) { after(); navigate(href, { replace: !!replace }); } });
-  };
+  const guardedLinkClick = useGuardedLinkClick();
+  const guardedClick = (e: React.MouseEvent, href: string, replace: boolean | undefined, after: () => void) =>
+    guardedLinkClick(e, href, { replace, after });
   const { t } = useTranslation();
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
   const { flags } = useFeatureFlags();
@@ -222,25 +287,43 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
   const brandAlt = publicSettings?.branding_company_name?.trim() || t('admin.title');
 
   const settingsGroups = useSettingsNavGroups();
+  const sharingItems = useSharingNavItems();
+  const automationItems = useAutomationNavItems();
+
+  // A section entry follows what is actually inside the section. Each of
+  // these hooks already applies that section's flags AND permissions, so
+  // asking it for a count is both the narrowest correct gate and the one
+  // that cannot drift from the section's contents — the failure this
+  // replaces is an entry that opens an empty section (or, worse, a page the
+  // backend then 403s). Settings needs it because its tabs accept narrower
+  // permissions than `settings.view`; the rest because their sub-pages are
+  // independently flagged.
+  //
+  // `entry` is where the menu entry points. It is NOT always the section root:
+  // /admin/events is the events list, which 403s for a role holding only
+  // `archives.view` — and that role legitimately has the section, because
+  // Archives is in it. Clients, Accounting, Communication and Automation each
+  // redirect their root to the first reachable child; Events has no such root
+  // to redirect, so the entry aims at the first item directly. Settings keeps
+  // its own root, which snaps to a permitted tab by itself.
+  const sectionState: Record<string, { count: number; entry?: string }> = {
+    [SETTINGS_PATH]: { count: settingsGroups.length },
+    '/admin/events': { count: sharingItems.length, entry: sharingItems[0]?.to },
+    '/admin/automation': { count: automationItems.length },
+    // Clients and Accounting keep the declared permission/flag gating they
+    // already had. Converting them to count-gating would be an improvement,
+    // but it is a behaviour change to sections this PR does not otherwise
+    // touch, so it stays out of this diff.
+  };
+
   const filteredNavigation = adminNavigation.filter((item) => {
-    // Settings follows the tabs this role can see, not `settings.view`
-    // alone: a tab accepts narrower permissions, and the section is the
-    // only way to those tabs once it takes the menu over.
-    if (item.href === SETTINGS_PATH) return settingsGroups.length > 0;
-    if (item.permission && !hasPermission(item.permission as string)) return false;
-    if (item.permissionAny?.length
-      && !item.permissionAny.some((p) => hasPermission(p))) return false;
-    if (item.featureFlag && !flags[item.featureFlag]) return false;
-    // featureFlagsAny: entry is hidden when none of the listed
-    // sub-flags are on, even if the parent flag IS on. Used by
-    // the Clients section so the sidebar entry only appears when
-    // there's at least one sub-feature it can link to.
-    if (item.featureFlagsAny && item.featureFlagsAny.length > 0
-        && !item.featureFlagsAny.some((k) => flags[k])) {
-      return false;
-    }
-    return true;
+    const section = sectionState[item.href];
+    if (section) return section.count > 0;
+    return navItemAllowed(item, hasPermission, flags);
   });
+
+  /** Where the main-menu entry for `href` should actually navigate. */
+  const entryHref = (href: string) => sectionState[href]?.entry ?? href;
 
   // Sections take over the sidebar: while the admin is inside Settings,
   // CRM or Accounting the main menu is replaced by that section's
@@ -258,10 +341,27 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
   const isUnder = (href: string) =>
     location.pathname === href || location.pathname.startsWith(`${href}/`);
 
+  /**
+   * Mark the matching item with the LONGEST path as active, not every item
+   * whose path is a prefix of the URL. The Events section is the first one
+   * where a sub-page lives under a sibling entry's path
+   * (/admin/events/archives under /admin/events), and a plain prefix test
+   * highlights Events and Archives at the same time. Longest-prefix-wins is
+   * the general rule; it is a no-op for sections whose items don't nest.
+   */
+  const activeKeys = <T extends { key: string; to: string }>(items: T[]): Set<string> => {
+    const matches = items.filter((i) => isUnder(i.to));
+    if (matches.length === 0) return new Set();
+    const longest = matches.reduce((a, b) => (b.to.length > a.to.length ? b : a));
+    return new Set([longest.key]);
+  };
+  const activeSharing = activeKeys(sharingItems);
+  const activeAutomation = activeKeys(automationItems);
+
   const sections: SidebarSection[] = [
     {
       key: 'settings',
-      path: SETTINGS_PATH,
+      paths: [SETTINGS_PATH],
       title: t('navigation.settings'),
       icon: Settings,
       groups: settingsGroups.map((g) => ({
@@ -273,12 +373,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
           icon: i.icon,
           active: activeSettingsTab === i.key,
           replace: true,
+          keywords: i.keywords,
         })),
       })),
     },
     {
       key: 'clients',
-      path: '/admin/clients',
+      paths: ['/admin/clients'],
       title: t('navigation.clients'),
       icon: Briefcase,
       groups: [{
@@ -289,7 +390,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
     },
     {
       key: 'accounting',
-      path: '/admin/accounting',
+      paths: ['/admin/accounting'],
       title: t('navigation.accounting'),
       icon: Landmark,
       groups: [{
@@ -298,9 +399,61 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
         })),
       }],
     },
+    {
+      key: 'sharing',
+      // Two trees, because PicTransfer keeps its own top-level URL rather than
+      // being renamed into the events tree just to sit in this section.
+      paths: [...SHARING_PATHS],
+      title: t('navigation.sharing', 'Sharing'),
+      icon: Share2,
+      groups: [{
+        items: sharingItems.map((i) => ({
+          key: i.key, href: i.to, label: i.label, icon: i.icon, active: activeSharing.has(i.key),
+        })),
+      }],
+    },
+    {
+      key: 'automation',
+      paths: ['/admin/automation'],
+      title: t('navigation.automation', 'Automation'),
+      icon: Workflow,
+      groups: [{
+        items: automationItems.map((i) => ({
+          key: i.key, href: i.to, label: i.label, icon: i.icon, active: activeAutomation.has(i.key),
+        })),
+      }],
+    },
   ];
-  const activeSection = sections.find((sec) => isUnder(sec.path)) ?? null;
+  const activeSection = sections.find((sec) => sec.paths.some(isUnder)) ?? null;
   const section = peekMain ? null : activeSection;
+
+  // Settings is 30 tabs in 8 groups — long enough that scanning it is the
+  // slow part. Only Settings gets the filter; every other section is short
+  // enough to read at a glance, and a search box on a list of three would be
+  // noise.
+  const searchable = section?.key === 'settings' && !collapsed;
+  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+  // Leaving the section (or collapsing to the rail) drops the filter, so
+  // coming back never shows a mysteriously short list.
+  useEffect(() => { if (!searchable) setQuery(''); }, [searchable]);
+
+  const sectionGroups = useMemo(() => {
+    if (!section) return [];
+    if (!searchable || !query.trim()) return section.groups;
+    return section.groups
+      .map((g) => ({
+        ...g,
+        items: g.items
+          .map((i) => ({ item: i, score: searchScore(query, i.label, i.keywords) }))
+          .filter((r) => r.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map((r) => r.item),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [section, searchable, query]);
+
+  const firstMatch = sectionGroups[0]?.items[0];
 
   // Desktop width: full nav (w-64) vs icon rail (w-16). Mobile is always
   // w-64 since the collapse affordance only applies on lg+ viewports.
@@ -317,7 +470,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
   const iconClass = (isActive: boolean) => `w-5 h-5 flex-shrink-0 ${
     collapsed ? 'mr-3 lg:mr-0' : 'mr-3'
   } ${
-    isActive ? 'text-white' : 'text-neutral-400'
+    isActive ? 'text-white' : 'text-faint'
   }`;
 
   return (
@@ -340,23 +493,17 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
             it sits in admins' muscle-memory zone for chrome controls.
             When collapsed on desktop the title hides and the row
             becomes an empty spacer (no rail-width fight). */}
-        <div className={`flex items-center h-16 border-b border-line flex-shrink-0 ${
-          collapsed ? 'lg:justify-center lg:px-2 px-6 justify-between' : 'justify-between px-6'
-        }`}>
-          <div className="flex items-center gap-2 min-w-0">
-            {section ? (
-              <>
-                {/* Section mode: the section's icon + title replace the
-                    brand while the admin is inside Settings / CRM /
-                    Accounting, so the sidebar reads top-down as
-                    "where am I → back → pages". On the collapsed rail
-                    only the icon shows, centered like the favicon. */}
-                <section.icon className="w-6 h-6 flex-shrink-0 text-body" />
-                <span className={`text-xl font-bold text-heading truncate ${collapsed ? 'lg:hidden' : ''}`}>
-                  {section.title}
-                </span>
-              </>
-            ) : showLogoBrand ? (
+        {/* The brand doubles as the home button: the link carries the
+            row's padding so the whole row (minus the mobile close button)
+            goes to the dashboard, asking first if a form is dirty. */}
+        <div className="flex items-stretch h-16 border-b border-line flex-shrink-0">
+          <DashboardHomeLink
+            onNavigate={onClose}
+            className={`flex flex-1 items-center gap-2 min-w-0 hover:bg-hover-soft transition-colors focus-visible:ring-inset ${
+              collapsed ? 'lg:justify-center lg:px-2 px-6' : 'px-6'
+            }`}
+          >
+            {showLogoBrand ? (
               <>
                 {/* Logo brand variant — fed by Branding > Logo
                     Position = "Sidebar". On the collapsed rail, only
@@ -390,27 +537,50 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
                 {collapsed && (
                   <span className="text-xl font-bold text-heading lg:hidden">{t('admin.title')}</span>
                 )}
+                {/* The collapsed desktop rail has no wordmark, and the row is
+                    the home link, so it shows the Dashboard icon rather than
+                    an empty, focusable target. */}
+                {collapsed && (
+                  <LayoutDashboard
+                    role="img"
+                    aria-label={t('navigation.dashboard', 'Dashboard')}
+                    className="hidden lg:block w-5 h-5 text-body"
+                  />
+                )}
               </>
             )}
-          </div>
+          </DashboardHomeLink>
           <button
             onClick={onClose}
-            className="lg:hidden text-neutral-400 hover:text-neutral-600"
-            aria-label="Close sidebar"
+            className="lg:hidden px-6 text-faint hover:text-body"
+            aria-label={t('navigation.closeMenu', 'Close menu')}
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Section mode: back row pinned above the scrolling list so it
-            stays reachable however long the list gets. It uses the item
-            styles so it sits in the same type scale and icon column as
-            the list. The section title lives in the brand row above. */}
+        {/* Section mode: section title + back row pinned above the
+            scrolling list so they stay reachable however long the list
+            gets. The sidebar reads top-down as "brand → where am I →
+            back → pages". The back row uses the item styles so it sits
+            in the same type scale and icon column as the list. The
+            brand row above stays the brand (logo or wordmark) in every
+            mode — see issue 1712. On the collapsed rail the title hides
+            and the active item identifies the section. */}
         {section && (
           <div className="flex-shrink-0 animate-panel-in-right">
+            {/* One rule, under the back row: it marks the boundary between
+                leaving the section and navigating inside it. The filter keeps
+                no rule of its own — two hairlines inside four rows read as
+                three separate things stacked above the list (c21ce2f5), and
+                the filter belongs with the list it filters. */}
             <div className={`border-b border-line py-2 ${
               collapsed ? 'px-4 lg:px-2' : 'px-4'
             }`}>
+              <div className={`flex items-center px-3 mt-1 mb-2 ${collapsed ? 'lg:hidden' : ''}`}>
+                <section.icon className="w-5 h-5 mr-3 flex-shrink-0 text-body" />
+                <span className="text-xl font-semibold text-heading truncate">{section.title}</span>
+              </div>
               <button
                 type="button"
                 onClick={() => setPeekMain(true)}
@@ -421,6 +591,40 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
                 <span className={collapsed ? 'lg:hidden' : ''}>{t('admin.backToMenu', 'Back to menu')}</span>
               </button>
             </div>
+            {searchable && (
+              <div className="px-4 py-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint pointer-events-none" />
+                  <input
+                    ref={searchRef}
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') { setQuery(''); return; }
+                      // Enter goes to the best match, so a filter that has
+                      // narrowed to one result doesn't still need the mouse.
+                      // It leaves the page, so it owes the open form the same
+                      // question every other route out of here asks — clicks
+                      // go through guardedClick, the palette through its own
+                      // confirmLeave, and this was the one path that did not.
+                      if (e.key === 'Enter' && firstMatch) {
+                        e.preventDefault();
+                        const go = () => {
+                          navigate(firstMatch.href, { replace: !!firstMatch.replace });
+                          onClose();
+                        };
+                        if (!isAnyDirty) { go(); return; }
+                        void confirmLeave().then((ok) => { if (ok) go(); });
+                      }
+                    }}
+                    placeholder={t('settings.search.placeholder', 'Search settings…')}
+                    aria-label={t('settings.search.label', 'Search settings')}
+                    className="w-full pl-9 pr-3 py-1.5 text-sm rounded-lg bg-subtle text-heading placeholder:text-muted border border-transparent focus:bg-panel focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -437,7 +641,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
           {section ? (
             <div key={section.key} className="animate-panel-in-right">
               <div className={collapsed ? 'space-y-4 lg:space-y-2' : 'space-y-4'}>
-                {section.groups.map((group, groupIndex) => (
+                {sectionGroups.length === 0 && (
+                  <p className="px-3 py-2 text-sm text-muted">
+                    {t('settings.search.noResults', 'No settings match “{{query}}”.', { query })}
+                  </p>
+                )}
+                {sectionGroups.map((group, groupIndex) => (
                   <div key={group.label ?? groupIndex}>
                     {group.label && (
                       <h3 className={`px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted ${
@@ -490,12 +699,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
                 return (
                   <NavLink
                     key={item.nameKey}
-                    to={item.href}
-                    onClick={(e) => guardedClick(e, item.href, false, () => {
+                    to={entryHref(item.href)}
+                    onClick={(e) => guardedClick(e, entryHref(item.href), false, () => {
                       // Clicking the current section's entry while peeking
                       // at the main menu hands the sidebar back to section
                       // mode even if the URL doesn't change.
-                      if (item.href === activeSection?.path) setPeekMain(false);
+                      if (activeSection?.paths.includes(item.href)) setPeekMain(false);
                       onClose();
                     })}
                     title={collapsed ? label : undefined}
@@ -528,7 +737,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose, col
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="inline-flex items-center justify-center w-9 h-9 rounded-md text-neutral-500 hover:text-heading hover:bg-hover-soft transition-colors"
+              className="inline-flex items-center justify-center w-9 h-9 rounded-md text-muted hover:text-heading hover:bg-hover-soft transition-colors"
               aria-label={collapsed ? t('admin.expandSidebar', 'Expand sidebar') : t('admin.collapseSidebar', 'Collapse sidebar')}
               title={collapsed ? t('admin.expandSidebar', 'Expand sidebar') : t('admin.collapseSidebar', 'Collapse sidebar')}
             >
@@ -601,9 +810,9 @@ const StorageInfo: React.FC = () => {
     ? Math.round((storageInfo.total_used / limitInUse) * 100)
     : 0;
   const isOverSoftLimit = limitInUse && storageInfo.total_used >= limitInUse;
-  const progressBarClass = isOverSoftLimit ? 'bg-red-600' : 'bg-accent-dark';
+  const progressBarClass = isOverSoftLimit ? 'bg-danger' : 'bg-accent-dark';
   const containerClass = isOverSoftLimit
-    ? 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800'
+    ? 'bg-danger-soft border border-danger-line'
     : 'bg-subtle';
   const softLimitDisplay = settingsService.formatBytes(limitInUse);
 

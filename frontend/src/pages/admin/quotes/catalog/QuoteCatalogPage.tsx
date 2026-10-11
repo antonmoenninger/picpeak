@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowLeft, ArrowUp, Pencil, Plus, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Pencil, Plus, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button, Card, Input, Loading, LocalizedDateInput } from '../../../../components/common';
 import { DecimalInput } from '../../../../components/common/DecimalInput';
@@ -37,7 +37,7 @@ const PLACEHOLDERS = [
   'business_name', 'hours', 'days', 'hourly_rate', 'day_rate',
 ];
 
-const inputCls = 'w-full px-3 py-2 rounded-md border border-line-strong bg-panel text-heading text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900';
+const inputCls = 'w-full px-3 py-2 rounded-md border border-line-strong bg-panel text-heading text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900';
 // Native selects ignore vertical padding in Safari; a fixed height keeps them level with the inputs.
 const selectCls = `${inputCls} h-10`;
 const labelCls = 'block text-sm font-medium text-body mb-1';
@@ -431,7 +431,7 @@ const PackagesTab: React.FC = () => {
                   <button type="button" onClick={() => moveItem(idx, -1)} aria-label="Move up" className="p-1 rounded hover:bg-hover"><ArrowUp className="w-4 h-4" /></button>
                   <button type="button" onClick={() => moveItem(idx, 1)} aria-label="Move down" className="p-1 rounded hover:bg-hover"><ArrowDown className="w-4 h-4" /></button>
                   <button type="button" onClick={() => setItems(form.items.filter((_, i) => i !== idx))} aria-label="Remove"
-                    className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600"><X className="w-4 h-4" /></button>
+                    className="p-1 rounded hover:bg-danger-soft text-danger-text"><X className="w-4 h-4" /></button>
                 </div>
               );
             })}
@@ -876,7 +876,6 @@ const TemplatesTab: React.FC = () => {
 
 export const QuoteCatalogPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const requested = searchParams.get('tab') as Tab | null;
   const tab: Tab = requested && TABS.includes(requested) ? requested : 'services';
@@ -891,13 +890,7 @@ export const QuoteCatalogPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <button onClick={() => navigate('/admin/clients/quotes')}
-          className="text-sm text-soft hover:underline mb-1 inline-flex items-center gap-1">
-          <ArrowLeft className="w-4 h-4" /> {t('common.back', 'Back')}
-        </button>
-        <h2 className="text-xl font-bold text-heading">{t('quotes.catalog.title', 'Catalogue & templates')}</h2>
-      </div>
+      <h2 className="text-xl font-bold text-heading">{t('quotes.catalog.title', 'Catalogue & templates')}</h2>
 
       <div role="tablist" className="flex flex-wrap gap-1 border-b border-line">
         {TABS.map((key) => (
@@ -907,7 +900,7 @@ export const QuoteCatalogPage: React.FC = () => {
             aria-selected={tab === key}
             onClick={() => setSearchParams({ tab: key })}
             className={`px-3 py-2 text-sm -mb-px border-b-2 ${tab === key
-              ? 'border-primary-600 dark:border-primary-400 text-heading font-medium'
+              ? 'border-accent text-heading font-medium'
               : 'border-transparent text-soft hover:text-heading'}`}
           >
             {tabLabel(key)}

@@ -54,6 +54,12 @@ export const PhotoFavorites: React.FC<PhotoFavoritesProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['photo-feedback', gallerySlug, photoId] });
       queryClient.invalidateQueries({ queryKey: ['gallery-photos'] });
+      // The parent refetch fired optimistically in onMutate, before the
+      // server applied the change. In guest identity mode the Favorited
+      // filter and the filename list read the guest's own rows from
+      // my-feedback, so refresh it now that the toggle is accepted (as
+      // PhotoRating does).
+      queryClient.invalidateQueries({ queryKey: ['my-feedback', gallerySlug] });
     },
     onError: (error: any) => {
       // Revert optimistic update
@@ -112,8 +118,8 @@ export const PhotoFavorites: React.FC<PhotoFavoritesProps> = ({
       disabled={isSubmitting}
       className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
         isFavorited 
-          ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' 
-          : 'bg-surface text-muted-theme hover:bg-black/10'
+          ? 'status-chip hue-warning hover:brightness-95' 
+          : 'bg-elevated text-muted-theme hover-surface'
       } ${isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
       aria-label={isFavorited ? t('feedback.unfavorite', 'Remove from favorites') : t('feedback.favorite', 'Add to favorites')}
     >

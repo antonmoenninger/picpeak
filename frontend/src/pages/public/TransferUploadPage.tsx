@@ -1,13 +1,18 @@
 /**
- * Public client-upload page for PicTransfer (#997).
+ * Public client-upload page for PicTransfer (#997, reshaped in #1544).
  *
- * Token-only (6-char code, no auth). Lets a client send files back to the
- * photographer (logos etc.). Reached via /transfer-upload/:token.
+ * Token-only, no auth: either a file request's 64-hex token or the short
+ * read-aloud code that can be issued alongside it. Reached via
+ * /transfer-upload/:token.
  *
- * Like the recipient download page, styling reads the branding theme CSS
- * variables (`--color-*`) rather than Tailwind `dark:` utilities — a public
- * page never gets the admin `.dark` class, so the branding theme (applied by
- * GlobalThemeProvider) is what must drive colours and light/dark here.
+ * The server tells us the upload policy, so unsupported files are named and
+ * dropped here rather than being carried all the way up only to fail the whole
+ * batch on arrival.
+ *
+ * Like the recipient download page, styling reads the branding theme tokens
+ * rather than Tailwind `dark:` utilities: the instance branding drives colours
+ * and light/dark here, and usePublicDarkMode puts it in charge of the shared
+ * components too.
  */
 import React, { useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -18,6 +23,9 @@ import { UploadCloud, CheckCircle, AlertCircle, X, File as FileIcon } from 'luci
 
 import { Button, Loading } from '../../components/common';
 import { transfersService } from '../../services/transfers.service';
+import { usePublicDarkMode } from '../../hooks/usePublicDarkMode';
+import { publicUploadErrorKey } from '../../utils/publicUploadErrors';
+import { batchFilesForUpload } from '../../utils/uploadBatches';
 
 function formatBytes(bytes: number): string {
   if (!bytes) return '0 B';
@@ -26,8 +34,35 @@ function formatBytes(bytes: number): string {
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
+function extensionOf(name: string): string {
+  const dot = name.lastIndexOf('.');
+  return dot === -1 ? '' : name.slice(dot).toLowerCase();
+}
+
+/**
+ * Would the server accept this file?
+ *
+ * Mirrors validateTransferFileType: accept-all short-circuits, then a listed
+ * extension is a match on its own, and only then is the MIME consulted. The
+ * order matters and is the server's — the browser's `file.type` is a guess
+ * (Windows sends `application/x-zip-compressed` for a .zip, and .dng/.psd
+ * routinely arrive as `application/octet-stream` or empty), so the extension
+ * the admin typed into Settings is the more reliable signal.
+ */
+function isAccepted(
+  file: File,
+  info: { accept_all: boolean; allowed_mime: string[]; allowed_extensions: string[] },
+): boolean {
+  if (info.accept_all) return true;
+  const ext = extensionOf(file.name);
+  if (ext && info.allowed_extensions.includes(ext)) return true;
+  const mime = (file.type || '').toLowerCase().split(';')[0].trim();
+  return !!mime && info.allowed_mime.includes(mime);
+}
+
 export const TransferUploadPage: React.FC = () => {
   const { t } = useTranslation();
+  usePublicDarkMode();
   const { token } = useParams<{ token: string }>();
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -42,17 +77,10 @@ export const TransferUploadPage: React.FC = () => {
     retry: false,
   });
 
-  const muted = { color: 'var(--color-muted-text)' } as const;
 
   const wrap = (children: React.ReactNode) => (
-    <div
-      className="flex min-h-screen items-center justify-center p-4"
-      style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
-    >
-      <div
-        className="w-full max-w-lg rounded-lg border shadow-sm"
-        style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-surface-border)' }}
-      >
+    <div className="flex min-h-screen items-center justify-center p-4 bg-background text-theme">
+      <div className="w-full max-w-lg rounded-lg border shadow-sm bg-surface border-border-token">
         {children}
       </div>
     </div>
@@ -63,9 +91,9 @@ export const TransferUploadPage: React.FC = () => {
   if (isError || !data) {
     return wrap(
       <div className="p-8 text-center">
-        <AlertCircle className="mx-auto mb-3 h-12 w-12" style={muted} />
+        <AlertCircle className="mx-auto mb-3 h-12 w-12 text-muted-theme" />
         <h1 className="text-xl font-semibold">{t('transfers.upload.unavailableTitle', 'Upload link unavailable')}</h1>
-        <p className="mt-2" style={muted}>{t('transfers.upload.unavailableBody', 'This upload link is invalid or has expired.')}</p>
+        <p className="mt-2 text-muted-theme">{t('transfers.upload.unavailableBody', 'This upload link is invalid or has expired.')}</p>
       </div>,
     );
   }
@@ -73,28 +101,106 @@ export const TransferUploadPage: React.FC = () => {
   const addFiles = (list: FileList | null) => {
     if (!list) return;
     const incoming = Array.from(list);
+
+    // Drop what the server would refuse, and say which — one unsupported file
+    // used to fail the entire batch with a generic message.
+    const accepted = incoming.filter((f) => isAccepted(f, data));
+    const rejected = incoming.filter((f) => !isAccepted(f, data));
+    if (rejected.length) {
+      toast.error(t(
+        'transfers.upload.typeRejected',
+        'Not an accepted file type: {{names}}',
+        { names: rejected.map((f) => f.name).join(', ') },
+      ));
+    }
+
+    // Same for oversized files: named here, rather than after the upload.
+    const maxBytes = data.max_size_mb * 1024 * 1024;
+    const withinSize = accepted.filter((f) => f.size <= maxBytes);
+    const tooBig = accepted.filter((f) => f.size > maxBytes);
+    if (tooBig.length) {
+      toast.error(t(
+        'transfers.upload.tooBigNamed',
+        'Too large (max {{mb}} MB): {{names}}',
+        { mb: data.max_size_mb, names: tooBig.map((f) => f.name).join(', ') },
+      ));
+    }
+    if (!withinSize.length) return;
+
     setFiles((prev) => {
-      const merged = [...prev, ...incoming].slice(0, data.max_files);
-      return merged;
+      const merged = [...prev, ...withinSize];
+      if (merged.length > data.max_files) {
+        toast.warn(t(
+          'transfers.upload.toomany',
+          'Only the first {{count}} files can be uploaded at once.',
+          { count: data.max_files },
+        ));
+      }
+      return merged.slice(0, data.max_files);
     });
   };
 
   const handleUpload = async () => {
     if (!files.length) return;
-    const tooBig = files.find((f) => f.size > data.max_size_mb * 1024 * 1024);
-    if (tooBig) {
-      toast.error(t('transfers.upload.tooBig', 'Each file must be {{mb}} MB or smaller', { mb: data.max_size_mb }));
-      return;
-    }
     setUploading(true);
     setProgress(0);
+    // One request may not carry more than the server's per-request byte
+    // budget, so a large selection goes up as several requests in order.
+    const batches = batchFilesForUpload(files, data.max_request_bytes || Infinity, data.max_files);
+    const totalBytes = files.reduce((sum, f) => sum + f.size, 0) || 1;
+    let sentBytes = 0;
+    // Files of the refused request and of every request after it.
+    let unsent: File[] = [];
+    const rejected: string[] = [];
+    const failed: string[] = [];
     try {
-      await transfersService.upload(token as string, files, setProgress);
+      for (const [index, batch] of batches.entries()) {
+        const batchBytes = batch.reduce((sum, f) => sum + f.size, 0);
+        try {
+          const result = await transfersService.upload(token as string, batch, (pct) => {
+            setProgress(Math.round(((sentBytes + (batchBytes * pct) / 100) / totalBytes) * 100));
+          });
+          rejected.push(...(result.rejected_files || []));
+          failed.push(...(result.failed_files || []));
+          sentBytes += batchBytes;
+        } catch (err) {
+          const details = (err as { response?: { data?: { error?: string; code?: string } } })?.response?.data;
+          const capacityKey = publicUploadErrorKey(details?.code);
+          const msg = capacityKey ? t(capacityKey) : details?.error || t('transfers.upload.failed', 'Upload failed. Please try again.');
+          toast.error(msg);
+          // Do not turn one refusal into a string of repeated requests.
+          unsent = batches.slice(index).flat();
+          break;
+        }
+      }
+
+      // The server filters independently of us, so it can still drop a file the
+      // page admitted (a type whose MIME the browser guessed differently).
+      if (rejected.length) {
+        toast.warn(t(
+          'transfers.upload.someRejected',
+          'These files were not accepted: {{names}}',
+          { names: rejected.join(', ') },
+        ));
+      }
+
+      // Files whose bytes or row did not land are NOT uploaded, whatever the
+      // 201 says. Keep them on screen so retrying is one click, and do not
+      // show the "thank you" screen over a partial failure.
+      if (failed.length) {
+        toast.error(t(
+          'transfers.upload.someFailed',
+          'These files could not be stored. Please try them again: {{names}}',
+          { names: failed.join(', ') },
+        ));
+      }
+      if (failed.length || unsent.length) {
+        setFiles(files.filter((f) => unsent.includes(f) || failed.includes(f.name)));
+        setProgress(0);
+        return;
+      }
+
       setDone(true);
-    } catch (err) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-        || t('transfers.upload.failed', 'Upload failed. Please try again.');
-      toast.error(msg);
     } finally {
       setUploading(false);
     }
@@ -103,9 +209,9 @@ export const TransferUploadPage: React.FC = () => {
   if (done) {
     return wrap(
       <div className="p-8 text-center">
-        <CheckCircle className="mx-auto mb-3 h-12 w-12 text-green-500" />
+        <CheckCircle className="mx-auto mb-3 h-12 w-12 text-success" />
         <h1 className="text-xl font-semibold">{t('transfers.upload.doneTitle', 'Thank you!')}</h1>
-        <p className="mt-2" style={muted}>{t('transfers.upload.doneBody', 'Your files were uploaded successfully.')}</p>
+        <p className="mt-2 text-muted-theme">{t('transfers.upload.doneBody', 'Your files were uploaded successfully.')}</p>
         <Button className="mt-5" variant="outline" onClick={() => { setDone(false); setFiles([]); setProgress(0); }}>
           {t('transfers.upload.uploadMore', 'Upload more')}
         </Button>
@@ -116,19 +222,25 @@ export const TransferUploadPage: React.FC = () => {
   return wrap(
     <div className="p-6">
       <div className="mb-5 text-center">
-        <UploadCloud className="mx-auto mb-2 h-10 w-10" style={{ color: 'var(--color-accent)' }} />
+        <UploadCloud className="mx-auto mb-2 h-10 w-10 text-accent" />
         <h1 className="text-2xl font-bold">{data.title}</h1>
-        {data.message && <p className="mt-2 whitespace-pre-line" style={muted}>{data.message}</p>}
-        <p className="mt-2 text-sm" style={muted}>
+        {data.message && <p className="mt-2 whitespace-pre-line text-muted-theme">{data.message}</p>}
+        <p className="mt-2 text-sm text-muted-theme">
           {t('transfers.upload.limits', 'Up to {{files}} files, {{mb}} MB each', { files: data.max_files, mb: data.max_size_mb })}
+        </p>
+        <p className="mt-1 text-xs text-muted-theme">
+          {data.accept_all
+            ? t('transfers.upload.anyType', 'Any file type is accepted.')
+            : t('transfers.upload.acceptedTypes', 'Accepted: {{types}}', {
+              types: data.allowed_extensions.join(', ') || data.allowed_mime.join(', '),
+            })}
         </p>
       </div>
 
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed py-10 transition hover:opacity-80"
-        style={{ borderColor: 'var(--color-surface-border)', color: 'var(--color-muted-text)' }}
+        className="flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed py-10 transition hover:opacity-80 border-border-token text-muted-theme"
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
       >
@@ -144,21 +256,25 @@ export const TransferUploadPage: React.FC = () => {
       />
 
       {files.length > 0 && (
-        <ul className="mt-4 border-t" style={{ borderColor: 'var(--color-surface-border)' }}>
+        <ul className="mt-4 border-t border-border-token">
           {files.map((f, idx) => (
             <li
               key={`${f.name}-${idx}`}
-              className="flex items-center justify-between border-b py-2 text-sm"
-              style={{ borderColor: 'var(--color-surface-border)' }}
+              className="flex items-center justify-between border-b py-2 text-sm border-border-token"
             >
               <span className="flex min-w-0 items-center gap-2">
-                <FileIcon className="h-4 w-4 shrink-0" style={muted} />
+                <FileIcon className="h-4 w-4 shrink-0 text-muted-theme" />
                 <span className="truncate">{f.name}</span>
               </span>
-              <span className="flex shrink-0 items-center gap-3" style={muted}>
+              <span className="flex shrink-0 items-center gap-3 text-muted-theme">
                 <span>{formatBytes(f.size)}</span>
                 {!uploading && (
-                  <button onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))} className="rounded p-1 hover:opacity-70">
+                  <button
+                    type="button"
+                    onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
+                    className="rounded p-1 hover:opacity-70"
+                    aria-label={t('transfers.upload.removeFile', 'Remove {{name}}', { name: f.name })}
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 )}
@@ -169,8 +285,8 @@ export const TransferUploadPage: React.FC = () => {
       )}
 
       {uploading && (
-        <div className="mt-4 h-2 w-full overflow-hidden rounded-full" style={{ backgroundColor: 'var(--color-surface-border)' }}>
-          <div className="h-full transition-all" style={{ width: `${progress}%`, backgroundColor: 'var(--color-accent-dark)' }} />
+        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-border-token">
+          <div className="h-full transition-all bg-accent-strong" style={{ width: `${progress}%` }} />
         </div>
       )}
 

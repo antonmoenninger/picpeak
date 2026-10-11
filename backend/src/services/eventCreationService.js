@@ -4,8 +4,10 @@ const crypto = require('crypto');
 const fs = require('fs').promises;
 const path = require('path');
 const logger = require('../utils/logger');
+const applicationWork = require('./activeApplicationWork');
 const { AppError } = require('../utils/errors');
 const { formatBoolean } = require('../utils/dbCompat');
+const { parseExpiresAtText } = require('../utils/expiresAtText');
 const { slugify } = require('../utils/slug');
 const { validatePasswordInContext, getBcryptRounds } = require('../utils/passwordValidation');
 const { buildShareLinkVariants } = require('./shareLinkService');
@@ -16,6 +18,9 @@ const { getAppSetting } = require('../utils/appSettings');
 const { galleryPasswordColumns, dropCopiesIfStorageOff } = require('../utils/galleryPasswordVault');
 const { clampIntOrUndefined } = require('../utils/numericHelpers');
 const { getFrontendBaseUrl } = require('../utils/frontendUrl');
+const {
+  notifyGalleryRecipients, resolveGalleryRecipients, reachableAccountsByIds, hasPasswordGeneratedColumn,
+} = require('./galleryNotificationService');
 const { resolveEventFeedbackDefaults, applyFeedbackDefaults } = require('./feedbackDefaults');
 const { getStoragePath, getEventFieldRequirements, readBooleanSetting, getDownloadProtectionDefaults,
   getImageSecurityDefaults, resolveImageSecurityColumns, getBrandingDefaults, getCustomerNameFromPayload,
@@ -24,6 +29,9 @@ const { getStoragePath, getEventFieldRequirements, readBooleanSetting, getDownlo
 const { validateCreationInput } = require('./eventCreationValidation');
 const { normaliseDownloadLimit } = require('./downloadQuota');
 const { guestNameModeOf } = require('./photoCredit');
+const externalAccess = require('./externalMediaAccess');
+const { importExternalFolder } = require('./externalImportService');
+const { userHasAllPermissions } = require('../middleware/permissions');
 function creationError(body) {
   const error = new AppError(body.error || 'Invalid event', 400, 'EVENT_INVALID');
   error.responseBody = body;
@@ -83,6 +91,7 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     allow_favorites: allowFavoritesInput,
     allow_reactions: allowReactionsInput,
     allow_color_labels: allowColorLabelsInput,
+    allow_decisions: allowDecisionsInput,
     keybind_mode: keybindModeInput,
     require_name_email = false,
     moderate_comments = true,
@@ -118,8 +127,37 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     promo_mode = 'inherit',
     promo_markdown = null,
     info_mode = 'inherit',
-    info_markdown = null
+    info_markdown = null,
+    // Photo source: upload, or reference an external folder. With
+    // import_now the folder's first import starts right after the insert,
+    // so a gallery is ready from the create form alone.
+    source_mode = 'managed',
+    external_path = null,
+    external_watch = false,
+    import_now = false,
   } = input;
+
+  // Custom styling (services/galleryTheme). Callers that do not send the
+  // switch (the v1 API, older clients) keep the old meaning: a theme or CSS
+  // template sent with the gallery is the gallery's own.
+  const customThemeEnabled = input.custom_theme_enabled !== undefined && input.custom_theme_enabled !== null
+    ? parseBooleanInput(input.custom_theme_enabled, false)
+    : Boolean(color_theme) || (css_template_id !== undefined && css_template_id !== null);
+
+  const photoSource = await resolveCreationSource({
+    source_mode, external_path, external_watch, import_now, actor,
+  });
+
+  // Folder structure (issue 1786): mirror the subfolders of uploads and
+  // external imports. New galleries follow Settings → Event defaults (on
+  // unless turned off); an explicit body value wins. Existing galleries were
+  // pinned off by migration 265.
+  let folderStructureFallback = true;
+  if (input.folder_structure === undefined) {
+    const setting = await readBooleanSetting('event_default_folder_structure');
+    if (setting !== undefined) folderStructureFallback = setting;
+  }
+  const folderStructure = parseBooleanInput(input.folder_structure, folderStructureFallback);
 
   const customerName = getCustomerNameFromPayload(input);
   const customerEmail = getCustomerEmailFromPayload(input);
@@ -131,12 +169,41 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
 
   const customerColumnsAvailable = await hasCustomerContactColumns();
 
+  // Customer accounts to assign (#354) — only while the customer portal is
+  // on; the frontend hides the picker otherwise, but a stale tab could still
+  // POST customer_account_ids, and those are ignored rather than 403ing the
+  // whole create.
+  const customerAccountsService = require('./customerAccountsService');
+  const customerAccountIds = Array.isArray(input.customer_account_ids)
+    && await customerAccountsService.isCustomerPortalEnabled()
+    ? input.customer_account_ids.map(Number).filter((n) => Number.isFinite(n) && n > 0)
+    : null;
+  // Announcing a gallery to customer accounts — and letting them stand in for
+  // the customer email — is customers.events, the permission that governs
+  // assigning them; and only to accounts the portal email can reach (active,
+  // able to sign in), the same rule notifyGalleryRecipients applies.
+  const announcesToAccounts = Boolean(customerAccountIds && customerAccountIds.length > 0
+    && await userHasAllPermissions(actor.id, ['customers.events']));
+  const reachableAccounts = announcesToAccounts ? await reachableAccountsByIds(customerAccountIds) : [];
+  // Announced only through the customer portal: nobody receives the standard
+  // gallery email, and the portal opens the gallery without its password.
+  const portalOnly = !customerEmail && reachableAccounts.length > 0;
+
+  // Team members (issue 743), checked before anything is written. The
+  // creator owns the gallery, so leaving them in the list changes nothing.
+  const eventAdminAssignments = require('./eventAdminAssignmentsService');
+  const assignedAdminIds = Array.isArray(input.assigned_admin_ids)
+    ? await eventAdminAssignments.resolveAssignableIds(input.assigned_admin_ids, actor.id)
+    : [];
+
   // Conditional validation based on settings
   const validationErrors = [];
   if (fieldRequirements.require_customer_name && !customerName) {
     validationErrors.push({ path: 'customer_name', msg: 'Customer name is required' });
   }
-  if (fieldRequirements.require_customer_email && !customerEmail) {
+  // A reachable assigned account is a recipient too, so it satisfies the
+  // requirement.
+  if (fieldRequirements.require_customer_email && !customerEmail && reachableAccounts.length === 0) {
     validationErrors.push({ path: 'customer_email', msg: 'Customer email is required' });
   }
   if (fieldRequirements.require_admin_email && !admin_email) {
@@ -199,12 +266,19 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     allow_favorites: allowFavoritesInput,
     allow_reactions: allowReactionsInput,
     allow_color_labels: allowColorLabelsInput,
+    allow_decisions: allowDecisionsInput,
     keybind_mode: keybindModeInput,
   }, await resolveEventFeedbackDefaults());
 
   let passwordValidation = null;
 
-  if (requirePassword) {
+  // A portal-only gallery still keeps its share link locked, with a strong
+  // password nobody is shown or mailed (migration 264). Adding a customer
+  // email later asks the admin for a real one.
+  const passwordGenerated = requirePassword && portalOnly
+    && (typeof password !== 'string' || password.length === 0);
+
+  if (requirePassword && !passwordGenerated) {
     // The v1 route validator marks password optional; the admin route's
     // custom() guard is not shared, so enforce presence here for every path.
     if (typeof password !== 'string' || password.length === 0) {
@@ -245,14 +319,26 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
   const { shareUrl, shareLinkToStore } = await buildShareLinkVariants({ slug, shareToken });
     
   // Hash password with configurable rounds (random placeholder when not required)
-  const password_hash = requirePassword
+  const password_hash = requirePassword && !passwordGenerated
     ? await bcrypt.hash(password, getBcryptRounds())
     : await bcrypt.hash(crypto.randomBytes(32).toString('hex'), getBcryptRounds());
     
   // Calculate expiration date (days after event date)
   // If expiration is not required, expires_at will be null (never expires)
   // If event_date is not provided, use current date as base for expiration
-  let expires_at = input.expires_at ? new Date(input.expires_at) : null;
+  // A text value goes through the same parser as the update path: a
+  // zone-less date-time is UTC there (what SQLite's julianday() reads the
+  // stored row as), where `new Date()` would read it in the server's zone
+  // and POST and PUT would store different instants for the same input.
+  let expires_at = null;
+  if (input.expires_at) {
+    expires_at = typeof input.expires_at === 'string'
+      ? parseExpiresAtText(input.expires_at)
+      : new Date(input.expires_at);
+    if (!expires_at || Number.isNaN(expires_at.getTime())) {
+      throw new AppError('expires_at must be an ISO 8601 date-time such as 2026-10-06T12:00:00Z', 400);
+    }
+  }
   if (!expires_at && fieldRequirements.require_expiration) {
     const baseDate = event_date || new Date().toISOString().split('T')[0];
     // Parse YYYY-MM-DD format as local date to avoid timezone issues
@@ -386,6 +472,7 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
       ...(requirePassword && password ? { password } : {}),
       ...(client_access_enabled && client_password ? { clientPassword: client_password } : {}),
     })),
+    ...(await hasPasswordGeneratedColumn() ? { password_generated: formatBoolean(passwordGenerated) } : {}),
     welcome_message,
     color_theme,
     share_link: shareLinkToStore,
@@ -443,6 +530,13 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     // false on create — admin opts in from the event detail page once
     // they've picked a hero they're comfortable surfacing publicly.
     og_image_share_enabled: formatBoolean(input.og_image_share_enabled === true),
+    custom_theme_enabled: formatBoolean(customThemeEnabled),
+    source_mode: photoSource.source_mode,
+    external_path: photoSource.external_path,
+    external_watch: formatBoolean(photoSource.external_watch),
+    folder_structure: formatBoolean(folderStructure),
+    // Hold team members' uploads for review (issue 743). Off unless asked.
+    review_contributor_uploads: formatBoolean(parseBooleanInput(input.review_contributor_uploads, false)),
   };
     
   // The gallery row and its feedback configuration commit together.
@@ -460,6 +554,7 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
         allow_favorites: formatBoolean(feedbackDefaults.allow_favorites),
         allow_reactions: formatBoolean(feedbackDefaults.allow_reactions),
         allow_color_labels: formatBoolean(feedbackDefaults.allow_color_labels),
+        allow_decisions: formatBoolean(feedbackDefaults.allow_decisions),
         keybind_mode: feedbackDefaults.keybind_mode,
         require_name_email: formatBoolean(require_name_email),
         moderate_comments: formatBoolean(moderate_comments),
@@ -471,26 +566,19 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
         updated_at: new Date().toISOString()
       });
     }
+    if (assignedAdminIds.length > 0) {
+      await eventAdminAssignments.setAssignedAdmins(eventId, assignedAdminIds, actor.id, trx);
+    }
     
     return eventId;
   });
   // #1271 — the setting was read before the hashes; re-check after the write
   await dropCopiesIfStorageOff(eventId);
 
-  // Apply customer-account assignments (#354). Skip when the customer
-  // portal flag is off — the frontend hides the picker in that case,
-  // but a stale tab could still POST customer_account_ids; we ignore
-  // them rather than 403 the entire create.
-  if (Array.isArray(input.customer_account_ids)) {
+  // Apply customer-account assignments (#354); null while the portal is off.
+  if (customerAccountIds) {
     try {
-      const customerAccountsService = require('./customerAccountsService');
-      if (await customerAccountsService.isCustomerPortalEnabled()) {
-        await customerAccountsService.setAssignmentsForEvent(
-          eventId,
-          input.customer_account_ids,
-          actor.id
-        );
-      }
+      await customerAccountsService.setAssignmentsForEvent(eventId, customerAccountIds, actor.id);
     } catch (e) {
       logger.error('Failed to set customer assignments on event create', {
         eventId, error: e.message,
@@ -504,6 +592,13 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     eventId,
     { type: 'admin', id: actor.id, name: actor.username }
   );
+  if (assignedAdminIds.length > 0) {
+    await logActivity('event_team_changed',
+      { added: assignedAdminIds, removed: [], eventName: event_name },
+      eventId,
+      { type: 'admin', id: actor.id, name: actor.username }
+    );
+  }
 
   // Fire event.created webhook (#327). If the event is being published
   // immediately (not a draft), event.published also fires below.
@@ -530,53 +625,58 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     });
   } catch (e) { /* webhookService.fire never throws but be defensive */ }
 
-  // Queue creation email (only if there is a recipient and event is not a draft)
-  // Language detection is handled by email processor
+  // Announce the gallery (only when it is not a draft): the standard email to
+  // the inline address, the portal email to every assigned account. Language
+  // detection is handled by the email processor.
   const isDraft = parseBooleanInput(is_draft, true);
 
-  if (customerEmail && !isDraft) {
-    // Build email data with optional client access info
-    const emailData = {
-      customer_name: customerName,
-      customer_email: customerEmail,
-      host_name: customerName || (customerEmail ? customerEmail.split('@')[0] : null),
-      event_name,
-      event_date: event_date,  // Pass raw date - will be formatted by email processor
-      gallery_link: shareUrl,
-      gallery_password: requirePassword ? password : 'No password required',
-      expiry_date: expires_at ? expires_at.toISOString() : null,  // Pass ISO string - will be formatted by email processor
-      welcome_message: welcome_message || ''
-    };
+  if (!isDraft) {
+    const buildInlineEmailData = async (recipient) => {
+      const emailData = {
+        customer_name: customerName,
+        customer_email: recipient,
+        host_name: customerName || recipient.split('@')[0],
+        event_name,
+        event_date: event_date,  // Pass raw date - will be formatted by email processor
+        gallery_link: shareUrl,
+        gallery_password: requirePassword ? password : 'No password required',
+        expiry_date: expires_at ? expires_at.toISOString() : null,  // Pass ISO string - will be formatted by email processor
+        welcome_message: welcome_message || ''
+      };
 
-    // Include client access info in email when enabled (#172)
-    if (client_access_enabled && client_password) {
-      const createdEvent = await db('events').where('id', eventId).first();
-      // Same FRONTEND_URL-before-APP_URL order as before: APP_URL is
-      // passed as the override so it still outranks the general_site_url
-      // setting and the request origin. Chaining it after the resolver
-      // would make it dead code, because the resolver only returns falsy
-      // when NOTHING is configured (#1104).
-      const resolvedFrontendUrl = frontendUrl || await getFrontendBaseUrl();
-      emailData.client_link = `${resolvedFrontendUrl}/gallery/${slug}/client-access?token=${createdEvent.client_share_token}`;
-      emailData.client_password = client_password;
-    }
+      // Include client access info in email when enabled (#172)
+      if (client_access_enabled && client_password) {
+        const createdEvent = await db('events').where('id', eventId).first();
+        // Same FRONTEND_URL-before-APP_URL order as before: APP_URL is
+        // passed as the override so it still outranks the general_site_url
+        // setting and the request origin. Chaining it after the resolver
+        // would make it dead code, because the resolver only returns falsy
+        // when NOTHING is configured (#1104).
+        const resolvedFrontendUrl = frontendUrl || await getFrontendBaseUrl();
+        emailData.client_link = `${resolvedFrontendUrl}/gallery/${slug}/client-access?token=${createdEvent.client_share_token}`;
+        emailData.client_password = client_password;
+      }
+      return emailData;
+    };
 
     // Best-effort, as the v1 route always was: the event, folder, activity
     // log and webhook are committed by now, so a queue failure must not 500.
     try {
-      await db('email_queue').insert({
-        event_id: eventId,
-        recipient_email: customerEmail,
-        email_type: 'gallery_created',
-        email_data: JSON.stringify(emailData),
-        status: 'pending',
-        created_at: new Date(),
-        // Explicit NULL, not the column default: on SQLite the default is
-        // text and the processor never picks the row up (issue 1670).
-        scheduled_at: null
+      const announced = {
+        id: eventId,
+        customer_email: customerEmail,
+        host_email: customerEmail,
+        welcome_message,
+        client_access_enabled: Boolean(client_access_enabled && client_password),
+      };
+      await notifyGalleryRecipients(announced, {
+        buildInlineEmailData,
+        // Without customers.events the accounts are assigned (as before)
+        // but not mailed, and the customer email gets the gallery email.
+        recipients: await resolveGalleryRecipients(announced, { includeAccounts: announcesToAccounts }),
       });
     } catch (queueError) {
-      logger.warn('Failed to queue gallery_created email on create', { eventId, error: queueError.message });
+      logger.warn('Failed to queue gallery notification on create', { eventId, error: queueError.message });
     }
   }
 
@@ -584,7 +684,8 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
   // created NOT as a draft, the `whatsapp` flag is on, a config exists, and
   // the customer supplied a phone number. Non-fatal: a queue failure should
   // never block gallery creation.
-  if (!isDraft && customerPhone) {
+  // Skipped for a generated password: nobody could use the link it sends.
+  if (!isDraft && customerPhone && !passwordGenerated) {
     try {
       const { queueWhatsapp, getWhatsAppConfig } = require('./whatsappProcessor');
       const waConfig = await getWhatsAppConfig();
@@ -635,6 +736,8 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     }).catch(error => logger.warn('Failed to emit gallery.published', { eventId, error: error.message }));
   }
 
+  if (photoSource.import_now) startInitialImport(eventId, photoSource.external_path, actor);
+
   return {
     id: eventId,
     slug,
@@ -649,8 +752,65 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     share_link: shareUrl,
     share_token: shareToken,
     expires_at: expires_at ? expires_at.toISOString() : null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    source_mode: photoSource.source_mode,
+    import_started: photoSource.import_now,
   };
+}
+
+/**
+ * The photo source a new gallery starts with, held to the rules the edit route
+ * applies (routes/adminEvents/crud.js PUT /:id): a referenced folder needs a
+ * path that resolves under EXTERNAL_MEDIA_ROOT, and anything that makes the
+ * server import on the creator's behalf (watching, or importing right away)
+ * needs photos.upload, like the manual import endpoint.
+ */
+async function resolveCreationSource({ source_mode, external_path, external_watch, import_now, actor }) {
+  if (source_mode !== 'reference') {
+    return { source_mode: 'managed', external_path: null, external_watch: false, import_now: false };
+  }
+  const inputPath = typeof external_path === 'string' ? external_path.trim() : '';
+  // '', '.', './' and 'a/..' all name EXTERNAL_MEDIA_ROOT itself: a gallery
+  // gets a folder under the root, never the whole mount.
+  if (!inputPath || ['.', '', '/'].includes(path.posix.normalize(inputPath).replace(/\/+$/, ''))) {
+    throw new AppError('external_path is required when source_mode is reference', 400, 'EXTERNAL_PATH_REQUIRED');
+  }
+  const relPath = externalAccess.normalizeSourcePath(inputPath);
+  let resolved;
+  const watch = parseBooleanInput(external_watch, false);
+  const importNow = parseBooleanInput(import_now, false);
+  try {
+    resolved = (await externalAccess.authorizeSource(actor.id, relPath, (watch || importNow) ? 'photos.upload' : 'photos.view')).target;
+  } catch (error) {
+    if (error instanceof externalAccess.ExternalMediaAccessError) throw new AppError(error.message, error.statusCode, 'EXTERNAL_SOURCE_DENIED');
+    throw new AppError('Invalid external media path', 400, 'EXTERNAL_PATH_INVALID');
+  }
+  const stat = await fs.stat(resolved).catch(() => null);
+  if (!stat || !stat.isDirectory()) {
+    throw new AppError('The external folder does not exist', 400, 'EXTERNAL_PATH_NOT_FOUND');
+  }
+  if ((watch || importNow) && !(await userHasAllPermissions(actor.id, ['photos.upload']))) {
+    throw new AppError('The photos.upload permission is required to import from this folder', 403, 'FORBIDDEN');
+  }
+  return { source_mode: 'reference', external_path: relPath, external_watch: watch, import_now: importNow };
+}
+
+/**
+ * Starts the first import of a new gallery's folder without holding up the
+ * create response. The Photos tab follows it through the import status
+ * endpoint; a failure is logged and the admin can press Rescan.
+ */
+function startInitialImport(eventId, externalPath, actor) {
+  applicationWork.defer('initial external import', () => {
+    return importExternalFolder({
+      eventId,
+      externalPath,
+      recursive: true,
+      actor: { type: 'admin', id: actor?.id, name: actor?.username },
+    }).catch((error) => {
+      logger.error('Initial external import failed', { eventId, error: error.message });
+    });
+  });
 }
 
 module.exports = { createEvent };

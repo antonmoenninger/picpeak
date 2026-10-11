@@ -58,6 +58,7 @@ async function requireQuotesFlag(req, res, next) {
 
 router.use(adminAuth);
 router.use(requireQuotesFlag);
+router.use('/:id', require('../database/crmAccess').requireCrmDocument('quotes'));
 
 // ---------------------------------------------------------------------
 // Transforms (snake_case DB → camelCase API)
@@ -77,6 +78,16 @@ function parseSelectionChanges(raw) {
     return Array.isArray(list) ? list : [];
   } catch (_) {
     return [];
+  }
+}
+
+function parseInstallmentsOverride(raw) {
+  if (!raw) return null;
+  try {
+    const value = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return Array.isArray(value) && value.length > 0 ? value : null;
+  } catch (_) {
+    return null;
   }
 }
 
@@ -118,6 +129,9 @@ function transformQuote(q) {
     // Split payment-term picker (migration 124).
     paymentNetDaysTemplateId: q.payment_net_days_template_id || null,
     paymentTimingTemplateId: q.payment_timing_template_id || null,
+    // Migration 142 — the per-quote installment override, so the editor can
+    // show (and clear) the plan it saved; null = the timing template's.
+    installmentsOverride: parseInstallmentsOverride(q.payment_term_installments_override),
     netAmountMinor: q.net_amount_minor,
     vatRate: q.vat_rate == null ? null : Number(q.vat_rate),
     vatAmountMinor: q.vat_amount_minor,
@@ -631,7 +645,14 @@ router.post(
 
 router.post(
   '/:id/convert',
-  requirePermission('quotes.manage'),
+  // Conversion creates a record in another domain, so it needs that
+  // domain's permission as well; quotes.manage alone let a quote manager
+  // create events, contracts and invoices they could not create directly
+  // (Codex security audit 2026-09-30).
+  // Converting to an event also schedules the quote's invoices (convertToEvent
+  // has no invoice-free path outside workflow reserve_date), so bills.manage
+  // is required as well.
+  requirePermission(['quotes.manage', 'events.create', 'bills.manage'], { requireAll: true }),
   [param('id').isInt({ min: 1 })],
   handleAsync(async (req, res) => {
     validateRequest(req);
@@ -647,7 +668,7 @@ router.post(
 // deliverable to ship.
 router.post(
   '/:id/convert-to-invoice',
-  requirePermission('quotes.manage'),
+  requirePermission(['quotes.manage', 'bills.manage'], { requireAll: true }),
   [param('id').isInt({ min: 1 })],
   handleAsync(async (req, res) => {
     validateRequest(req);
@@ -665,7 +686,7 @@ router.post(
 // layer here would force admins to flip TWO flags to use the workflow.
 router.post(
   '/:id/convert-to-contract',
-  requirePermission('quotes.manage'),
+  requirePermission(['quotes.manage', 'contracts.manage'], { requireAll: true }),
   // Optional (#1445): the contract template to start from; without it, the
   // one the quote's template names, else the default.
   [param('id').isInt({ min: 1 }), body('contractTemplateId').optional({ nullable: true }).isInt({ min: 1 }).toInt()],

@@ -6,13 +6,14 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ConfirmDialogProvider } from '../../../../components/common/ConfirmDialog';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
   initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 vi.mock('react-toastify', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock('../../../../hooks/usePermission', () => ({ usePermission: () => true }));
+vi.mock('../../../../hooks/usePermission', () => ({ usePermission: () => true, useAnyPermission: () => true }));
 vi.mock('../../../../services/events.service', () => ({
   eventsService: {
     getDownloadLimitUsage: vi.fn(),
@@ -27,10 +28,14 @@ import { DownloadLimitUsage } from '../DownloadLimitUsage';
 async function clickReset() {
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <DownloadLimitUsage eventId={3} downloadLimit={10} />
+      <ConfirmDialogProvider>
+        <DownloadLimitUsage eventId={3} downloadLimit={10} />
+      </ConfirmDialogProvider>
     </QueryClientProvider>,
   );
   fireEvent.click(await screen.findByText('events.downloadLimitReset'));
+  // The reset asks first (useConfirm); the test confirms it.
+  fireEvent.click(await screen.findByRole('button', { name: 'events.downloadLimitResetAction' }));
 }
 
 describe('DownloadLimitUsage reset errors', () => {
@@ -39,7 +44,6 @@ describe('DownloadLimitUsage reset errors', () => {
     vi.mocked(eventsService.getDownloadLimitUsage).mockResolvedValue({
       download_limit: 10, downloads_used: 4, downloads_remaining: 6,
     });
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
   });
 
   it("shows the server's message", async () => {

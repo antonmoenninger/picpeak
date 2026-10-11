@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Package } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { ClipboardList, Package } from 'lucide-react';
 import { toast as toastify } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 
@@ -10,10 +10,12 @@ import { DownloadResolutionModal } from './DownloadResolutionModal';
 import { Button } from '../common';
 import { galleryService } from '../../services/gallery.service';
 import { analyticsService } from '../../services/analytics.service';
+import { hasVideoItems, selectLabel } from '../../utils/mediaCounts';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDownloadQuota } from '../../contexts/DownloadQuotaContext';
 import { isDownloadLimitError, showDownloadLimitReached } from '../../utils/downloadLimit';
 import { DownloadQuotaNotice } from './DownloadQuotaNotice';
+import type { LightboxPhotoChangeHandler } from './photoLink';
 
 // Import all layouts
 import {
@@ -99,6 +101,15 @@ interface PhotoGridWithLayoutsProps {
   /** #1160: event-wide count + whole-gallery download for layout chrome. */
   eventPhotoCount?: number;
   onDownloadEverything?: () => void;
+  // Copyable filename list (issue 1733, A3d): the selection, or the viewer's
+  // favourites when nothing is selected. Hidden at zero.
+  onCopyFilenames?: () => void;
+  copyFilenamesCount?: number;
+  /** Link to a single photo (issue 1733) — see BaseGalleryLayoutProps. */
+  openPhotoId?: number | null;
+  /** After the photos, before a full-page layout's footer (issue 1562). */
+  afterGrid?: React.ReactNode;
+  onLightboxPhotoChange?: LightboxPhotoChangeHandler;
 }
 
 export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
@@ -106,6 +117,11 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
   suppressEmptyState = false,
   eventPhotoCount,
   onDownloadEverything,
+  onCopyFilenames,
+  copyFilenamesCount = 0,
+  openPhotoId,
+  onLightboxPhotoChange,
+  afterGrid,
   slug,
   categoryId,
   heroPhotoOverride,
@@ -164,15 +180,73 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
     setSelectedPhotos(new Set());
   }, [categoryId, setSelectedPhotos]);
 
+  // The photo a layout-owned lightbox (Gallery Premium / Story) is on, as it
+  // reports it; null while that lightbox is closed.
+  const lightboxPhotoIdRef = useRef<number | null>(null);
+
   const handlePhotoClick = (index: number) => {
     setOpenFeedbackInitially(false);
     setSelectedPhotoIndex(index);
+    if (photos[index]) onLightboxPhotoChange?.(photos[index].id, 'open');
   };
 
   const handleOpenWithFeedback = (index: number) => {
     setOpenFeedbackInitially(true);
     setSelectedPhotoIndex(index);
+    if (photos[index]) onLightboxPhotoChange?.(photos[index].id, 'open');
   };
+
+  const handleLightboxClose = () => {
+    setSelectedPhotoIndex(null);
+    onLightboxPhotoChange?.(null, 'close');
+  };
+
+  // Gallery Premium and Gallery Story mount their own lightbox and report
+  // its moves through this wrapper, so the id it is on is known here too.
+  const layoutOwnsLightbox = theme.galleryLayout === 'gallery-premium' || theme.galleryLayout === 'gallery-story';
+  const reportLayoutLightbox: LightboxPhotoChangeHandler = (photoId, reason) => {
+    lightboxPhotoIdRef.current = reason === 'close' ? null : photoId;
+    onLightboxPhotoChange?.(photoId, reason);
+  };
+
+  // The list emptied under an open lightbox (unliking the last Liked photo,
+  // a filter change): this component returns its empty state and the
+  // lightbox — its own or the layout's — unmounts without a close, leaving
+  // `?photo=` and the pushed history entry behind. Report the close here.
+  // Only the EMPTY list: while photos remain, the lightbox clamps onto a
+  // neighbour in an effect of its own and reports that step a render later;
+  // closing from here first would shut it on a list that still has photos.
+  useEffect(() => {
+    if (photos.length > 0) return;
+    if (layoutOwnsLightbox) {
+      if (lightboxPhotoIdRef.current === null) return;
+      lightboxPhotoIdRef.current = null;
+      onLightboxPhotoChange?.(null, 'close');
+      return;
+    }
+    if (selectedPhotoIndex === null) return;
+    handleLightboxClose();
+    // handleLightboxClose is recreated every render; the inputs that matter
+    // are the list and whether a lightbox is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photos, selectedPhotoIndex, layoutOwnsLightbox]);
+
+  // Link to a single photo (issue 1733): the URL asks for a photo — open on
+  // it, or close on null. Only against `photos`, the list this viewer sees;
+  // an id not in it opens nothing. Re-runs when the list changes so a deep
+  // link resolves once the container has switched folder or cleared filters.
+  useEffect(() => {
+    if (openPhotoId === undefined) return;
+    if (openPhotoId === null) {
+      setSelectedPhotoIndex(null);
+      return;
+    }
+    const index = photos.findIndex((photo) => photo.id === openPhotoId);
+    if (index >= 0) {
+      setOpenFeedbackInitially(false);
+      setSelectedPhotoIndex(index);
+    }
+  }, [openPhotoId, photos]);
 
   const handlePhotoSelect = (photoId: number) => {
     // Auto-enable selection mode when selecting via checkbox
@@ -223,6 +297,16 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
     setSelectedPhotos(new Set(photos.map(p => p.id)));
   };
 
+  // Issue 1716: a layout's own "select all" over the photos it currently
+  // shows (a search may hide some), in one write.
+  const selectMany = (photoIds: number[]) => {
+    if (!isSelectionMode) {
+      if (parentToggleSelectionMode) parentToggleSelectionMode();
+      else setLocalSelectionMode(true);
+    }
+    setSelectedPhotos(new Set([...selectedPhotos, ...photoIds]));
+  };
+
   const deselectAll = () => {
     setSelectedPhotos(new Set());
   };
@@ -268,6 +352,22 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
       return (
         <div className="text-center py-12">
           <p className="text-muted-theme">{t('gallery.noPhotosFound')}</p>
+          {/* The filename list is event-wide (issue 1733, A3d): a search or
+              feedback filter that leaves no photo on screen must not take the
+              favourites' list with it. */}
+          {onCopyFilenames && copyFilenamesCount > 0 && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<ClipboardList className="w-4 h-4" />}
+                onClick={onCopyFilenames}
+                className="text-xs sm:text-sm"
+              >
+                {t('gallery.copyFilenames.button', 'Copy filenames')} ({copyFilenamesCount})
+              </Button>
+            </div>
+          )}
         </div>
       );
     }
@@ -285,6 +385,9 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
     suppressEmptyState,
     eventPhotoCount,
     onDownloadEverything,
+    onCopyFilenames,
+    copyFilenamesCount,
+    afterGrid,
     slug,
     // Face data (#1074) must reach the full-page layouts too — they render
     // their OWN lightbox rather than the one below, so without this the
@@ -299,6 +402,10 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
     onPickResolution: (ids: number[]) => setResolutionPickerIds(ids),
     onPhotoClick: handlePhotoClick,
     onOpenPhotoWithFeedback: handleOpenWithFeedback,
+    // Link to a single photo (issue 1733): the full-page layouts mount their
+    // own lightbox, so the URL contract has to reach them as well.
+    openPhotoId,
+    onLightboxPhotoChange: reportLayoutLightbox,
     onFeedbackChange: onFeedbackChange,
     onDownload: handleDownload,
     heroPhotoOverride,
@@ -314,6 +421,11 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
     onPhotoSelect: handlePhotoSelect,
     onSelectAll: selectAll,
     onDeselectAll: deselectAll,
+    // Issue 1716: the Story layout renders its own selection controls and
+    // must drive the same mode, selection and download path as this toolbar.
+    onToggleSelectionMode: toggleSelectionMode,
+    onSelectMany: selectMany,
+    onDownloadSelected: handleDownloadSelected,
     eventName,
     eventLogo,
     eventDate,
@@ -361,6 +473,20 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
   // Gallery Premium and Gallery Story layouts have their own integrated hero/header
   const isFullPageLayout = galleryLayout === 'gallery-premium' || galleryLayout === 'gallery-story';
 
+  // Filename list (issue 1733, A3d). Outside selection mode it lists the
+  // viewer's favourites, inside it the selection — the count says which.
+  const copyFilenamesButton = onCopyFilenames && copyFilenamesCount > 0 ? (
+    <Button
+      variant="outline"
+      size="sm"
+      leftIcon={<ClipboardList className="w-4 h-4" />}
+      onClick={onCopyFilenames}
+      className="text-xs sm:text-sm"
+    >
+      {t('gallery.copyFilenames.button', 'Copy filenames')} ({copyFilenamesCount})
+    </Button>
+  ) : null;
+
   return (
     <>
       {/* Hero Header - shown when headerStyle is 'hero' (skip for full-page layouts with integrated hero) */}
@@ -390,6 +516,14 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
         </div>
       )}
 
+      {/* The filename list is still reachable where the selection toolbar is
+          not (a carousel, or a single visible photo): the favourites that
+          feed it do not depend on either. Full-page layouts get the button
+          from GalleryView's own band. */}
+      {showSelectionControls && !isFullPageLayout && !(photos.length > 1 && galleryLayout !== 'carousel') && copyFilenamesButton && (
+        <div className="mb-4 flex items-center gap-2">{copyFilenamesButton}</div>
+      )}
+
       {/* Selection Mode Controls - Not shown for carousel, full-page layouts, or when controls are hidden */}
       {showSelectionControls && photos.length > 1 && galleryLayout !== 'carousel' && !isFullPageLayout && (
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -401,7 +535,7 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
               title={t('gallery.selectPhotosHint')}
               className="text-xs sm:text-sm"
             >
-              {isSelectionMode ? t('gallery.cancelSelection') : t('gallery.selectPhotos')}
+              {isSelectionMode ? t('gallery.cancelSelection') : selectLabel(t, hasVideoItems(photos))}
             </Button>
             {!isSelectionMode && (
               <Button
@@ -416,6 +550,7 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
                 {t('gallery.selectAll')}
               </Button>
             )}
+            {!isSelectionMode && copyFilenamesButton}
           </div>
           
           {isSelectionMode && (
@@ -443,6 +578,7 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
                     <span className="sm:hidden">{t('common.download')} ({selectedPhotos.size})</span>
                   </Button>
                 )}
+                {copyFilenamesButton}
               </div>
               {allowDownloads && selectedPhotos.size > 0 && (
                 <DownloadQuotaNotice photos={selectedPhotoList} className="text-xs sm:text-sm" />
@@ -454,13 +590,15 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
 
       {/* Render the selected layout */}
       <LayoutComponent {...layoutProps} />
+      {/* Full-page layouts place it themselves, ahead of their footer. */}
+      {!isFullPageLayout && afterGrid}
 
       {/* Lightbox - skip for full-page layouts which have their own lightbox */}
       {selectedPhotoIndex !== null && !isFullPageLayout && (
         <PhotoLightbox
           photos={photos}
           initialIndex={selectedPhotoIndex}
-          onClose={() => setSelectedPhotoIndex(null)}
+          onClose={handleLightboxClose}
           slug={slug}
           feedbackEnabled={feedbackEnabled || false}
           allowDownloads={allowDownloads}
@@ -474,6 +612,7 @@ export const PhotoGridWithLayouts: React.FC<PhotoGridWithLayoutsProps> = ({
           showOriginalFilename={showOriginalFilename}
           people={people}
           onSelectPerson={onSelectPerson}
+          onCurrentPhotoChange={(photoId) => onLightboxPhotoChange?.(photoId, 'step')}
         />
       )}
 

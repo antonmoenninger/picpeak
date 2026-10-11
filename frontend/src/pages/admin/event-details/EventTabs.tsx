@@ -1,93 +1,59 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ShoppingBag } from 'lucide-react';
+import { Image, Settings, ShoppingBag } from 'lucide-react';
 import type { Event } from '../../../types';
-import type { FeedbackSettings as FeedbackSettingsType } from '../../../services/feedback.service';
 import type { EventDetailsTab } from './types';
-import { eventHasGuests } from './utils';
+import { Tabs, type TabItem } from '../../../components/common';
 
 interface EventTabsProps {
   event: Event;
-  eventFeedbackSettings: FeedbackSettingsType | undefined;
   activeTab: EventDetailsTab;
   setActiveTab: (tab: EventDetailsTab) => void;
+  showGuestsTab: boolean;
+  /** The Settings draft has unsaved edits. */
+  settingsDirty: boolean;
 }
 
 export const EventTabs: React.FC<EventTabsProps> = ({
   event,
-  eventFeedbackSettings,
   activeTab,
-  setActiveTab
+  setActiveTab,
+  showGuestsTab,
+  settingsDirty,
 }) => {
   const { t } = useTranslation();
 
+  const items: TabItem<EventDetailsTab>[] = [
+    { id: 'overview', label: t('events.overview') },
+    {
+      id: 'photos',
+      icon: <Image />,
+      label: (event.video_count ?? 0) > 0 ? t('events.media', 'Media') : t('events.photos'),
+      count: event.photo_count,
+    },
+    ...(showGuestsTab ? [{ id: 'guests' as const, label: t('admin.events.tabs.guestsFeedback', 'Guests & Feedback') }] : []),
+    ...(event.is_priced
+      // PHOTO-SALES-EXTENSION START — orders overview for priced galleries.
+      ? [{ id: 'orders' as const, icon: <ShoppingBag />, label: t('admin.events.tabs.orders', 'Orders') }]
+      // PHOTO-SALES-EXTENSION END
+      : []),
+    {
+      id: 'settings',
+      icon: <Settings />,
+      label: t('admin.events.tabs.settings', 'Settings'),
+      dirty: settingsDirty,
+      dirtyLabel: t('settings.saveBar.unsaved', 'You have unsaved changes'),
+    },
+  ];
+
+  // Settings at lg puts its gap inside its panes, so they scroll right up to
+  // the tab line (STYLING.md › Split views).
   return (
-    <div className="mb-6 border-b border-line">
-      <nav className="-mb-px flex space-x-8">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`py-2 px-1 border-b-2 font-medium text-sm ${
-            activeTab === 'overview'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-muted hover:text-body hover:border-line-strong'
-          }`}
-        >
-          {t('events.overview')}
-        </button>
-        <button
-          onClick={() => setActiveTab('photos')}
-          className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-            activeTab === 'photos'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-muted hover:text-body hover:border-line-strong'
-          }`}
-        >
-          <Image className="w-4 h-4" />
-          <span>{t('events.photos')}</span>
-          {event.photo_count !== undefined && event.photo_count > 0 && (
-            <span className="ml-1 px-2 py-0.5 text-xs font-medium bg-inset text-body rounded-full">
-              {event.photo_count}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={`py-2 px-1 border-b-2 font-medium text-sm ${
-            activeTab === 'categories'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-muted hover:text-body hover:border-line-strong'
-          }`}
-        >
-          {t('events.categories')}
-        </button>
-        {eventHasGuests(event, eventFeedbackSettings) && (
-          <button
-            onClick={() => setActiveTab('guests')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'guests'
-                ? 'border-accent text-accent'
-                : 'border-transparent text-muted hover:text-body hover:border-line-strong'
-            }`}
-          >
-            {t('admin.events.tabs.guests', 'Guests')}
-          </button>
-        )}
-        {/* PHOTO-SALES-EXTENSION START — orders overview for priced galleries. */}
-        {!!event.is_priced && (
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-              activeTab === 'orders'
-                ? 'border-accent text-accent'
-                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 hover:border-neutral-300 dark:hover:border-neutral-600'
-            }`}
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>{t('admin.events.tabs.orders', 'Orders')}</span>
-          </button>
-        )}
-        {/* PHOTO-SALES-EXTENSION END */}
-      </nav>
-    </div>
+    <Tabs
+      items={items}
+      value={activeTab}
+      onChange={setActiveTab}
+      className={activeTab === 'settings' ? 'mb-6 lg:mb-0' : 'mb-6'}
+    />
   );
 };

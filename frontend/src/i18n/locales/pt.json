@@ -71,7 +71,8 @@
     "confirmCancelInvitation": {
       "title": "Cancelar Convite",
       "message": "Tem certeza que deseja cancelar o convite para {{email}}?"
-    }
+    },
+    "creditNameHelp": "Indicado nas fotos que esta conta envia quando o arquivo não tem nome de fotógrafo nos metadados."
   },
   "common": {
     "loading": "Carregando...",
@@ -151,6 +152,7 @@
     "noCategory": "Sem categoria",
     "eventSpecific": "(Específico do evento)",
     "clickToUpload": "Clique para enviar ou arraste e solte",
+    "clickToUploadOrDropFolder": "Clique para enviar ou arraste e solte arquivos ou uma pasta",
     "takePhoto": "Tirar uma foto",
     "fileRequirements": "{{formats}} (máx. {{sizeLimit}}MB por arquivo, {{limit}} arquivos por envio)",
     "videoSizeLimit": "Vídeos: máx. {{sizeLimit}}MB por arquivo",
@@ -196,6 +198,7 @@
     "uploadingChunks_many": "Enviando {{count}} fragmentos",
     "uploadingChunks_one": "Enviando {{count}} fragmento",
     "uploadingChunks_other": "Enviando {{count}} fragmentos",
+    "invalidFileType": "Tipo de arquivo não suportado: {{names}}",
     "fileTooLarge": "Arquivo muito grande: {{name}} (máx. {{limit}}MB)",
     "retryFailed": "Tentar novamente os que falharam",
     "uploadingAs": "Enviando como {{name}}",
@@ -205,7 +208,52 @@
     "nameRequired": "Digite seu nome para enviar fotos.",
     "nameSaveFailed": "Não foi possível salvar seu nome. Tente novamente.",
     "namePrivacyShown": "Seu nome fica salvo com suas fotos e aparece para os outros convidados. O anfitrião pode removê-lo a qualquer momento.",
-    "namePrivacyHidden": "Seu nome fica salvo com suas fotos só para o anfitrião. Os outros convidados não o veem, e o anfitrião pode removê-lo a qualquer momento."
+    "namePrivacyHidden": "Seu nome fica salvo com suas fotos só para o anfitrião. Os outros convidados não o veem, e o anfitrião pode removê-lo a qualquer momento.",
+    "addFiles": "Adicionar arquivos",
+    "chooseFolder": "Escolher pasta",
+    "structure": {
+      "galleryRoot": "nível principal da galeria",
+      "folderCount_one": "{{count}} pasta",
+      "folderCount_many": "{{count}} pastas",
+      "folderCount_other": "{{count}} pastas",
+      "uploadRequesting_one": "Enviar {{count}} arquivo · solicitar {{folders}}",
+      "uploadRequesting_many": "Enviar {{count}} arquivos · solicitar {{folders}}",
+      "uploadRequesting_other": "Enviar {{count}} arquivos · solicitar {{folders}}",
+      "uploadIntoFolders_one": "Enviar {{count}} arquivo para {{folders}}",
+      "uploadIntoFolders_many": "Enviar {{count}} arquivos para {{folders}}",
+      "uploadIntoFolders_other": "Enviar {{count}} arquivos para {{folders}}",
+      "tooManyFolders": "Esta seleção tem mais de {{limit}} pastas. Envie-a em partes.",
+      "resolveFailed": "Não foi possível preparar as pastas para este envio. Nada foi enviado.",
+      "looseFilesGoTo": "Arquivos soltos vão para",
+      "uploadInto": "Enviar para",
+      "statusNew": "Nova",
+      "statusNeedsAdmin": "Requer administrador",
+      "statusExists": "Existente",
+      "keepStructure": "Manter a estrutura de pastas",
+      "keepStructureHelp": "As subpastas se tornam pastas da galeria. O padrão vem da configuração Pastas do evento.",
+      "skipOuter": "Ignorar a pasta de nível superior \"{{name}}\"",
+      "skipOuterHelp": "Tudo estava dentro de uma única pasta, por isso ela é omitida. Caso contrário, os convidados teriam que abrir primeiro uma pasta extra.",
+      "previewFailed": "Não foi possível carregar a pré-visualização das pastas. O envio determina as pastas novamente ao começar.",
+      "loading": "Verificando as pastas…",
+      "firstLookRow": "→ nível principal da galeria, marcado como \"Primeira seleção\"",
+      "looseFiles_one": "{{count}} arquivo solto → {{target}}",
+      "looseFiles_many": "{{count}} arquivos soltos → {{target}}",
+      "looseFiles_other": "{{count}} arquivos soltos → {{target}}",
+      "hiddenSkipped_one": "{{count}} arquivo em pastas ocultas é ignorado",
+      "hiddenSkipped_many": "{{count}} arquivos em pastas ocultas são ignorados",
+      "hiddenSkipped_other": "{{count}} arquivos em pastas ocultas são ignorados",
+      "folded": "Pastas com mais de {{depth}} níveis de profundidade são agrupadas na respectiva pasta de nível {{depth}}.",
+      "needsAdminNotice_one": "{{count}} pasta ainda não existe. Seu perfil pode enviar arquivos, mas não criar pastas, por isso ela é enviada a um administrador como solicitação de pasta. Até que um administrador confirme, as {{files}} fotos aguardam na pasta existente mais próxima (indicada com →) e passam automaticamente para a nova pasta após a confirmação.",
+      "needsAdminNotice_many": "{{count}} pastas ainda não existem. Seu perfil pode enviar arquivos, mas não criar pastas, por isso elas são enviadas a um administrador como solicitações de pasta. Até que um administrador confirme, as {{files}} fotos aguardam na pasta existente mais próxima (indicada com →) e passam automaticamente para as novas pastas após a confirmação.",
+      "needsAdminNotice_other": "{{count}} pastas ainda não existem. Seu perfil pode enviar arquivos, mas não criar pastas, por isso elas são enviadas a um administrador como solicitações de pasta. Até que um administrador confirme, as {{files}} fotos aguardam na pasta existente mais próxima (indicada com →) e passam automaticamente para as novas pastas após a confirmação.",
+      "firstLookCallout_one": "Pasta de primeira seleção encontrada: \"{{name}}\". A {{count}} foto dela é marcada como \"Primeira seleção\" e esta galeria passa para a entrega em duas etapas: os convidados veem que há mais fotos a caminho até que você marque a galeria completa como pronta.",
+      "firstLookCallout_many": "Pasta de primeira seleção encontrada: \"{{name}}\". As {{count}} fotos dela são marcadas como \"Primeira seleção\" e esta galeria passa para a entrega em duas etapas: os convidados veem que há mais fotos a caminho até que você marque a galeria completa como pronta.",
+      "firstLookCallout_other": "Pasta de primeira seleção encontrada: \"{{name}}\". As {{count}} fotos dela são marcadas como \"Primeira seleção\" e esta galeria passa para a entrega em duas etapas: os convidados veem que há mais fotos a caminho até que você marque a galeria completa como pronta.",
+      "firstLookSettings": "Prazo e selo: Configurações desta galeria → Pastas e entrega. Palavras-chave: Configurações → Eventos.",
+      "nothingToUpload": "Nenhum dos arquivos selecionados pode ser enviado: estão todos em pastas ocultas ou ignoradas.",
+      "keptForNext": "Arquivos adicionados enquanto as pastas eram preparadas continuam selecionados: {{count}}."
+    },
+    "largeFileReplaceSkipped": "Substituir pelo nome não é suportado para arquivos acima do tamanho do lote; envie-o sem substituir."
   },
   "navigation": {
     "dashboard": "Painel",
@@ -219,7 +267,9 @@
     "cmsPages": "Páginas CMS",
     "users": "Utilizadores",
     "calendar": "Calendário",
-    "clients": "Clientes"
+    "clients": "Clientes",
+    "automation": "Automação",
+    "sharing": "Partilha"
   },
   "archives": {
     "title": "Arquivos",
@@ -316,9 +366,23 @@
     "downloadAll": "Baixar Todas",
     "downloadError": "Algumas fotos não puderam ser baixadas",
     "selectPhotos": "Selecionar Fotos",
+    "selectMedia": "Selecionar Multimédia",
     "cancelSelection": "Cancelar Seleção",
     "selectAll": "Selecionar Todas",
     "deselectAll": "Desmarcar Todas",
+    "copyFilenames": {
+      "button": "Copiar nomes de arquivo",
+      "title": "Copiar nomes de arquivo",
+      "selectedCount": "Fotos selecionadas: {{count}}",
+      "favoritesCount": "Fotos favoritas: {{count}}",
+      "hint": "Cole a lista na busca por nome de arquivo do seu editor RAW. As extensões são omitidas para que os arquivos RAW também sejam encontrados.",
+      "separator": "Separador",
+      "separatorComma": "Vírgula",
+      "separatorSpace": "Espaço",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "copyFailed": "A cópia foi bloqueada. O texto está selecionado, pressione Ctrl+C ou Cmd+C para copiá-lo."
+    },
     "deleteSelected": "Excluir Selecionadas",
     "searchByFilename": "Buscar por nome do arquivo...",
     "uncategorized": "Sem categoria",
@@ -443,6 +507,8 @@
     "photosCount_other": "{{count}} fotos",
     "colorFilter": "Cor",
     "filterByColor": "Mostrar apenas {{color}}",
+    "minRatingFilter": "Minha avaliação",
+    "filterByMinRating": "Minha avaliação: {{min}} estrelas ou mais",
     "folders": "Pastas",
     "openFolder": "Abrir pasta {{name}}",
     "folderPhotoCount": "{{count}} fotos",
@@ -475,6 +541,30 @@
       "photographer": "Fotógrafo",
       "uploadedBy": "Enviada por {{name}}",
       "photoBy": "Foto de {{name}}"
+    },
+    "firstLook": "Primeira seleção",
+    "viewAllPhotos": "Todas as fotos",
+    "viewSwitch": "Mostrar fotos por",
+    "folderRoot": "Galeria",
+    "folderPath": "Caminho da pasta",
+    "folderUp": "Voltar para {{name}}",
+    "subfolderCount": "Pastas: {{count}}",
+    "downloadFolderWithSubfolders": "Baixar pasta com subpastas ({{count}})",
+    "collapseFolder": "Recolher {{name}}",
+    "expandFolder": "Expandir {{name}}",
+    "subfolderCount_one": "Pastas: {{count}}",
+    "downloadFolderWithSubfolders_one": "Baixar pasta com subpastas ({{count}})",
+    "subfolderCount_many": "Pastas: {{count}}",
+    "downloadFolderWithSubfolders_many": "Baixar pasta com subpastas ({{count}})",
+    "subfolderCount_other": "Pastas: {{count}}",
+    "downloadFolderWithSubfolders_other": "Baixar pasta com subpastas ({{count}})",
+    "delivery": {
+      "title": "Mais fotos a caminho",
+      "progressWithDate": "{{delivered}} de aprox. {{expected}} fotos já estão aqui. As imagens restantes ainda estão em edição — a galeria completa estará disponível o mais tardar em {{date}}.",
+      "progress": "{{delivered}} de aprox. {{expected}} fotos já estão aqui. As imagens restantes ainda estão em edição.",
+      "withDate": "As imagens restantes ainda estão em edição — a galeria completa estará disponível o mais tardar em {{date}}.",
+      "noDetails": "As imagens restantes ainda estão em edição.",
+      "progressLabel": "Fotos entregues até agora"
     }
   },
   "categories": {
@@ -496,7 +586,8 @@
     "coverPhotoSet": "Foto de capa definida com sucesso",
     "coverPhotoRemoved": "Foto de capa removida",
     "failedToSetCoverPhoto": "Falha ao definir foto de capa",
-    "categoryHeroHint": "Se nenhuma foto de capa for definida, a foto de destaque padrão será usada."
+    "categoryHeroHint": "Se nenhuma foto de capa for definida, a foto de destaque padrão será usada.",
+    "nestedFoldersHint": "Pastas dentro de pastas são gerenciadas na barra de pastas da aba Fotos."
   },
   "events": {
     "revealMode": "Modo revelação (ocultar a galeria até a revelação)",
@@ -555,6 +646,7 @@
     "eventExpiresIn": "Este evento expira em {{days}} dias",
     "overview": "Visão Geral",
     "photos": "Fotos",
+    "media": "Mídia",
     "categories": "Categorias",
     "eventInformation": "Informações do Evento",
     "sourceMode": "Modo de Origem",
@@ -576,8 +668,18 @@
     "creationEmailResent": "O e-mail de criação foi enfileirado para envio",
     "failedToResendEmail": "Falha ao reenviar e-mail de criação",
     "photoStatistics": "Estatísticas de Fotos",
+    "mediaStatistics": "Estatísticas de Mídia",
     "totalPhotos": "Total de Fotos",
+    "videos": "Vídeos",
+    "videoRuntime": "Duração dos Vídeos",
+    "photosCount_one": "{{count}} foto",
+    "photosCount_many": "{{count}} fotos",
+    "photosCount_other": "{{count}} fotos",
+    "videosCount_one": "{{count}} vídeo",
+    "videosCount_many": "{{count}} vídeos",
+    "videosCount_other": "{{count}} vídeos",
     "managePhotos": "Gerenciar Fotos",
+    "manageMedia": "Gerenciar Mídia",
     "actions": "Ações",
     "archivingInfo": "O arquivamento criará um arquivo ZIP de todas as fotos e removerá a galeria do acesso público.",
     "archivedOn": "Arquivado em",
@@ -802,7 +904,7 @@
     "devtoolsDetection": "Deteção de ferramentas de desenvolvedor",
     "watermarked": "Com marca d'água",
     "importExternal": "Importar de pasta externa",
-    "externalImportInfo": "Todas as imagens da pasta selecionada serão importadas.",
+    "externalImportInfo": "Todas as imagens da pasta selecionada serão importadas. Os vídeos também são importados quando o tipo de arquivo é permitido para envios.",
     "selectExternalFolder": "Selecionar pasta externa em /external-media",
     "importFromSelectedFolder": "Importar da pasta selecionada",
     "promoBanner": {
@@ -838,6 +940,114 @@
       "showToGuestsHelp": "Os convidados veem os nomes das fotos enviadas enquanto isto está ligado; os nomes dados enquanto estava desligado ficam apenas para si e para o anfitrião. Desligar oculta todos os nomes aos convidados. Aplica-se também aos créditos do fotógrafo lidos do EXIF.",
       "shownToGuests": "Visível para os convidados",
       "hiddenFromGuests": "Visível apenas para si"
+    },
+    "sortNameAsc": "A – Z",
+    "sortNameDesc": "Z – A",
+    "sortDateNewest": "Mais recentes primeiro",
+    "sortDateOldest": "Mais antigas primeiro",
+    "sortCreatedNewest": "Criadas recentemente",
+    "sortCreatedOldest": "Criadas primeiro",
+    "sortPhotosMost": "Mais fotos",
+    "sortPhotosFewest": "Menos fotos",
+    "sortStatusActive": "Ativas primeiro",
+    "sortStatusArchived": "Arquivadas primeiro",
+    "sortExpiresSoonest": "Expiram primeiro",
+    "sortExpiresLatest": "Expiram por último",
+    "filterAllTypes": "Todos os tipos",
+    "filterByType": "Filtrar por tipo",
+    "sortByName": "Ordenar por nome",
+    "sortByDate": "Ordenar por data",
+    "sortByPhotos": "Ordenar por número de fotos",
+    "sortByStatus": "Ordenar por estado",
+    "sortByExpiry": "Ordenar por expiração",
+    "settingsTab": {
+      "delivery": "Pastas e entrega",
+      "about": {
+        "delivery": "Pastas aninhadas a partir dos envios e uma primeira seleção antes da galeria completa."
+      },
+      "summary": {
+        "folderStructureOn": "Estrutura de pastas ativada",
+        "folderStructureOff": "Envios sem pastas",
+        "firstLookDue": "primeira seleção, galeria completa até {{date}}",
+        "firstLook": "primeira seleção, mais depois",
+        "teamMembers_one": "{{count}} membro da equipe",
+        "teamMembers_other": "{{count}} membros da equipe",
+        "teamReview": "envios da equipe revisados"
+      },
+      "passwordOwnerOnly": "Apenas o proprietário da galeria pode alterar a senha ou desativá-la."
+    },
+    "folders": {
+      "sectionTitle": "Pastas",
+      "sectionHelp": "As subpastas de um envio ou da pasta externa vinculada tornam-se pastas aninhadas da galeria (no máximo três níveis). Desativar afeta apenas novos envios e verificações; as pastas existentes permanecem como estão.",
+      "mirror": "Reproduzir a estrutura de pastas ao enviar e importar",
+      "mirrorHelp": "A janela de envio ainda permite alterar isto em cada envio."
+    },
+    "delivery": {
+      "sectionTitle": "Entrega em duas etapas",
+      "sectionHelp": "Entregue agora uma primeira seleção e a galeria completa depois. Os convidados veem as primeiras fotos com um selo, um aviso de que virão mais e espaços reservados até marcar a galeria completa como pronta.",
+      "statusComplete": "Completa",
+      "statusPartial": "Primeira seleção, mais depois",
+      "ofApprox": "de ~{{count}}",
+      "badged": "Fotos com o selo «{{label}}»: {{count}}",
+      "overdueSince": "Prometida para {{date}} — atrasada",
+      "promisedBy": "Prometida para {{date}} · dias restantes: {{count}}",
+      "completeButton": "A galeria completa está pronta",
+      "completedOn": "Concluída em {{date}}. Os selos da primeira seleção permanecem nas fotos.",
+      "expected": "Número de fotos previsto",
+      "expectedHelp": "Aproximado. Usado apenas para o aviso aos convidados e os espaços reservados.",
+      "dueAt": "Galeria completa prometida para",
+      "dueDefault": "padrão",
+      "dueHelp": "Mostrado aos convidados e usado para o seu lembrete. Vazio: data do evento mais o padrão de Configurações → Eventos.",
+      "badgeLabel": "Texto do selo",
+      "badgeHelp": "Por exemplo «Prévia para redes sociais». O selo permanece nestas fotos após a chegada da galeria completa.",
+      "switchOffHint": "Salvar «Completa» aqui apenas remove o aviso e os espaços reservados — nenhum e-mail é enviado. Use «A galeria completa está pronta» para avisar o cliente.",
+      "invalidExpected": "O número de fotos previsto deve ser um inteiro maior que 0 ou ficar vazio.",
+      "completeTitle": "Marcar a galeria completa como pronta?",
+      "completeBody": "O aviso e os espaços reservados desaparecem. Os selos da primeira seleção permanecem. Fotos que os convidados verão: {{count}}.",
+      "sendMail": "Enviar o e-mail «A sua galeria completa está pronta»",
+      "sendMailHelp": "Os fluxos de trabalho também podem reagir a «gallery.completed».",
+      "removeDuplicates": "Remover duplicados da primeira seleção ({{count}})",
+      "removeDuplicatesHelp": "Fotos da primeira seleção encontradas novamente na galeria completa: mesmo nome de arquivo original, único em ambos os lados, e mesma hora de captura (ou, sem ela, mesmo tamanho). A exclusão é definitiva; as cópias da galeria completa assumem o selo.",
+      "removeDuplicatesNoPermission": "Excluir fotos requer a permissão photos.delete.",
+      "completeAndNotify": "Marcar como pronta e avisar",
+      "completeOnly": "Marcar como pronta",
+      "completedMailed": "A galeria está completa. O cliente foi avisado.",
+      "completed": "A galeria está completa.",
+      "completeFailed": "Não foi possível marcar a galeria como completa.",
+      "pill": "Primeira seleção",
+      "pillOverdue": "Primeira seleção · atrasada",
+      "pillDue": "Primeira seleção · vence em {{count}} d",
+      "awaitingFilter": "Galeria completa pendente",
+      "progressShort": "{{count}} de ~{{expected}} fotos",
+      "progressNoExpected": "Fotos até agora: {{count}}",
+      "overdueShort": "Atrasada desde {{date}}",
+      "dueShort": "Vence em {{date}}",
+      "viewAllAwaiting": "Ver todas",
+      "duplicatesNotRemoved": "A galeria está completa, mas os duplicados da primeira seleção não puderam ser removidos. Exclua-os na guia Fotos."
+    },
+    "externalSource": {
+      "applyStructure": "Aplicar estrutura de pastas",
+      "applyStructureHint": "Espelhar as subpastas nas fotos importadas antes de a estrutura de pastas ser ativada",
+      "applyStructureTitle": "Aplicar a estrutura de pastas?",
+      "applyStructureMessage": "As fotos que ainda não estão em uma pasta da galeria passam para pastas que espelham as subpastas da pasta externa. As fotos que já estão em uma pasta ficam onde estão.",
+      "structureApplied_one": "{{count}} foto movida para pastas",
+      "structureApplied_many": "{{count}} fotos movidas para pastas",
+      "structureApplied_other": "{{count}} fotos movidas para pastas",
+      "structureNothing": "Todas as fotos de uma subpasta já estão em uma pasta",
+      "structureFailed": "Não foi possível aplicar a estrutura de pastas"
+    },
+    "team": {
+      "label": "Membros da equipe",
+      "help": "As contas de administrador adicionadas aqui podem trabalhar nesta galeria como você, dentro do que a função delas permite. Os dados de clientes e faturamento continuam sendo seus.",
+      "removeAria": "Remover {{name}}",
+      "placeholder": "Pesquisar contas de administrador",
+      "loading": "Carregando…",
+      "loadFailed": "Não foi possível carregar as contas de administrador.",
+      "noResults": "Nenhuma outra conta de administrador encontrada.",
+      "reviewUploads": "Revisar os envios dos membros da equipe antes da publicação",
+      "reviewUploadsHelp": "Retém os envios dos membros da equipe cuja função não tem a permissão “Review Team Uploads”: eles ficam ocultos para convidados e clientes até que você ou um revisor os aprove na aba Fotos. As funções Admin, Editor e Solo Photographer têm essa permissão por padrão, então os envios delas nunca ficam retidos.",
+      "reviewUploadsHelpMember": "Seus envios para esta galeria ficam ocultos para convidados e clientes até que o proprietário ou um revisor os aprove.",
+      "reviewUploadsHelpReviewer": "Os envios de membros da equipe sem a permissão “Review Team Uploads” aguardam aprovação na aba Fotos. Os seus são publicados imediatamente."
     }
   },
   "settings": {
@@ -851,6 +1061,8 @@
       "siteUrlHelp": "Usada para gerar links de galeria nos e-mails",
       "defaultExpiration": "Expiração Padrão (dias)",
       "maxFileSize": "Tamanho Máx. do Arquivo (MB)",
+      "videoWebRendition": "Cópias de vídeos reproduzíveis no browser",
+      "videoWebRenditionHelp": "Recodifica os vídeos que um browser não consegue reproduzir (HEVC, QuickTime, MP4 não transmissíveis) para um MP4 H.264 para reprodução. O original continua a ser a transferência. Consome CPU por vídeo e um segundo ficheiro; ao ativar, os vídeos já carregados entram na fila.",
       "maxFilesPerUpload": "Máx. de Arquivos por Envio",
       "maxFilesPerUploadHelp": "Número máximo de fotos permitidas em um único lote (1-{{max}}).",
       "allowedFileTypes": "Tipos de Arquivos Permitidos",
@@ -877,7 +1089,12 @@
       "accountEmailRequired": "E-mail é obrigatório",
       "accountEmailInvalid": "Insira um e-mail válido",
       "accountSaveButton": "Salvar detalhes da conta",
-      "accountSaveSuccess": "Detalhes da conta atualizados"
+      "accountSaveSuccess": "Detalhes da conta atualizados",
+      "adminLanguage": "O seu idioma de administração",
+      "adminLanguageHelp": "Aplica-se à área de administração, apenas para si neste dispositivo. Tem efeito imediato — não é preciso guardar.",
+      "customerLanguage": "Idioma da galeria e dos convidados",
+      "accountCreditName": "Crédito da foto",
+      "accountCreditNameHelp": "Indicado nas fotos que você envia quando o arquivo não tem nome de fotógrafo nos metadados. Deixe vazio para nenhum crédito."
     },
     "publicSite": {
       "badge": "Landing Page",
@@ -970,7 +1187,7 @@
       "aboutText": "Categorias globais estão disponíveis para todos os eventos. Você também pode criar categorias específicas ao editar um evento. Elas ajudam a organizar as fotos e permitem filtros por tipo."
     },
     "systemStatus": {
-      "title": "Status do Sistema",
+      "title": "Estado",
       "storageOverview": "Visão Geral do Espaço",
       "systemInfo": "Informações do Sistema",
       "databaseInfo": "Informações do Banco de Dados",
@@ -994,7 +1211,8 @@
       "pending": "Pendentes",
       "sent": "Enviados",
       "failed": "Falhas",
-      "lastUpdate": "Última atualização"
+      "lastUpdate": "Última atualização",
+      "description": "Serviços, filas, armazenamento e versão — o que esta instância está a executar agora."
     },
     "photoDimensions": {
       "title": "Dimensões das Fotos",
@@ -1066,7 +1284,16 @@
       "keybindColors": "Apenas cores — 1 verde, 2 amarelo, 3 vermelho",
       "keybindLightroom": "Lightroom — 1-5 estrelas, 6-9 cores",
       "defaultDownloadLimit": "Limite de downloads padrão",
-      "defaultDownloadLimitHelp": "Preenchido em novos eventos: quantas fotos um cliente pode baixar. 0 = ilimitado."
+      "defaultDownloadLimitHelp": "Preenchido em novos eventos: quantas fotos um cliente pode baixar. 0 = ilimitado.",
+      "defaultFolderStructure": "Reproduzir a estrutura de pastas em novas galerias",
+      "defaultFolderStructureHelp": "As subpastas de envios e pastas externas tornam-se pastas aninhadas da galeria. As galerias existentes mantêm a sua própria configuração.",
+      "firstLookDetection": "Iniciar uma primeira seleção a partir de pastas com palavra-chave",
+      "firstLookDetectionHelp": "Uma pasta de nível superior cujo nome contenha uma destas palavras (p. ex. «Casamento (FirstLook)») não é criada como pasta: as suas fotos recebem um selo e a galeria passa para a entrega em duas etapas.",
+      "firstLookKeywords": "Palavras-chave",
+      "firstLookKeywordsHelp": "Separadas por vírgulas. Maiúsculas, espaços, hífenes e sublinhados são ignorados, então «FirstLook» também corresponde a «first-look».",
+      "deliveryDays": "Galeria completa vence após (dias)",
+      "deliveryDaysHelp": "Se uma primeira seleção começar sem data prometida, a galeria completa vence este número de dias após a data do evento.",
+      "defaultAllowDecisions": "Aprovar / rejeitar cada foto"
     },
     "imageSecurity": {
       "title": "Proteção de Imagem",
@@ -1213,7 +1440,8 @@
       "integrations": "Integrações",
       "system": "Sistema",
       "appearance": "Conteúdo e Aparência",
-      "communication": "Comunicação"
+      "communication": "Comunicação",
+      "people": "Pessoas e acesso"
     },
     "apiTokens": {
       "title": "Tokens de API",
@@ -1291,7 +1519,6 @@
         "clients": "Clientes"
       },
       "status": {
-        "stable": "estável",
         "beta": "beta",
         "new": "novo",
         "experimental": "experimental",
@@ -1342,7 +1569,9 @@
       "clients": {
         "title": "Clientes",
         "description": "Chave principal da seção Clientes na barra lateral. Desligado oculta a seção e todas as sub-funcionalidades independentemente dos seus controles individuais — reativar restaura o estado anterior."
-      }
+      },
+      "configure": "Configurar",
+      "sidebarInSettings": "Sem item na barra lateral — fica nas definições"
     },
     "customerSurface": {
       "brandingTitle": "Cabeçalho do painel do cliente",
@@ -1364,6 +1593,15 @@
       "running": "A ler autores...",
       "noneToRead": "Não há mais fotos por ler",
       "button": "Ler autores do EXIF"
+    },
+    "health": {
+      "title": "Saúde",
+      "description": "Falhas em segundo plano que precisam de atenção — e-mails travados, verificações falhadas e limpeza."
+    },
+    "search": {
+      "placeholder": "Pesquisar nas definições…",
+      "label": "Pesquisar nas definições",
+      "noResults": "Nenhuma definição corresponde a “{{query}}”."
     }
   },
   "analytics": {
@@ -1693,6 +1931,7 @@
     "recentActivity": "Atividade Recente",
     "storageUsed": "Espaço Utilizado",
     "totalPhotos": "Total de Fotos",
+    "totalMedia": "Total de Mídia",
     "storagePercent": "{{percent}}% do limite de {{limit}}",
     "storageSoftLimitConfigured": "Limite configurado: {{limit}}",
     "storageSoftLimitRecommended": "Limite sugerido: {{limit}}",
@@ -1769,6 +2008,7 @@
       "photosUploaded_many": "{{count}} fotos enviadas para \"{{eventName}}\"",
       "photosUploaded_one": "{{count}} foto enviada para \"{{eventName}}\"",
       "photosUploaded_other": "{{count}} fotos enviadas para \"{{eventName}}\"",
+      "mediaUploaded": "{{media}} enviados para \"{{eventName}}\"",
       "photosBulkDeleted_many": "{{count}} fotos eliminadas de \"{{eventName}}\"",
       "photosBulkDeleted_one": "{{count}} foto eliminada de \"{{eventName}}\"",
       "photosBulkDeleted_other": "{{count}} fotos eliminadas de \"{{eventName}}\"",
@@ -1811,7 +2051,14 @@
       "categoryHeroUpdated": "Foto principal da categoria atualizada",
       "publicSiteResetToDefault": "Site público redefinido ao padrão",
       "cmsPageLogoUploaded": "Logotipo da página CMS carregado: {{slug}}",
-      "adminPasswordResetByAdmin": "Senha de admin redefinida por outro admin: {{username}}"
+      "adminPasswordResetByAdmin": "Senha de admin redefinida por outro admin: {{username}}",
+      "eventTeamChanged": "Equipe alterada em {{eventName}}",
+      "photosReviewApproved_one": "{{count}} envio da equipe aprovado em {{eventName}}",
+      "photosReviewApproved_other": "{{count}} envios da equipe aprovados em {{eventName}}",
+      "photosReviewRejected_one": "{{count}} envio da equipe rejeitado em {{eventName}}",
+      "photosReviewRejected_other": "{{count}} envios da equipe rejeitados em {{eventName}}",
+      "photoDecision": "Foto aprovada ou rejeitada em {{eventName}}",
+      "guestFeedbackDecision": "Um convidado aprovou ou rejeitou uma foto em {{eventName}}"
     },
     "notificationToasts": {
       "markedAllRead": "Todas as notificações marcadas como lidas",
@@ -1842,6 +2089,12 @@
       "processingStatus": "A processar…",
       "processingFailed": "Falhado",
       "retryQueued": "Nova tentativa em fila",
+      "webCopyFailed": "Sem cópia web",
+      "individualPhotos": "Fotos Individuais",
+      "individualVideos": "Vídeos Individuais",
+      "collages": "Colagens",
+      "noPosterFrame": "Sem fotograma de capa",
+      "noPosterFrameRetry": "Voltar a extrair o fotograma de capa",
       "myMarks": "As suas marcas",
       "myMarksHelp": "Só você as vê. Nunca aparecem na galeria do cliente e são exportadas para o Lightroom como XMP.",
       "myRating": "A sua classificação",
@@ -1868,7 +2121,9 @@
         "filterLabel": "Filtrar por autor",
         "filterAll": "Todos os nomes",
         "filterNone": "Sem nome"
-      }
+      },
+      "approvedBy": "Aprovada: {{value}}",
+      "rejectedBy": "Rejeitada: {{value}}"
     },
     "events": {
       "tabs": {
@@ -1967,6 +2222,7 @@
       "gallery_opened": "A galeria “{{eventName}}” foi aberta",
       "gallery_downloaded": "Fotos de “{{eventName}}” foram baixadas",
       "photos_uploaded": "{{count}} fotos carregadas para {{eventName}}",
+      "media_uploaded": "{{media}} carregados para {{eventName}}",
       "event_archived": "Evento arquivado: {{eventName}}",
       "archive_restored": "Arquivo restaurado: {{eventName}}",
       "archive_deleted": "Arquivo eliminado: {{eventName}}",
@@ -2057,7 +2313,26 @@
       "photo_uploaded": "Foto carregada em {{eventName}}",
       "category_hero_updated": "Foto principal da categoria atualizada",
       "public_site_reset_to_default": "Site público redefinido ao padrão",
-      "cms_page_logo_uploaded": "Logotipo da página CMS carregado: {{slug}}"
+      "cms_page_logo_uploaded": "Logotipo da página CMS carregado: {{slug}}",
+      "folder_created": "Pasta criada: {{name}}",
+      "folder_updated": "Pasta alterada em {{eventName}}",
+      "folder_deleted": "Pasta excluída: {{name}}",
+      "folders_created": "Pastas criadas em {{eventName}}: {{count}}",
+      "folder_requested": "Pastas solicitadas para {{eventName}}: {{count}}",
+      "folder_request_approved": "Solicitação de pasta aprovada: {{path}}",
+      "folder_request_rejected": "Solicitação de pasta recusada: {{path}}",
+      "folder_structure_applied": "Estrutura de pastas aplicada em {{eventName}}",
+      "delivery_first_look_started": "Primeira seleção iniciada para {{eventName}}",
+      "delivery_completed": "Galeria completa entregue: {{eventName}}",
+      "delivery_due_soon": "A galeria completa de {{eventName}} vence em breve",
+      "delivery_overdue": "A galeria completa de {{eventName}} está atrasada",
+      "photo_decision": "Foto aprovada ou rejeitada em {{eventName}}",
+      "guest_feedback_decision": "Um convidado aprovou ou rejeitou uma foto em {{eventName}}",
+      "event_team_changed": "Equipe alterada em {{eventName}}",
+      "photos_review_approved_one": "{{count}} envio da equipe aprovado em {{eventName}}",
+      "photos_review_approved_other": "{{count}} envios da equipe aprovados em {{eventName}}",
+      "photos_review_rejected_one": "{{count}} envio da equipe rejeitado em {{eventName}}",
+      "photos_review_rejected_other": "{{count}} envios da equipe rejeitados em {{eventName}}"
     },
     "catalogedMedia": "{{size}} catalogados",
     "storageUnavailable": "indisponível",
@@ -2243,6 +2518,7 @@
     "containerBgColorHelp": "O cartão branco que contém o conteúdo do e-mail. Corresponde a Identidade Visual → Superfície.",
     "listBgColor": "Painel de informação",
     "listBgColorHelp": "Fundo dos painéis de informação com marcadores no corpo do e-mail. Corresponde a Identidade Visual → Elevado.",
+    "listContrastWarning": "O texto do corpo é difícil de ler no painel de informação (contraste {{ratio}}:1, recomendado 4,5:1). Os e-mails mudam automaticamente o texto do painel para uma cor legível, mas cores a condizer ficam melhor.",
     "bodyTextColor": "Texto do corpo",
     "bodyTextColorHelp": "Cor de parágrafos e texto a negrito. Corresponde a Identidade Visual → Texto primário.",
     "mutedTextColor": "Texto do rodapé",
@@ -2438,8 +2714,8 @@
       },
       "fields": {
         "destinationPath": "Caminho de Destino",
-        "destinationPathHelp": "Diretório local para armazenar os backups",
-        "destinationPathPlaceholder": "/caminho/para/diretorio/de/backup",
+        "destinationPathHelp": "Diretório como o backend o vê. Com Docker, é um caminho dentro do contêiner do backend, não no host: use um diretório montado no contêiner.",
+        "destinationPathPlaceholder": "/app/storage/backups",
         "rsyncHost": "Host Remoto",
         "rsyncHostPlaceholder": "backup.exemplo.com",
         "rsyncUser": "Usuário SSH",
@@ -2806,7 +3082,9 @@
       "enableRateLimiting": "Ativar limite de frequência",
       "rateLimitingDesc": "Evite spam limitando a frequência de feedback",
       "timeWindow": "Janela de tempo (minutos)",
-      "maxRequests": "Máximo de solicitações"
+      "maxRequests": "Máximo de solicitações",
+      "decisions": "Aprovar / rejeitar cada foto",
+      "decisionsDesc": "Os convidados aprovam ou rejeitam cada foto, opcionalmente com um motivo. Pode filtrar e exportar pela decisão deles"
     },
     "settingsUpdated": "Configurações de feedback atualizadas",
     "settingsUpdateError": "Falha ao atualizar as configurações",
@@ -2829,7 +3107,8 @@
       "like": "Curtidas",
       "comment": "Comentários",
       "favorite": "Favoritos",
-      "reaction": "Reações"
+      "reaction": "Reações",
+      "decision": "Aprovar / rejeitar"
     },
     "allStatuses": "Todos os status",
     "status": {
@@ -2863,6 +3142,7 @@
     "rateStar_many": "Avaliar {{count}} estrelas",
     "rateStar_one": "Avaliar {{count}} estrela",
     "rateStar_other": "Avaliar {{count}} estrelas",
+    "removeRating": "Remover a avaliação",
     "ratingsCount_many": "{{count}} avaliações",
     "ratingsCount_one": "{{count}} avaliação",
     "ratingsCount_other": "{{count}} avaliações",
@@ -2911,7 +3191,25 @@
     "removeColorLabel": "Remover a etiqueta {{color}}",
     "setColorLabel": "Marcar como {{color}}",
     "markedAs": "Marcado como {{color}}",
-    "alsoMarkedBy": "Também marcado por outros: {{colors}}"
+    "alsoMarkedBy": "Também marcado por outros: {{colors}}",
+    "decisions": {
+      "approved": "Aprovada",
+      "rejected": "Rejeitada"
+    },
+    "totalDecisions": "Aprovadas / rejeitadas",
+    "decisionsTitle": "Aprovar / rejeitar",
+    "decisionApprove": "Aprovar",
+    "decisionReject": "Rejeitar",
+    "decisionClear": "Retirar a sua decisão",
+    "decisionReasonEdit": "Porquê? (opcional)",
+    "decisionReasonLabel": "Porque está a rejeitar esta foto? (opcional)",
+    "decisionReasonPlaceholder": "p. ex. olhos fechados, não é o meu melhor lado",
+    "decisionReasonSave": "Guardar motivo",
+    "decisionReasonBlocked": "O seu motivo contém palavras que não são permitidas aqui.",
+    "decisionError": "Não foi possível guardar a sua decisão",
+    "decisionType": "a sua decisão",
+    "youApproved": "Aprovou esta foto",
+    "youRejected": "Rejeitou esta foto"
   },
   "filter": {
     "feedbackFilters": "Filtros de Feedback",
@@ -2921,6 +3219,7 @@
     "hasFavorites": "Possui favoritos",
     "hasComments": "Possui comentários",
     "showingPhotos": "Total de fotos",
+    "showingMedia": "Total de multimédia",
     "withRatings": "Com avaliações",
     "combineWith": "Combinar com",
     "allPhotos": "Todas as fotos",
@@ -2933,7 +3232,11 @@
     "colorLabels": "Etiquetas de cor",
     "showOnlyColor": "Mostrar apenas {{color}}",
     "myColorLabels": "As suas marcas",
-    "showOnlyMyColor": "Mostrar apenas as minhas marcas {{color}}"
+    "showOnlyMyColor": "Mostrar apenas as minhas marcas {{color}}",
+    "decisions": "Aprovar / rejeitar",
+    "decisionApproved": "Aprovadas",
+    "decisionRejected": "Rejeitadas",
+    "decisionUndecided": "Por decidir"
   },
   "adminLogin": {
     "title": "Login Administrativo",
@@ -3108,7 +3411,104 @@
     "movedToCategory_one": "{{count}} foto movida para {{category}}",
     "movedToCategory_other": "{{count}} fotos movidas para {{category}}",
     "moveToCategoryFailed": "Falha ao mover fotos para categoria",
-    "moveToCategory": "Mover para categoria"
+    "moveToCategory": "Mover para categoria",
+    "folders": {
+      "title": "Pastas",
+      "galleryRoot": "Nível principal da galeria",
+      "allPhotos": "Todas as fotos",
+      "breadcrumb": "Caminho da pasta",
+      "waitingView": "Aguardando solicitações de pasta",
+      "waitingChip": "Aguardando uma pasta",
+      "noFolders": "Nenhuma pasta ainda",
+      "name": "Nome da pasta",
+      "newFolder": "Nova pasta",
+      "newSubfolder": "Nova subpasta",
+      "newSubfolderIn": "Nova subpasta em \"{{name}}\"",
+      "create": "Criar",
+      "created": "Pasta criada",
+      "createFailed": "Não foi possível criar a pasta",
+      "rename": "Renomear",
+      "renameTitle": "Renomear pasta",
+      "renamed": "Pasta renomeada",
+      "move": "Mover",
+      "moveTitle": "Mover \"{{name}}\" para…",
+      "moveHint": "As subpastas e fotos são movidas junto. As pastas podem ser aninhadas em no máximo {{depth}} níveis.",
+      "moved": "Pasta movida",
+      "updateFailed": "Não foi possível alterar a pasta",
+      "maxDepthReached": "As pastas podem ser aninhadas em no máximo {{depth}} níveis",
+      "delete": "Excluir pasta",
+      "deleteTitle": "Excluir a pasta \"{{name}}\"?",
+      "deleteMessage": "As fotos ({{photos}}) e subpastas ({{folders}}) dela passam para {{parent}}. Nenhuma foto é excluída.",
+      "deleted": "Pasta excluída",
+      "deleteFailed": "Não foi possível excluir a pasta",
+      "allowDownloads": "Permitir downloads nesta pasta",
+      "downloadsAllowed": "Downloads permitidos",
+      "downloadsBlocked": "Downloads bloqueados",
+      "downloadsOn": "Downloads permitidos nesta pasta",
+      "downloadsOff": "Downloads bloqueados nesta pasta e nas subpastas",
+      "downloadsBlockedBy": "Bloqueados de qualquer forma pela pasta superior \"{{name}}\".",
+      "downloadsInherit": "As subpastas herdam isso: uma pasta que bloqueia downloads os bloqueia em todas as pastas abaixo dela.",
+      "moveToFolder": "Mover para pasta…",
+      "moveToFolderTitle_one": "Mover {{count}} foto para uma pasta",
+      "moveToFolderTitle_many": "Mover {{count}} fotos para uma pasta",
+      "moveToFolderTitle_other": "Mover {{count}} fotos para uma pasta",
+      "photosMoved_one": "{{count}} foto movida para {{folder}}",
+      "photosMoved_many": "{{count}} fotos movidas para {{folder}}",
+      "photosMoved_other": "{{count}} fotos movidas para {{folder}}",
+      "moveFailed": "Não foi possível mover as fotos"
+    },
+    "folderRequests": {
+      "title_one": "{{count}} solicitação de pasta",
+      "title_many": "{{count}} solicitações de pasta",
+      "title_other": "{{count}} solicitações de pasta",
+      "hint": "As fotos aguardam na pasta existente mais próxima até que você decida.",
+      "photoCount_one": "{{count}} foto",
+      "photoCount_many": "{{count}} fotos",
+      "photoCount_other": "{{count}} fotos",
+      "waitIn": "aguardando em {{folder}}",
+      "requestedBy": "solicitada por {{name}}",
+      "approve": "Aprovar",
+      "approveAll": "Aprovar todas",
+      "approveAs": "Aprovar como…",
+      "approveAsTitle": "Colocar \"{{path}}\" em uma pasta existente",
+      "approveAsHint": "Em vez de criar a pasta solicitada, as fotos dela passam para a pasta que você escolher (por exemplo, \"Samstag\" para \"Saturday\").",
+      "reject": "Rejeitar",
+      "approved_one": "Solicitação de pasta aprovada, {{count}} foto movida",
+      "approved_many": "Solicitação de pasta aprovada, {{count}} fotos movidas",
+      "approved_other": "Solicitação de pasta aprovada, {{count}} fotos movidas",
+      "approvedAll_one": "Todas as solicitações de pasta aprovadas, {{count}} foto movida",
+      "approvedAll_many": "Todas as solicitações de pasta aprovadas, {{count}} fotos movidas",
+      "approvedAll_other": "Todas as solicitações de pasta aprovadas, {{count}} fotos movidas",
+      "rejected": "Solicitação de pasta rejeitada; as fotos ficam onde estão",
+      "failed": "Não foi possível atualizar a solicitação de pasta",
+      "showWaiting": "Mostrar fotos em espera",
+      "waitingForAdmin_one": "{{count}} solicitação de pasta aguarda um administrador. Até lá, as {{photos}} fotos ficam na pasta existente mais próxima.",
+      "waitingForAdmin_many": "{{count}} solicitações de pasta aguardam um administrador. Até lá, as {{photos}} fotos ficam na pasta existente mais próxima.",
+      "waitingForAdmin_other": "{{count}} solicitações de pasta aguardam um administrador. Até lá, as {{photos}} fotos ficam na pasta existente mais próxima."
+    },
+    "review": {
+      "pendingOwner_one": "{{count}} envio da sua equipe aguarda sua revisão",
+      "pendingOwner_other": "{{count}} envios da sua equipe aguardam sua revisão",
+      "pendingMember_one": "{{count}} envio da equipe aguarda a revisão do proprietário",
+      "pendingMember_other": "{{count}} envios da equipe aguardam a revisão do proprietário",
+      "nonePending": "Nenhum envio aguarda revisão.",
+      "filterPending": "Aguardando revisão ({{count}})",
+      "filterRejected": "Rejeitadas ({{count}})",
+      "showAll": "Todas as fotos",
+      "approve": "Aprovar",
+      "reject": "Rejeitar",
+      "approved_one": "{{count}} foto aprovada e publicada",
+      "approved_other": "{{count}} fotos aprovadas e publicadas",
+      "rejected_one": "{{count}} foto rejeitada",
+      "rejected_other": "{{count}} fotos rejeitadas",
+      "failed": "Não foi possível revisar as fotos",
+      "pendingBadge": "Aguardando revisão",
+      "rejectedBadge": "Rejeitada",
+      "uploadedBy": "Enviada por {{name}}",
+      "hiddenUntilApproved": "Oculta para convidados e clientes até ser aprovada",
+      "skippedOnShow_one": "{{count}} foto aguarda revisão e continua oculta até ser aprovada",
+      "skippedOnShow_other": "{{count}} fotos aguardam revisão e continuam ocultas até serem aprovadas"
+    }
   },
   "customer": {
     "login": {
@@ -3191,8 +3591,7 @@
       "calendar": "Calendário",
       "quotes": "Orçamentos",
       "bills": "Faturas",
-      "profile": "Perfil",
-      "soon": "Em breve"
+      "profile": "Perfil"
     },
     "comingSoon": {
       "tag": "Em breve"
@@ -3463,6 +3862,28 @@
       "net": "Líquido",
       "vat": "IVA",
       "total": "Bruto"
+    }
+  },
+  "search": {
+    "groups": {
+      "pages": "Páginas"
+    },
+    "palette": {
+      "label": "Pesquisar na área de administração",
+      "placeholder": "Pesquisar páginas e definições…",
+      "noResults": "Nada corresponde a “{{query}}”.",
+      "open": "Pesquisar páginas e definições"
+    }
+  },
+  "automation": {
+    "empty": {
+      "title": "Nenhuma funcionalidade de automação ativada",
+      "body": "Ative Workflows ou e-mails de lembrete em Definições → Funcionalidades para começar.",
+      "noAccessTitle": "Não há nada aqui que possa abrir",
+      "noAccessBody": "Estas funcionalidades estão ativadas, mas o seu perfil não pode abrir nenhuma das suas páginas. Peça acesso a um administrador."
+    },
+    "subnav": {
+      "approvals": "Aprovações"
     }
   }
 }

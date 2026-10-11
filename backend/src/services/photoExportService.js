@@ -53,6 +53,9 @@ class PhotoExportService {
   async getPhotosWithFeedback(eventId, photoIds = null, adminId = null) {
     let query = db('photos')
       .leftJoin('photo_categories', 'photos.category_id', 'photo_categories.id')
+      // The folder a photo lives in (issue 1786, migration 265): since then
+      // category_id holds filter categories only.
+      .leftJoin('photo_categories as photo_folders', 'photos.folder_id', 'photo_folders.id')
       .where('photos.event_id', eventId)
       .select(
         'photos.id',
@@ -68,13 +71,17 @@ class PhotoExportService {
         'photos.favorite_count',
         'photos.comment_count',
         'photos.color_label_count',
+        // Approve / reject tallies (issue 744).
+        'photos.approved_count',
+        'photos.rejected_count',
         'photos.width',
         'photos.height',
         'photos.size_bytes',
         'photos.uploaded_at',
         // Photo credit (#1561) — the CSV/JSON column and the XMP dc:creator.
         'photos.credit_name',
-        'photo_categories.name as category_name'
+        'photo_categories.name as category_name',
+        'photo_folders.name as folder_name'
       )
       .orderBy('photos.filename', 'asc');
 
@@ -209,7 +216,11 @@ class PhotoExportService {
       'height',
       'size_bytes',
       'uploaded_at',
-      'credit'
+      'credit',
+      // Appended rather than placed beside color_label (issue 744): a
+      // spreadsheet or script reading the columns by position keeps working.
+      'approved',
+      'rejected'
     ];
 
     const rows = photos.map(photo => [
@@ -228,7 +239,9 @@ class PhotoExportService {
       photo.height || '',
       photo.size_bytes || '',
       photo.uploaded_at ? new Date(photo.uploaded_at).toISOString() : '',
-      photo.credit_name || ''
+      photo.credit_name || '',
+      photo.approved_count || 0,
+      photo.rejected_count || 0
     ]);
 
     const csvContent = [
@@ -323,6 +336,10 @@ class PhotoExportService {
         color_labels: photo.color_labels || {},
         my_rating: photo.my_rating ?? null,
         my_color_label: photo.my_color_label || null,
+        decisions: {
+          approved: photo.approved_count || 0,
+          rejected: photo.rejected_count || 0
+        },
         dimensions: {
           width: photo.width || null,
           height: photo.height || null
