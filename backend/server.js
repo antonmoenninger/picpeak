@@ -429,6 +429,7 @@ function renderBrandFooter(branding) {
 
   const legalLinks = `
     <a href="/datenschutz">Privacy Policy</a>
+    <a href="/agb">AGB</a>
     <a href="/impressum">Impressum</a>
     ${supportLink}
   `;
