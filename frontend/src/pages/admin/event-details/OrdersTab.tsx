@@ -77,7 +77,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ eventId, baseUrl }) => {
   if (isError) {
     return (
       <Card padding="md">
-        <p className="text-neutral-900 dark:text-neutral-100">{t('gallery.failedToLoad')}</p>
+        <p className="text-heading">{t('gallery.failedToLoad')}</p>
         <button
           onClick={() => refetch()}
           className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-accent border border-accent rounded-lg hover:bg-accent/10"
@@ -93,7 +93,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ eventId, baseUrl }) => {
   if (orders.length === 0) {
     return (
       <Card padding="md">
-        <div className="flex items-center gap-3 text-neutral-600 dark:text-neutral-400">
+        <div className="flex items-center gap-3 text-soft">
           <ShoppingBag className="w-5 h-5" />
           <p>{t('photoSales.noOrders', 'No purchases yet. Buyers get an order listed here as soon as a Snipcart checkout completes.')}</p>
         </div>
@@ -106,7 +106,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ eventId, baseUrl }) => {
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead>
-            <tr className="border-b border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400">
+            <tr className="border-b border-line text-soft">
               <th className="py-2 pr-4 font-medium">{t('photoSales.buyer', 'Buyer')}</th>
               <th className="py-2 pr-4 font-medium">{t('photoSales.photos', 'Photos')}</th>
               <th className="py-2 pr-4 font-medium">{t('photoSales.amount', 'Amount')}</th>
@@ -120,16 +120,16 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ eventId, baseUrl }) => {
               const total = (Number(order.total_cents) || 0) / 100;
               const expired = order.remaining_days <= 0;
               return (
-                <tr key={order.order_id} className="border-b border-neutral-100 dark:border-neutral-800">
-                  <td className="py-3 pr-4 text-neutral-800 dark:text-neutral-200">{order.buyer_email}</td>
-                  <td className="py-3 pr-4 text-neutral-800 dark:text-neutral-200">{order.photo_count}</td>
-                  <td className="py-3 pr-4 text-neutral-800 dark:text-neutral-200">
+                <tr key={order.order_id} className="border-b border-line-faint">
+                  <td className="py-3 pr-4 text-body">{order.buyer_email}</td>
+                  <td className="py-3 pr-4 text-body">{order.photo_count}</td>
+                  <td className="py-3 pr-4 text-body">
                     {new Intl.NumberFormat(undefined, { style: 'currency', currency: order.currency || 'EUR' }).format(total)}
                   </td>
-                  <td className="py-3 pr-4 text-neutral-600 dark:text-neutral-400">
+                  <td className="py-3 pr-4 text-soft">
                     {order.purchased_at ? format(new Date(order.purchased_at), 'PPp') : '—'}
                   </td>
-                  <td className={`py-3 pr-4 ${expired ? 'text-red-500' : 'text-neutral-600 dark:text-neutral-400'}`}>
+                  <td className={`py-3 pr-4 ${expired ? 'text-danger' : 'text-soft'}`}>
                     {expired
                       ? t('photoSales.expired', 'Expired')
                       : t('photoSales.daysLeft', '{{days}} days', { days: order.remaining_days })}
@@ -138,7 +138,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ eventId, baseUrl }) => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => copyLink(order)}
-                        className="p-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        className="p-1.5 rounded-lg border border-line-strong text-body hover:bg-hover"
                         title={t('photoSales.copyLink', 'Copy access link')}
                         aria-label={t('photoSales.copyLink', 'Copy access link')}
                       >

@@ -504,7 +504,7 @@ const AdminPhotoViewerContent: React.FC<ViewerContentProps> = ({
                     step="0.01"
                     autoFocus
                     aria-label={t('photoSales.photoPrice', 'Photo price')}
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-accent"
                   />
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" type="button" onClick={() => setEditingPrice(false)} disabled={savingPrice}>

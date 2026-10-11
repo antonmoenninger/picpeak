@@ -81,14 +81,14 @@ export const WatermarkTab: React.FC = () => {
       <Card padding="md">
         <div className="flex items-start gap-3">
           <Info className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-soft">
             {t('settings.watermark.photoSalesHint', 'For priced galleries the watermark is applied automatically: photos beyond the free quota get a strong, tiled version of this mark — independent of the settings below.')}
           </p>
         </div>
       </Card>
 
       <Card padding="md">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-heading flex items-center gap-2">
           <Droplets className="w-5 h-5" />
           {t('settings.watermark.title', 'Watermark')}
         </h2>
@@ -100,16 +100,16 @@ export const WatermarkTab: React.FC = () => {
               type="checkbox"
               checked={settings.watermark_enabled === true}
               onChange={(e) => patch({ watermark_enabled: e.target.checked })}
-              className="rounded border-neutral-300 dark:border-neutral-600"
+              className="rounded border-line-strong"
             />
-            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <span className="text-sm font-medium text-body">
               {t('settings.watermark.enable', 'Show a watermark on gallery photos')}
             </span>
           </label>
 
           {/* Logo */}
           <div>
-            <span className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <span className="block text-sm font-medium text-body mb-2">
               {t('settings.watermark.logo', 'Watermark logo (optional)')}
             </span>
             <div className="flex items-center gap-3 flex-wrap">
@@ -117,10 +117,10 @@ export const WatermarkTab: React.FC = () => {
                 <img
                   src={settings.watermark_logo_url}
                   alt={t('settings.watermark.logo', 'Watermark logo')}
-                  className="h-12 max-w-[180px] object-contain rounded border border-neutral-200 dark:border-neutral-700 bg-white p-1"
+                  className="h-12 max-w-[180px] object-contain rounded border border-line bg-white p-1"
                 />
               ) : (
-                <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                <span className="text-sm text-muted">
                   {t('settings.watermark.noLogo', 'No logo — the text below is used instead.')}
                 </span>
               )}
@@ -142,7 +142,7 @@ export const WatermarkTab: React.FC = () => {
               {settings.watermark_logo_url && (
                 <button
                   onClick={handleRemoveLogo}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-danger-text border border-danger-line rounded-lg hover:bg-danger-soft"
                 >
                   <Trash2 className="w-4 h-4" />
                   {t('settings.watermark.removeLogo', 'Remove')}
@@ -153,7 +153,7 @@ export const WatermarkTab: React.FC = () => {
 
           {/* Position */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               {t('settings.watermark.position', 'Position')}
             </label>
             <div className="flex flex-wrap gap-2">
@@ -164,7 +164,7 @@ export const WatermarkTab: React.FC = () => {
                   className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                     (settings.watermark_position || 'bottom-right') === position
                       ? 'border-accent bg-accent/10 text-accent'
-                      : 'border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400'
+                      : 'border-line-strong text-soft hover:border-neutral-400'
                   }`}
                 >
                   {t(`settings.watermark.position_${position.replace('-', '_')}`, position)}
@@ -175,7 +175,7 @@ export const WatermarkTab: React.FC = () => {
 
           {/* Opacity */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               {t('settings.watermark.opacity', 'Opacity')}: {settings.watermark_opacity ?? 50}%
             </label>
             <input
@@ -190,7 +190,7 @@ export const WatermarkTab: React.FC = () => {
 
           {/* Size */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               {t('settings.watermark.size', 'Size')}: {settings.watermark_size ?? 15}%
             </label>
             <input
@@ -214,7 +214,7 @@ export const WatermarkTab: React.FC = () => {
       <Card padding="md">
         <div className="flex items-start gap-3">
           <ShieldCheck className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-soft">
             {t('settings.watermark.photoSalesNote', 'Photo sales: paid photos are always watermarked (tiled, stronger) before checkout, and the original without watermark is delivered only after purchase.')}
           </p>
         </div>

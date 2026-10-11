@@ -826,17 +826,17 @@ export const CreateEventPage: React.FC = () => {
 
         <Card>
           <div className="p-6 space-y-6">
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-heading flex items-center gap-2">
               <Shield className="w-5 h-5" />
               {t('photoSales.sectionTitle', 'Photo sales')}
             </h2>
 
-            <label className="inline-flex items-center gap-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label className="inline-flex items-center gap-3 text-sm font-medium text-body">
               <input
                 type="checkbox"
                 checked={formData.is_priced}
                 onChange={(e) => setFormData(prev => ({ ...prev, is_priced: e.target.checked }))}
-                className="rounded border-neutral-300 dark:border-neutral-600"
+                className="rounded border-line-strong"
               />
               {t('photoSales.pricedGallery', 'Priced gallery')}
             </label>

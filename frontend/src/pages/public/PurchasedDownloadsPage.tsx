@@ -71,7 +71,7 @@ export const PurchasedDownloadsPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900 px-4">
         <div className="max-w-md w-full bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700 p-8 text-center">
-          <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-4" />
+          <AlertTriangle className="w-10 h-10 text-warning mx-auto mb-4" />
           <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
             {t('photoSales.accessExpired', 'Access expired')}
           </h1>
@@ -87,7 +87,7 @@ export const PurchasedDownloadsPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900 px-4">
         <div className="max-w-md w-full bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700 p-8 text-center">
-          <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-4" />
+          <AlertTriangle className="w-10 h-10 text-warning mx-auto mb-4" />
           <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
             {t('photoSales.linkNotFound', 'Download link not found')}
           </h1>
