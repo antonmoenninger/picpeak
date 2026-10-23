@@ -1950,7 +1950,8 @@
       "signals": [],
       "reason": "Photo-sales surface (Snipcart extension): public/customer checkout and webhook endpoints without product-usage middleware, callbacks, counters or report triggers.",
       "route_signatures": [
-        "GET /purchased-downloads/:accessToken"
+        "GET /purchased-downloads/:accessToken",
+        "GET /purchased-downloads/:accessToken/photos/:photoId"
       ]
     },
     "gallery/snipcart.js": {

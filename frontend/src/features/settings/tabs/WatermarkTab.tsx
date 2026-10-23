@@ -4,10 +4,14 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { Droplets, Upload, Trash2, ShieldCheck, Info } from 'lucide-react';
 import { api } from '../../../config/api';
-import { Card, Button, Loading } from '../../../components/common';
+import { Card, Loading } from '../../../components/common';
+import { SettingsSaveBar } from '../../../components/admin/SettingsSaveBar';
 import { settingsService, type BrandingSettings } from '../../../services/settings.service';
 
 const POSITIONS = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'] as const;
+
+/** The fields this tab edits; the logo saves on its own (upload / remove). */
+const EDITED_FIELDS = ['watermark_enabled', 'watermark_position', 'watermark_opacity', 'watermark_size'] as const;
 
 /**
  * Settings → Watermark.
@@ -20,7 +24,9 @@ export const WatermarkTab: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState<BrandingSettings | null>(null);
+  const [serverSettings, setServerSettings] = useState<BrandingSettings | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-settings', 'branding'],
@@ -28,13 +34,37 @@ export const WatermarkTab: React.FC = () => {
   });
 
   useEffect(() => {
-    if (data) setSettings(settingsService.formatBrandingSettings(data));
+    if (!data) return;
+    const formatted = settingsService.formatBrandingSettings(data);
+    setServerSettings(formatted);
+    // A logo upload refetches the branding settings: keep unsaved edits to
+    // the other fields, take the logo from the server.
+    setSettings((current) => (current
+      ? { ...current, watermark_logo_url: formatted.watermark_logo_url }
+      : formatted));
   }, [data]);
 
-  const save = async (next: BrandingSettings) => {
-    await settingsService.updateBranding(next);
-    queryClient.invalidateQueries({ queryKey: ['admin-settings', 'branding'] });
-    queryClient.invalidateQueries({ queryKey: ['public-settings'] });
+  const isDirty = !!settings && !!serverSettings
+    && EDITED_FIELDS.some((field) => settings[field] !== serverSettings[field]);
+
+  const save = async () => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      await settingsService.updateBranding(settings);
+      setServerSettings(settings);
+      toast.success(t('settings.watermark.saved', 'Watermark settings saved'));
+      queryClient.invalidateQueries({ queryKey: ['admin-settings', 'branding'] });
+      queryClient.invalidateQueries({ queryKey: ['public-settings'] });
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || t('common.error'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const discard = () => {
+    if (serverSettings) setSettings(serverSettings);
   };
 
   const handleUpload = async (file: File) => {
@@ -202,12 +232,6 @@ export const WatermarkTab: React.FC = () => {
               className="w-full max-w-md accent-[var(--color-accent)]"
             />
           </div>
-
-          <div className="pt-2">
-            <Button variant="primary" size="sm" onClick={() => save(settings)}>
-              {t('common.save', 'Save')}
-            </Button>
-          </div>
         </div>
       </Card>
 
@@ -219,6 +243,8 @@ export const WatermarkTab: React.FC = () => {
           </p>
         </div>
       </Card>
+
+      <SettingsSaveBar isDirty={isDirty} isSaving={saving} onSave={save} onDiscard={discard} />
     </div>
   );
 };
