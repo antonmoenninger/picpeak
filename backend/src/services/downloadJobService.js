@@ -95,7 +95,7 @@ class DownloadJobService {
    * id. Hashing the resolved id set also stops a stale archive being reused
    * after photos are added, removed or hidden.
    */
-  dedupKey(eventId, resolution, resolvedPhotoIds, watermark, visibilityScope) {
+  dedupKey(eventId, resolution, resolvedPhotoIds, watermark, visibilityScope, priced = false) {
     const ids = [...resolvedPhotoIds].map(Number).sort((a, b) => a - b).join(',');
     // The full watermark SETTINGS, not just the on/off flag: an admin who
     // edits the watermark text or logo while it stays enabled would otherwise
@@ -103,8 +103,12 @@ class DownloadJobService {
     const wm = watermark
       ? crypto.createHash('sha256').update(JSON.stringify(watermark)).digest('hex').slice(0, 16)
       : 'raw';
+    // PHOTO-SALES-EXTENSION: a priced gallery packages previews, so a job
+    // built before pricing (clean originals) must not match. Unpriced keys
+    // stay byte-identical to upstream.
+    const sales = priced ? '|priced' : '';
     return crypto.createHash('sha256')
-      .update(`${eventId}|${resolution}|${visibilityScope}|${ids}|${wm}`)
+      .update(`${eventId}|${resolution}|${visibilityScope}|${ids}|${wm}${sales}`)
       .digest('hex')
       .slice(0, 64);
   }
@@ -167,7 +171,7 @@ class DownloadJobService {
     }
 
     const scope = visibilityScope(accessLevel);
-    const dedupKey = this.dedupKey(event.id, resolution, resolvedIds, watermark, scope);
+    const dedupKey = this.dedupKey(event.id, resolution, resolvedIds, watermark, scope, isGalleryPriced(event));
 
     const existing = await this.findReusable(event.id, dedupKey);
     if (existing) return existing;
@@ -257,7 +261,7 @@ class DownloadJobService {
     // that changes the archive changes the key.
     const watermark = await resolveWatermarkSettings(event);
     const expected = this.dedupKey(
-      job.event_id, job.resolution, ids, watermark, visibilityScope(accessLevel)
+      job.event_id, job.resolution, ids, watermark, visibilityScope(accessLevel), isGalleryPriced(event)
     );
     return expected === job.dedup_key;
   }

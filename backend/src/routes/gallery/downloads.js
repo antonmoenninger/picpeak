@@ -672,7 +672,11 @@ router.get('/:slug/download-all', verifyGalleryAccess, denySlideshowToken, block
     // A download limit (issue 1560) grants exactly the photos that ship. The
     // stream below knows that set; the prebuilt archive does not have to match
     // it, so a limited gallery always streams.
+    // PHOTO-SALES-EXTENSION: a priced gallery always streams, so the
+    // per-photo preview gate below applies on every request instead of
+    // trusting whatever a cached archive was built from.
     const streamOnly = isClient || eventHasHidden || eventHasDownloadRestrictedPhotos
+      || isGalleryPriced(req.event)
       || !!(await currentDownloadLimit(req.event));
     let zipInfo = streamOnly
       ? null

@@ -2064,7 +2064,10 @@ module.exports = (router) => {
 
       // Invalidate download zip if watermark settings changed
       const changeKeys = Object.keys(req.body);
-      if (changeKeys.includes('watermark_downloads') || changeKeys.includes('watermark_text')) {
+      // PHOTO-SALES-EXTENSION: is_priced too — a zip prebuilt before the
+      // gallery was priced holds clean originals.
+      if (changeKeys.includes('watermark_downloads') || changeKeys.includes('watermark_text')
+          || changeKeys.includes('is_priced')) {
         downloadZipService.invalidate(parseInt(id));
       }
 

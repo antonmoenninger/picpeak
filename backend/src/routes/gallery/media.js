@@ -166,9 +166,9 @@ router.get('/:slug/photo/:photoId',
       // PHOTO-SALES-EXTENSION START — a paid photo (outside the free quota)
       // is only ever shown as the low-quality preview rendition to viewers
       // without a valid purchase access token. With a valid token the
-      // original is served unwatermarked below. `fb=1` marks the fallback
-      // coming back from a failed preview render, so the redirect loop ends
-      // in a watermarked original instead of bouncing forever.
+      // original is served unwatermarked below. There is no client-side
+      // escape hatch: a failed preview render answers 404 in
+      // fallBackToOriginal, so no redirect loop exists to break.
       let purchasedViewer = false;
       if (!isVideo && !req.isAdminPreview && await shouldForceWatermarkForPhoto(req.event, photo)) {
         const accessToken = req.query?.access_token || req.query?.accessToken || null;
@@ -182,7 +182,7 @@ router.get('/:slug/photo/:photoId',
               .select('id', 'gallery_id', 'photo_id', 'access_token', 'expires_at'),
           });
         }
-        if (!purchasedViewer && req.query.fb !== '1') {
+        if (!purchasedViewer) {
           const queryAt = req.originalUrl.indexOf('?');
           const query = queryAt === -1 ? '' : req.originalUrl.slice(queryAt);
           return res.redirect(`/api/gallery/${req.params.slug}/preview/${photoId}${query}`);
@@ -752,21 +752,18 @@ function answerStorageUnavailable(res) {
 // Nor for a slideshow session, which /photo refuses (denySlideshowToken).
 async function fallBackToOriginal(req, res, photo) {
   if (!photo?.event_id) photo = await db('photos').where({ id: req.params.photoId, event_id: req.event.id }).first();
-  if (!photo || await originalAssetDenial(req, photo, { display: true })) {
+  // PHOTO-SALES-EXTENSION: in a priced gallery the preview IS the product
+  // gate — falling back to the original would hand it out, so a failed
+  // preview render answers 404 like a withheld original does.
+  if (!photo || await originalAssetDenial(req, photo, { display: true })
+      || (req.event && !req.isAdminPreview && await shouldForceWatermarkForPhoto(req.event, photo))) {
     res.removeHeader('ETag');
     res.removeHeader('Content-Type');
     res.removeHeader('Content-Length');
     res.set('Cache-Control', 'no-store');
     return res.status(404).json({ error: 'Preview not available' });
   }
-  // PHOTO-SALES-EXTENSION START — a paid photo gets a fallback marker so the
-  // /photo route serves the watermarked original instead of bouncing the
-  // request straight back to /preview (redirect loop).
-  const fbQuery = req.event && isGalleryPriced(req.event) && await shouldForceWatermarkForPhoto(req.event, photo)
-    ? '?fb=1'
-    : '';
-  return res.redirect(withPreview(req, `/api/gallery/${req.params.slug}/photo/${req.params.photoId}${fbQuery}`));
-  // PHOTO-SALES-EXTENSION END
+  return res.redirect(withPreview(req, `/api/gallery/${req.params.slug}/photo/${req.params.photoId}`));
 }
 
 router.get('/:slug/preview/:photoId',
