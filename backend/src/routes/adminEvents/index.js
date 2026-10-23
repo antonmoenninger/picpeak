@@ -18,6 +18,7 @@ require('./archiveBulk')(router);
 require('./logo')(router);
 require('./qr')(router);
 require('./faces')(router);
+require('./tags')(router);
 // PHOTO-SALES-EXTENSION START
 require('./photoOrders')(router);
 // PHOTO-SALES-EXTENSION END

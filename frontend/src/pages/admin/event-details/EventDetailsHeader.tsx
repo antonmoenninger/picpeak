@@ -17,7 +17,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { eventsService } from '../../../services/events.service';
 import { CompleteDeliveryDialog } from './CompleteDeliveryDialog';
-import { deliveryDue, isAwaitingFullGallery } from './deliveryStatus';
+import { useDeliveryDue, isAwaitingFullGallery } from './deliveryStatus';
 import type { Event } from '../../../types';
 import { ActionMenu, Badge, Button, Notice, type ActionMenuItem } from '../../../components/common';
 import { useConfirm } from '../../../components/common/ConfirmDialog';
@@ -108,6 +108,7 @@ export const EventDetailsHeader: React.FC<EventDetailsHeaderProps> = ({
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { format } = useLocalizedDate();
+  const deliveryDue = useDeliveryDue();
   const { flags } = useFeatureFlags();
   const reach = useAccountReach();
   const { hasPermission, hasAnyPermission } = usePermissions();
@@ -131,7 +132,9 @@ export const EventDetailsHeader: React.FC<EventDetailsHeaderProps> = ({
   if (hasPermission('events.create')) {
     menuItems.push({ key: 'duplicate', label: t('events.duplicateEvent', 'Duplicate gallery'), icon: <Copy className="w-4 h-4" />, onSelect: () => setShowDuplicateDialog(true) });
   }
-  if (flags.bills && hasPermission('bills.manage')) {
+  // Invoices link to galleries on the CRM owner rule the server applies
+  // (can_link_crm); others would fill in the form and get a 403 on save.
+  if (flags.bills && hasPermission('bills.manage') && event.can_link_crm !== false) {
     menuItems.push({
       key: 'invoice',
       label: t('events.createInvoice', 'Create invoice'),

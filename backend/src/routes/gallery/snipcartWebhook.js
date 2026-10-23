@@ -18,6 +18,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const { db } = require('../../database/db');
+const { livePhotos } = require('../../utils/photoVisibility');
 const { errorResponse } = require('../../utils/routeHelpers');
 const { queueEmail } = require('../../services/emailProcessor');
 const { createPurchaseAccessToken, buildPurchasedDownloadUrl } = require('../../modules/photoSales/purchaseAccess');
@@ -212,7 +213,7 @@ async function handleWebhook(req, res) {
     // Only photos that actually belong to THIS gallery become purchase rows;
     // anything else in the payload is dropped rather than stored under a
     // mismatched gallery.
-    const ownedRows = await db('photos')
+    const ownedRows = await livePhotos(db)
       .where({ event_id: gallery.id })
       .whereIn('id', orderedIds)
       .select('id', 'photo_price');

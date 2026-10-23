@@ -41,7 +41,7 @@ function allocateFreeLines(event, items) {
  * decided per order (see allocateFreeLines) — before checkout no photo may
  * be served clean, so the forced watermark applies to all of them.
  */
-function shouldForceWatermarkForPhoto(event, photo) {
+function shouldForceWatermarkForPhoto(event, _photo) {
   return isGalleryPriced(event);
 }
 
@@ -65,7 +65,7 @@ function effectivePhotoPrice(event, photo) {
  * setting. For everything else the original global-OR-event rule applies
  * unchanged.
  */
-async function resolvePhotoSalesWatermarkSettings(event, photo) {
+async function resolvePhotoSalesWatermarkSettings(event, _photo) {
   const watermarkService = require('../../services/watermarkService');
   const settings = await watermarkService.getWatermarkSettings();
 

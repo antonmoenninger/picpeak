@@ -280,7 +280,12 @@
         "POST /mfa/setup",
         "POST /mfa/enable",
         "POST /mfa/disable",
-        "POST /mfa/recovery-codes"
+        "POST /mfa/recovery-codes",
+        "GET /passkeys",
+        "POST /passkeys/register/options",
+        "POST /passkeys/register/verify",
+        "PATCH /passkeys/:id",
+        "POST /passkeys/:id/delete"
       ]
     },
     "adminBackup.js": {
@@ -804,6 +809,16 @@
         "PATCH /:id/slideshow"
       ]
     },
+    "adminEvents/tags.js": {
+      "decision": "excluded",
+      "signals": [],
+      "reason": "Excluded: automatic scene tagging is not reported as a capability. No flag value, per-gallery switch, queue progress, tag keys, scores or counts.",
+      "route_signatures": [
+        "GET /:id/tags",
+        "PATCH /:id/tags",
+        "POST /:id/tags/rescan"
+      ]
+    },
     "adminEventTypes.js": {
       "decision": "partial",
       "signals": [
@@ -921,6 +936,8 @@
         "GET /events/:eventId/feedback-settings",
         "PUT /events/:eventId/feedback-settings",
         "GET /events/:eventId/feedback",
+        "GET /events/:eventId/selection-submissions",
+        "POST /events/:eventId/selection-submissions/:submissionId/reopen",
         "PUT /feedback/:feedbackId/:action",
         "DELETE /feedback/:feedbackId",
         "GET /events/:eventId/feedback-analytics",
@@ -963,7 +980,6 @@
         "GET /dashboard",
         "GET /logs",
         "GET /events/:eventId/access-logs",
-        "POST /block-ip",
         "DELETE /logs/cleanup",
         "GET /export"
       ]
@@ -1065,7 +1081,10 @@
         "POST /repair-orientation",
         "GET /repair-orientation/status",
         "POST /repair-credits",
-        "GET /repair-credits/status"
+        "GET /repair-credits/status",
+        "POST /repair-thumb-hashes",
+        "GET /repair-thumb-hashes/status",
+        "GET /refresh-renditions/status"
       ]
     },
     "adminPhotoExport.js": {
@@ -1106,6 +1125,10 @@
         "PATCH /:eventId/photos/:photoId",
         "POST /:eventId/photos/bulk-delete",
         "POST /:eventId/photos/bulk-update",
+        "GET /:eventId/photos/trash",
+        "GET /:eventId/photos/trash/:photoId/thumbnail",
+        "POST /:eventId/photos/trash/restore",
+        "POST /:eventId/photos/trash/purge",
         "GET /:eventId/photos/moderation",
         "POST /:eventId/photos/moderation",
         "GET /:eventId/photos/credits",
@@ -1135,9 +1158,12 @@
         "POST /",
         "GET /:id",
         "PUT /:id",
+        "DELETE /:id",
         "POST /:id/events",
         "POST /:id/quotes",
         "POST /:id/contracts",
+        "POST /:id/invoices",
+        "DELETE /:id/invoices/:invoiceId",
         "GET /:id/overview",
         "GET /email/:emailId/preview",
         "POST /email/:emailId/resend",
@@ -1363,6 +1389,7 @@
       "route_signatures": [
         "GET /",
         "POST /",
+        "GET /upload-defaults",
         "GET /:id",
         "PATCH /:id",
         "DELETE /:id",
@@ -1375,6 +1402,7 @@
         "DELETE /:id/upload-code",
         "POST /:id/resend",
         "GET /:id/download",
+        "GET /:id/uploads/download",
         "GET /:id/uploads/:uploadId/download"
       ]
     },
@@ -1497,6 +1525,8 @@
       "route_signatures": [
         "POST /admin/login",
         "POST /admin/login/mfa",
+        "POST /admin/passkey/options",
+        "POST /admin/passkey/verify",
         "POST /logout",
         "POST /gallery/verify",
         "POST /gallery/:slug/client-login",
@@ -1571,8 +1601,11 @@
         "GET /:slug/feedback-settings",
         "GET /:slug/photos/:photoId/feedback",
         "POST /:slug/photos/:photoId/feedback",
+        "POST /:slug/feedback/bulk",
         "GET /:slug/feedback-summary",
-        "GET /:slug/my-feedback"
+        "GET /:slug/my-feedback",
+        "GET /:slug/selection",
+        "POST /:slug/selection/submit"
       ]
     },
     "galleryGuests.js": {
@@ -1743,6 +1776,7 @@
         "POST /:slug/download-selected",
         "POST /:slug/download-jobs",
         "GET /:slug/download-jobs/:token",
+        "POST /:slug/download-jobs/:token/notify",
         "GET /:slug/download-jobs/:token/file"
       ]
     },
@@ -1753,6 +1787,8 @@
       "route_signatures": [
         "POST /:slug/photo/:photoId/view",
         "GET /:slug/photo/:photoId",
+        "GET /:slug/hls/:photoId/master.m3u8",
+        "GET /:slug/hls/:photoId/:rung/:file",
         "GET /:slug/thumbnail/:photoId",
         "GET /:slug/hero/:photoId",
         "GET /:slug/preview/:photoId"
@@ -1774,6 +1810,7 @@
       "reason": "Public/customer/gallery/visitor surface or existing optional third-party analytics proxy: no product-usage middleware, callbacks, counters or report triggers.",
       "route_signatures": [
         "GET /:slug/photos",
+        "GET /:slug/photos/state",
         "GET /:slug/people",
         "PATCH /:slug/photos/:photoId/visibility",
         "PATCH /:slug/photos/visibility/bulk"
@@ -1947,6 +1984,10 @@
         "analytics_dashboard"
       ],
       "reason": "Only effective configuration boolean; dependency rules apply, no flag values/history beyond this boolean."
+    },
+    "autoTagging": {
+      "signals": [],
+      "reason": "Excluded: automatic scene tagging is not reported as its own capability; no flag value, tag keys, scores or counts."
     },
     "bills": {
       "signals": [

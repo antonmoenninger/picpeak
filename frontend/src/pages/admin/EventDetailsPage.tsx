@@ -11,6 +11,7 @@ import { eventsService } from '../../services/events.service';
 import { usePublicSettings } from '../../hooks/usePublicSettings';
 import { useLeaveGuard, useUnsavedChanges } from '../../contexts/UnsavedChangesContext';
 import { isGalleryPublic } from '../../utils/accessControl';
+import { archiveInProgressError } from '../../utils/archiveErrors';
 import { splitMediaCount } from '../../utils/mediaCounts';
 import { photosService, AdminPhoto, type PhotoFilters as PhotoFilterParams, type FeedbackFilters } from '../../services/photos.service';
 import { feedbackService, type FeedbackSettings } from '../../services/feedback.service';
@@ -32,7 +33,7 @@ import type { SettingsSectionKey } from './event-details/settings/draft';
 import { EventFeedbackPanel } from './EventFeedbackPage';
 
 const ALL_TAB_KEYS: EventDetailsTab[] = ['overview', 'photos', 'guests', 'orders', 'settings'];
-const SECTION_KEYS: SettingsSectionKey[] = ['general', 'access', 'downloads', 'pricing', 'guests', 'appearance', 'source', 'delivery', 'reminder', 'slideshow', 'faces', 'danger'];
+const SECTION_KEYS: SettingsSectionKey[] = ['general', 'access', 'downloads', 'pricing', 'guests', 'appearance', 'source', 'delivery', 'reminder', 'slideshow', 'faces', 'tags', 'danger'];
 
 function isValidTab(value: string | null): value is EventDetailsTab {
   return value !== null && (ALL_TAB_KEYS as string[]).includes(value);
@@ -48,7 +49,7 @@ export const EventDetailsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const { confirmLeave } = useLeaveGuard();
+  const { confirmLeave, unguarded } = useLeaveGuard();
 
   React.useEffect(() => {
     if (!id || isNaN(parseInt(id))) {
@@ -250,7 +251,7 @@ export const EventDetailsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-event', id] });
       toast.success(t('toast.eventArchived'));
     },
-    onError: () => toast.error(t('errors.somethingWentWrong')),
+    onError: (error) => toast.error(archiveInProgressError(error, t) ?? t('errors.somethingWentWrong')),
   });
 
   const deleteMutation = useMutation({
@@ -258,9 +259,10 @@ export const EventDetailsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-events'] });
       toast.success(t('events.settingsTab.deleted', 'Gallery deleted'));
-      navigate('/admin/events');
+      // Nothing left to stay on: an unsaved draft does not hold this up.
+      unguarded(() => navigate('/admin/events'));
     },
-    onError: () => toast.error(t('errors.somethingWentWrong')),
+    onError: (error) => toast.error(archiveInProgressError(error, t) ?? t('errors.somethingWentWrong')),
   });
 
   // Publish (Draft mode). Takes the admin-typed password so the
@@ -332,7 +334,7 @@ export const EventDetailsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-event', id] });
       toast.success(t('toast.saveSuccess'));
     },
-    onError: () => toast.error(t('toast.saveError')),
+    onError: (error) => toast.error(archiveInProgressError(error, t) ?? t('toast.saveError')),
   });
 
   if (eventLoading) {
@@ -372,6 +374,10 @@ export const EventDetailsPage: React.FC = () => {
 
   return (
     <EventDetailsLoaded
+      // Keyed by the gallery: going from one gallery to another keeps this
+      // page mounted (same route), and without the key the draft would be
+      // rebased onto the next gallery and carry the unsaved edits over.
+      key={event.id}
       event={event}
       eventFeedbackSettings={eventFeedbackSettings}
       branding={(publicSettings?.theme_config as ThemeConfig | undefined) ?? null}
@@ -424,6 +430,7 @@ export const EventDetailsPage: React.FC = () => {
               onExtendExpiration={(days) => extendMutation.mutate(days)}
               isExtending={extendMutation.isPending}
               onRevealNow={() => revealMutation.mutate()}
+              onPublish={() => setShowPublishDialog(true)}
             />
           )}
 

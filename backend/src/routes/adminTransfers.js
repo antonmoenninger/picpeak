@@ -29,8 +29,11 @@ const {
   getTransferUploadPolicy,
   validateTransferFileType,
   setAttachmentHeaders,
+  normalizeMaxFiles,
+  MAX_FILES_CEILING,
 } = require('../services/transferUploadPolicy');
 const logger = require('../utils/logger');
+const { streamingArchiveAdmission } = require('../utils/archiveStreamGuard');
 const { pipeStreamToResponse } = require('../utils/streamResponse');
 const fs = require('fs');
 
@@ -71,6 +74,7 @@ const FILES_ONLY_FIELD_LIMITS = { fields: 0, fieldSize: 1 };
 function buildAdminUploader(maxSizeBytes, policy, fieldLimits) {
   return multer({
     storage: tempStorage,
+    defParamCharset: 'utf8', // multer's latin1 default turns UTF-8 names into mojibake
     // CVE-2026-82333: files arrive as repeated `files` parts via .array(),
     // not bracket-indexed field names like `files[0]` — no legitimate
     // field name uses array-index syntax at all. Reject any that do.
@@ -240,17 +244,36 @@ router.post('/',
     const kind = transferService.normalizeKind(b.kind);
     const isRequest = kind === transferService.KIND_REQUEST;
     const photoIds = parseJsonArrayField(b.photoIds)
-      .map(Number).filter((n) => Number.isInteger(n) && n > 0).slice(0, 5000);
+      .map(Number).filter((n) => Number.isInteger(n) && n > 0 && n <= 2147483647).slice(0, 5000);
     const recipientEmails = parseJsonArrayField(b.recipientEmails)
       .map((e) => String(e || '').trim()).filter(Boolean).slice(0, 100);
     const deliveryMethod = b.deliveryMethod === 'email' ? 'email' : 'link';
+
+    // Empty means "use the global default"; anything else has to be a usable
+    // number, or the request would be created with a limit the admin did not
+    // ask for (issue 1914). Multipart text, so it arrives as a string.
+    const ownLimitGiven = isRequest && b.maxFilesPerUpload != null && String(b.maxFilesPerUpload).trim() !== '';
+    if (ownLimitGiven && !normalizeMaxFiles(b.maxFilesPerUpload)) {
+      for (const file of req.files || []) {
+        try { if (fs.existsSync(file.path)) fs.unlinkSync(file.path); } catch (_) { /* noop */ }
+      }
+      return res.status(400).json({
+        error: `Maximum files per upload must be a whole number between 1 and ${MAX_FILES_CEILING}`,
+        code: 'BAD_FILE_COUNT',
+      });
+    }
 
     // A send has to be sending something. Before #1544 the file filter threw,
     // so a create whose files were all rejected was a 400; now the filter skips
     // them, and without this the row is created empty and — on
     // deliveryMethod 'email' — a "your files are ready" mail goes out for a
     // transfer holding nothing.
-    if (!isRequest && photoIds.length === 0 && !(req.files || []).length) {
+    // Picks that name no photo this admin may send (another event's, or
+    // none at all) leave a transfer just as empty (issue 2086).
+    const usablePhotoIds = !isRequest && photoIds.length
+      ? await transferService.filterOwnedPhotoIds(req.admin, photoIds)
+      : [];
+    if (!isRequest && usablePhotoIds.length === 0 && !(req.files || []).length) {
       const rejectedNow = req.rejectedFiles || [];
       for (const file of req.files || []) {
         try { if (fs.existsSync(file.path)) fs.unlinkSync(file.path); } catch (_) { /* noop */ }
@@ -258,7 +281,9 @@ router.post('/',
       return res.status(400).json({
         error: rejectedNow.length
           ? `Nothing to send — no allowed file type among: ${rejectedNow.join(', ')}`
-          : 'Add at least one photo or file to send',
+          : photoIds.length
+            ? 'None of the selected photos could be found'
+            : 'Add at least one photo or file to send',
         code: rejectedNow.length ? 'TYPE_REJECTED' : 'NOTHING_TO_SEND',
         rejected_files: rejectedNow,
       });
@@ -276,6 +301,7 @@ router.post('/',
       // against ownership there, and silently dropping them here is clearer.
       photoIds: isRequest ? [] : photoIds,
       deliveryMethod,
+      maxFilesPerUpload: ownLimitGiven ? b.maxFilesPerUpload : undefined,
     }, req.admin);
 
     // Likewise: the admin's own deliverable files are outbound content.
@@ -317,6 +343,15 @@ router.post('/',
   })),
 );
 
+// The global files-per-upload default, for the create dialog's "use the
+// default (N)" hint (issue 1914). An admin who creates requests need not hold
+// settings.view, so it is answered here. Above the `/:id` routes, which would
+// otherwise take the word for an id.
+router.get('/upload-defaults', requirePermission('events.view'), handleAsync(async (req, res) => {
+  const policy = await getTransferUploadPolicy();
+  return successResponse(res, { max_files_per_upload: policy.maxFiles, max_files_ceiling: MAX_FILES_CEILING });
+}));
+
 // Ownership guard for every `/:id`, `/:id/files`, `/:id/download`, … route.
 // One mount covers them all — the POST `/` create + GET `/` list above are not
 // matched (no :id), and each route keeps its own requirePermission.
@@ -346,6 +381,8 @@ router.patch('/:id',
     body('expiresInDays').optional({ nullable: true }).isInt({ min: 1, max: 3650 }),
     body('expiresAt').optional({ nullable: true }).isISO8601(),
     body('isActive').optional().isBoolean(),
+    // null clears a request's own limit (back to the global default).
+    body('maxFilesPerUpload').optional({ nullable: true }).isInt({ min: 1, max: MAX_FILES_CEILING }),
   ],
   handleAsync(async (req, res) => {
     validateRequest(req);
@@ -357,8 +394,11 @@ router.patch('/:id',
       expiresInDays: req.body.expiresInDays,
       expiresAt: req.body.expiresAt,
       isActive: req.body.isActive,
+      maxFilesPerUpload: req.body.maxFilesPerUpload,
     });
     if (!transfer) return res.status(404).json({ error: 'Transfer not found' });
+    // Re-activated or extended: a ready mail held back meanwhile (issue 2061).
+    await transferService.sendHeldReadyEmails(transfer.id);
     return successResponse(res, { transfer }, 200, 'Transfer updated');
   }),
 );
@@ -392,7 +432,11 @@ router.post('/:id/files',
         error: 'A file request does not send files out', code: 'NOT_A_SEND',
       });
     }
-    const transfer = await transferService.addFiles(parseInt(req.params.id, 10), req.body.photoIds, req.admin);
+    let transfer = await transferService.addFiles(parseInt(req.params.id, 10), req.body.photoIds, req.admin);
+    // A ready mail held back while nothing was downloadable (issue 2061).
+    if ((await transferService.sendHeldReadyEmails(transfer.id)).sent) {
+      transfer = await transferService.getTransfer(transfer.id);
+    }
     return successResponse(res, { transfer }, 200, 'Files added');
   }),
 );
@@ -437,6 +481,8 @@ router.post('/:id/upload-files',
       });
     }
     await storeExtraFiles(id, req.files);
+    // A ready mail held back while nothing was downloadable (issue 2061).
+    await transferService.sendHeldReadyEmails(id);
     const transfer = await transferService.getTransfer(id);
     return successResponse(
       res,
@@ -544,7 +590,8 @@ router.post('/:id/resend',
       ? await transferService.sendTransferRequestEmails(id, emails)
       : await transferService.sendTransferEmails(id, emails);
     return successResponse(
-      res, { transfer: await transferService.getTransfer(id), sent: result.sent }, 200, 'Email sent',
+      res, { transfer: await transferService.getTransfer(id), sent: result.sent, held: !!result.held }, 200,
+      result.held ? 'Nothing is ready to download yet; the email goes out once a photo finishes processing' : 'Email sent',
     );
   }),
 );
@@ -566,6 +613,40 @@ router.get('/:id/download',
     // getTransfer returns the serialized view; streamTransferArchive only needs
     // { id, title }, both present on it.
     await transferService.streamTransferArchive(transfer, res);
+  }),
+);
+
+// Admin download of everything a client sent through a file request, as one
+// ZIP (issue 1914). The same permission as the outgoing bundle above.
+router.get('/:id/uploads/download',
+  requirePermission('photos.download'),
+  [param('id').isInt({ min: 1 })],
+  handleAsync(async (req, res) => {
+    validateRequest(req);
+    const transfer = await transferService.getTransfer(parseInt(req.params.id, 10));
+    if (!transfer) return res.status(404).json({ error: 'Transfer not found' });
+    if (transfer.kind !== transferService.KIND_REQUEST) {
+      return res.status(400).json({ error: 'Only a file request receives files', code: 'NOT_A_REQUEST' });
+    }
+    // Before the attachment headers go on, or the browser saves this answer
+    // as the ZIP.
+    if (!transfer.uploads || transfer.uploads.length === 0) {
+      return res.status(404).json({ error: 'No files received yet', code: 'NO_UPLOADS' });
+    }
+    // The process-wide limit on archives being streamed at once, shared with
+    // the gallery ZIP routes: each holds storage reads for as long as its
+    // download takes.
+    const release = await streamingArchiveAdmission.acquire();
+    if (!release) {
+      res.set('Retry-After', '10');
+      return res.status(429).json({
+        error: 'Too many downloads are being prepared right now. Please try again shortly.', code: 'ARCHIVES_BUSY',
+      });
+    }
+    // Left while waiting for the slot: 'close' has fired and will not again.
+    if (res.destroyed || res.closed) return release();
+    res.once('close', release);
+    await transferService.streamUploadsArchive(transfer, res);
   }),
 );
 

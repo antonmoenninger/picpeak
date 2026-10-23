@@ -7,8 +7,9 @@ const logger = require('../utils/logger');
 const applicationWork = require('./activeApplicationWork');
 const { AppError } = require('../utils/errors');
 const { formatBoolean } = require('../utils/dbCompat');
-const { parseExpiresAtText } = require('../utils/expiresAtText');
+const { getInstanceTimeZone, endOfDayInZone, addDaysToDate, dateInZone, parseExpiryInput } = require('../utils/galleryExpiry');
 const { slugify } = require('../utils/slug');
+const { findSlugHolder } = require('./slugRedirects');
 const { validatePasswordInContext, getBcryptRounds } = require('../utils/passwordValidation');
 const { buildShareLinkVariants } = require('./shareLinkService');
 const { parseBooleanInput } = require('../utils/parsers');
@@ -20,6 +21,7 @@ const { clampIntOrUndefined } = require('../utils/numericHelpers');
 const { getFrontendBaseUrl } = require('../utils/frontendUrl');
 const {
   notifyGalleryRecipients, resolveGalleryRecipients, reachableAccountsByIds, hasPasswordGeneratedColumn,
+  galleryLinkFor,
 } = require('./galleryNotificationService');
 const { resolveEventFeedbackDefaults, applyFeedbackDefaults } = require('./feedbackDefaults');
 const { getStoragePath, getEventFieldRequirements, readBooleanSetting, getDownloadProtectionDefaults,
@@ -93,6 +95,10 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     allow_color_labels: allowColorLabelsInput,
     allow_decisions: allowDecisionsInput,
     keybind_mode: keybindModeInput,
+    // "Finish selection" (issue 1733): off unless the form switches it on.
+    allow_selection_submit = false,
+    // Drawing on a comment (issue 1733): no global default, off unless sent.
+    allow_annotations = false,
     require_name_email = false,
     moderate_comments = true,
     show_feedback_to_guests = true,
@@ -309,7 +315,8 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
   let slug = baseSlug;
   let counter = 1;
 
-  while (await db('events').where({ slug }).first()) {
+  // A renamed gallery's old slug counts as taken: its links still lead to it.
+  while (await findSlugHolder(slug)) {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
@@ -330,25 +337,27 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
   // zone-less date-time is UTC there (what SQLite's julianday() reads the
   // stored row as), where `new Date()` would read it in the server's zone
   // and POST and PUT would store different instants for the same input.
+  // A bare date, and the day count below, end at the end of that day in
+  // the instance time zone.
   let expires_at = null;
+  const expiryTimeZone = (input.expires_at || fieldRequirements.require_expiration)
+    ? await getInstanceTimeZone() : null;
   if (input.expires_at) {
     expires_at = typeof input.expires_at === 'string'
-      ? parseExpiresAtText(input.expires_at)
+      ? parseExpiryInput(input.expires_at, expiryTimeZone)
       : new Date(input.expires_at);
     if (!expires_at || Number.isNaN(expires_at.getTime())) {
       throw new AppError('expires_at must be an ISO 8601 date-time such as 2026-10-06T12:00:00Z', 400);
     }
   }
   if (!expires_at && fieldRequirements.require_expiration) {
-    const baseDate = event_date || new Date().toISOString().split('T')[0];
-    // Parse YYYY-MM-DD format as local date to avoid timezone issues
+    const baseDate = event_date || dateInZone(new Date(), expiryTimeZone);
     if (baseDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const [year, month, day] = baseDate.split('-').map(num => parseInt(num, 10));
-      expires_at = new Date(year, month - 1, day);
+      expires_at = endOfDayInZone(addDaysToDate(baseDate, parseInt(expiration_days, 10)), expiryTimeZone);
     } else {
       expires_at = new Date(baseDate);
+      expires_at.setDate(expires_at.getDate() + parseInt(expiration_days, 10));
     }
-    expires_at.setDate(expires_at.getDate() + parseInt(expiration_days, 10));
   }
     
   // Create folder structure
@@ -555,7 +564,9 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
         allow_reactions: formatBoolean(feedbackDefaults.allow_reactions),
         allow_color_labels: formatBoolean(feedbackDefaults.allow_color_labels),
         allow_decisions: formatBoolean(feedbackDefaults.allow_decisions),
+        allow_selection_submit: formatBoolean(allow_selection_submit),
         keybind_mode: feedbackDefaults.keybind_mode,
+        allow_annotations: formatBoolean(allow_annotations),
         require_name_email: formatBoolean(require_name_email),
         moderate_comments: formatBoolean(moderate_comments),
         show_feedback_to_guests: formatBoolean(show_feedback_to_guests),
@@ -664,6 +675,7 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
     try {
       const announced = {
         id: eventId,
+        slug,
         customer_email: customerEmail,
         host_email: customerEmail,
         welcome_message,
@@ -693,7 +705,8 @@ async function createEvent(data, { actor, source = 'admin', frontendUrl } = {}) 
         await queueWhatsapp(eventId, customerPhone, 'gallery_created', {
           customer_name: customerName || '',
           event_name,
-          gallery_link: shareUrl,
+          // A CRM customer gets their portal link here too (galleryLinkFor).
+          gallery_link: await galleryLinkFor({ id: eventId, slug }, customerEmail, shareUrl),
           gallery_password: requirePassword ? password : '',
           expiry_date: expires_at ? expires_at.toISOString() : null,
           language: null, // resolved by processor via general_default_language

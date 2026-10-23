@@ -4,6 +4,7 @@ import { Button, Card, Input } from '../../../components/common';
 import { useTranslation } from 'react-i18next';
 import { SettingsSaveBar } from '../../../components/admin/SettingsSaveBar';
 import type { SeoSettings } from '../hooks/useSettingsState';
+import { isImeComposing } from '../../../utils/imeComposition';
 
 interface SEOTabProps {
   seoSettings: SeoSettings;
@@ -72,14 +73,17 @@ export const SEOTab: React.FC<SEOTabProps> = ({
 
     lines.push('# Protected paths');
     lines.push('User-agent: *');
-    lines.push('Disallow: /admin');
     lines.push('Disallow: /api');
     lines.push('');
 
     if (!seoSettings.allow_indexing) {
-      lines.push('# Indexing disabled');
+      lines.push('# Indexing disabled. Pages stay crawlable on purpose: each answers');
+      lines.push('# "X-Robots-Tag: noindex", which only takes effect if a crawler may fetch it.');
       lines.push('User-agent: *');
-      lines.push('Disallow: /');
+      lines.push('Disallow: /photos');
+      lines.push('Disallow: /thumbnails');
+      lines.push('Disallow: /uploads');
+      lines.push('Disallow: /og');
       lines.push('');
     }
 
@@ -138,7 +142,7 @@ export const SEOTab: React.FC<SEOTabProps> = ({
             />
             <div>
               <span className="text-sm font-medium text-body">{t('settings.seo.allowIndexing', 'Allow search engine indexing')}</span>
-              <p className="text-sm text-muted mt-0.5">{t('settings.seo.allowIndexingHelp', 'When disabled, all crawlers are blocked via robots.txt. Recommended off for private photo platforms.')}</p>
+              <p className="text-sm text-muted mt-0.5">{t('settings.seo.allowIndexingHelp', 'When disabled, no page can appear in search results. When enabled, only the public landing page can. Galleries, share links and sign-in pages are never indexed.')}</p>
             </div>
           </label>
 
@@ -202,7 +206,7 @@ export const SEOTab: React.FC<SEOTabProps> = ({
                   value={newAgent}
                   onChange={(e) => setNewAgent(e.target.value)}
                   placeholder={t('settings.seo.addAgentPlaceholder', 'Enter agent name...')}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAgent())}
+                  onKeyDown={(e) => e.key === 'Enter' && !isImeComposing(e) && (e.preventDefault(), handleAddAgent())}
                 />
                 <Button variant="outline" size="sm" onClick={handleAddAgent}>
                   <Plus className="w-4 h-4" />

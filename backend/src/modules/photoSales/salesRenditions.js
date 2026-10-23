@@ -18,6 +18,7 @@
 const crypto = require('crypto');
 const pLimit = require('p-limit');
 const { db } = require('../../database/db');
+const { livePhotos } = require('../../utils/photoVisibility');
 const { getStorage } = require('../../services/storage');
 const logger = require('../../utils/logger');
 
@@ -71,7 +72,7 @@ async function findPersistedSalesPreview(event, photo, settings) {
 async function generateSalesPreviewForPhoto(photoId) {
   return generateLimit(async () => {
     try {
-      const photo = await db('photos')
+      const photo = await livePhotos(db)
         .join('events', 'photos.event_id', 'events.id')
         .where('photos.id', photoId)
         .select(
@@ -151,7 +152,7 @@ async function generateSalesPreviewForPhoto(photoId) {
  */
 async function queueForEvent(eventId) {
   try {
-    const photos = await db('photos')
+    const photos = await livePhotos(db)
       .where('photos.event_id', eventId)
       .whereNot(function () {
         this.where('photos.media_type', 'video')

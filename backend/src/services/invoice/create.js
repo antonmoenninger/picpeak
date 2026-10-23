@@ -3,6 +3,7 @@
 
 const crypto = require('crypto');
 const { db, logActivity } = require('../../database/db');
+const { adminActivityActor } = require('../../utils/activityActor');
 const { getAppSetting } = require('../../utils/appSettings');
 const { cleanNetMinor } = require('../../utils/invoiceRounding');
 const { AppError } = require('../../utils/errors');
@@ -10,7 +11,7 @@ const businessProfileService = require('../businessProfileService');
 const { ensureInt, ensureNumber } = require('../../utils/numericHelpers');
 const { extendedLineColumns } = require('../../utils/lineItemTotals');
 const { hasColumnCached } = require('../../utils/schemaCache');
-const { computeDueDate, computeScheduledSendAt, ensureCustomerCanBill, getHierarchyHelpers, nextInvoiceNumber, resolveDealUuid, resolveNetDays, snapToNextBillingCycle } = require('./helpers');
+const { computeDueDate, computeScheduledSendAt, ensureCustomerCanBill, ensureEventMatchesCustomer, getHierarchyHelpers, nextInvoiceNumber, resolveDealUuid, resolveNetDays, snapToNextBillingCycle } = require('./helpers');
 const { appendToMonthlyDraft } = require('./drafts');
 const { auditedInsert } = require('../accountingHistory');
 
@@ -23,21 +24,7 @@ async function createInvoice(payload, adminId, trx = db) {
   const customer = await trx('customer_accounts').where({ id: payload.customerAccountId }).first();
   ensureCustomerCanBill(customer);
 
-  // PR #603 review follow-up #1 — when an invoice is attached to an event,
-  // make sure that event actually belongs to the chosen customer. Without
-  // this, a typo'd/copy-pasted eventId silently links the invoice to an
-  // unrelated event, producing misleading reporting links. Only enforced
-  // when the event HAS customer assignments (an event with none — e.g. a
-  // legacy import — is allowed through, since we can't prove a mismatch).
-  if (payload.eventId && await trx.schema.hasTable('event_customer_assignments')) {
-    const assignments = await trx('event_customer_assignments')
-      .where({ event_id: payload.eventId })
-      .select('customer_account_id');
-    if (assignments.length > 0 &&
-        !assignments.some(a => a.customer_account_id === payload.customerAccountId)) {
-      throw new AppError('The selected event is not assigned to this customer', 422, 'EVENT_CUSTOMER_MISMATCH');
-    }
-  }
+  await ensureEventMatchesCustomer(payload.eventId, payload.customerAccountId, trx);
 
   // Accumulator intercept (migration 128). For customers in
   // billing_cadence='monthly' OR 'manual' mode every createInvoice call
@@ -238,6 +225,7 @@ async function createInvoice(payload, adminId, trx = db) {
       paymentTimingTemplateId,
       paymentTermSnapshot,
       dealUuid: await resolveDealUuid(trx, payload),
+      projectId: payload.projectId || null,
     });
   }
 
@@ -302,6 +290,12 @@ async function createInvoice(payload, adminId, trx = db) {
   if (payload.vatCode !== undefined && await hasColumnCached('invoices', 'vat_code')) {
     row.vat_code = payload.vatCode ? String(payload.vatCode).slice(0, 16) : null;
   }
+  // Migration 315 — created from a project page. The route vets the project.
+  // Only POST /invoices passes projectId, without a transaction, so this schema
+  // read on the global db never waits on a connection a trx holds (SQLite).
+  if (payload.projectId && await hasColumnCached('invoices', 'project_id')) {
+    row.project_id = payload.projectId;
+  }
   const inserted = await auditedInsert(trx, 'invoices', row, { actor: adminId, source: 'invoice.create' });
   const invoiceId = typeof inserted[0] === 'object' ? inserted[0].id : inserted[0];
 
@@ -312,7 +306,7 @@ async function createInvoice(payload, adminId, trx = db) {
       { actor: adminId, source: 'invoice.create' });
   }
 
-  try { await logActivity('invoice_created', { invoiceId, invoiceNumber }, payload.eventId || null, `admin:${adminId}`, trx); } catch (_) { /* non-fatal */ }
+  try { await logActivity('invoice_created', { invoiceId, invoiceNumber }, payload.eventId || null, adminActivityActor(adminId), trx); } catch (_) { /* non-fatal */ }
   return { invoiceIds: [invoiceId] };
 }
 
@@ -340,7 +334,7 @@ async function spawnInstallmentInvoices({ trx, eventId, quoteId, customer, curre
   ccPdfEmail, netDays,
   eventName, eventTimeStart, eventTimeEnd,
   paymentNetDaysTemplateId, paymentTimingTemplateId,
-  paymentTermSnapshot, dealUuid, hold = false }) {
+  paymentTermSnapshot, dealUuid, projectId = null, hold = false }) {
   // Monthly-billing intercept (migration 128). Quote → invoice
   // conversion for a monthly-mode customer doesn't fan out N
   // installment invoices — the customer pays one consolidated bill
@@ -378,6 +372,9 @@ async function spawnInstallmentInvoices({ trx, eventId, quoteId, customer, curre
   const acceptanceTime = new Date();
   const invoiceIds = [];
 
+  // Migration 315. Only a project-page invoice passes projectId, outside a
+  // transaction, so the schema read never waits on a held connection.
+  const projectIdColumn = !!projectId && await hasColumnCached('invoices', 'project_id');
   for (let i = 0; i < total; i++) {
     const inst = installments[i];
     const percent = ensureNumber(inst.percent, 0);
@@ -482,6 +479,7 @@ async function spawnInstallmentInvoices({ trx, eventId, quoteId, customer, curre
       created_at: new Date(),
       updated_at: new Date(),
     };
+    if (projectIdColumn) row.project_id = projectId;
 
     const inserted = await auditedInsert(trx, 'invoices', row, { actor: adminId, source: 'invoice.spawnInstallments' });
     const invoiceId = typeof inserted[0] === 'object' ? inserted[0].id : inserted[0];
@@ -576,7 +574,7 @@ async function spawnInstallmentInvoices({ trx, eventId, quoteId, customer, curre
       // logging via the global db here deadlocks the single-connection SQLite
       // pool (this runs unattended from the booking flow's prepare_invoice).
       await logActivity('invoice_scheduled', { invoiceId, invoiceNumber, eventId, quoteId, scheduledSendAt },
-        eventId, `admin:${adminId}`, trx);
+        eventId, adminActivityActor(adminId), trx);
     } catch (_) { /* non-fatal */ }
     invoiceIds.push(invoiceId);
   }

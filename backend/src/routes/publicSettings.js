@@ -157,6 +157,9 @@ router.get('/', async (req, res) => {
       // storage is always HH:mm (24h); only the displayed form toggles.
       // Default '24h' to match the operator's CH/DE locale.
       general_time_format: settingsObject.general_time_format === '12h' ? '12h' : '24h',
+      // The instance time zone a date-only gallery expiry ends its day in
+      // (utils/galleryExpiry): every view shows an expiry as its day there.
+      expiry_time_zone: await require('../utils/galleryExpiry').getInstanceTimeZone(),
       // CRM overview tile visibility (admin-only — these are surfaced
       // via the public-settings endpoint because the dashboard reads
       // them on mount and the value never depends on auth state. All
@@ -176,6 +179,17 @@ router.get('/', async (req, res) => {
       // Cached (10s TTL): this endpoint is unauthenticated and hit by every
       // new client; the login route itself always checks uncached.
       oidc_local_login_disabled: await require('../services/oidcService').isLocalLoginDisabledCached().catch(() => false),
+      // Passkey login (issue 1733): the origin passkeys are bound to, or null
+      // when the login page should not offer one (no valid relying party for
+      // this install, SSO-only mode, or nobody has registered a passkey). The
+      // page compares it with its own origin before showing the button.
+      passkey_origin: await (async () => {
+        const passkeyService = require('../services/passkeyService');
+        const rp = await passkeyService.getRelyingParty();
+        if (!rp.available || !(await passkeyService.anyRegistered())) return null;
+        if (await require('../services/oidcService').isLocalLoginDisabledCached()) return null;
+        return rp.origin;
+      })().catch(() => null),
       enable_recaptcha: settingsObject.security_enable_recaptcha === true || settingsObject.security_enable_recaptcha === 'true',
       recaptcha_site_key: settingsObject.security_recaptcha_site_key || null,
       maintenance_mode: settingsObject.general_maintenance_mode === true || settingsObject.general_maintenance_mode === 'true',
@@ -200,6 +214,11 @@ router.get('/', async (req, res) => {
           ? 'umami'
           : 'none';
       })(),
+      // Whether the client drops events for a browser that sends Do Not Track
+      // (issue 1921). On unless switched off; Global Privacy Control is
+      // always honoured and has no switch.
+      analytics_honor_do_not_track: settingsObject.analytics_honor_do_not_track !== false
+        && settingsObject.analytics_honor_do_not_track !== 'false',
       // Never distribute administrator-supplied executable HTML, including
       // legacy rows written through another generic settings endpoint.
       analytics_custom_head_html: '',

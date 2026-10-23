@@ -1,5 +1,6 @@
 const express = require('express');
 const { db } = require('../../database/db');
+const { livePhotos } = require('../../utils/photoVisibility');
 const { errorResponse } = require('../../utils/routeHelpers');
 const { verifyPurchaseAccess, buildPurchasedDownloadUrl } = require('../../modules/photoSales/purchaseAccess');
 
@@ -34,7 +35,7 @@ router.get('/purchased-downloads/:accessToken', async (req, res) => {
     }
 
     const photoIds = activeRows.map((row) => row.photo_id);
-    const photos = await db('photos')
+    const photos = await livePhotos(db)
       .whereIn('id', photoIds)
       .where('event_id', order.gallery_id)
       .select('*');

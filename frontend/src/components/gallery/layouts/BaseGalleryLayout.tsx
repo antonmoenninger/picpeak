@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Photo, DownloadResolutionChoice, GalleryPerson } from '../../../types';
 import type { LightboxPhotoChangeHandler } from '../photoLink';
+import type { QuotaPhoto } from '../../../utils/downloadLimit';
 
 export interface BaseGalleryLayoutProps {
   photos: Photo[];
@@ -23,8 +24,10 @@ export interface BaseGalleryLayoutProps {
   onPhotoClick: (index: number) => void;
   // Optional: open the lightbox with feedback panel visible
   onOpenPhotoWithFeedback?: (index: number) => void;
-  // Notify parent that feedback (like/favorite/rating/comment) changed
-  onFeedbackChange?: () => void;
+  // Notify parent that feedback (like/favorite/rating/comment) changed. A
+  // like or favourite toggle passes its photo id, so only that row is
+  // refreshed instead of the whole list (issue 1891).
+  onFeedbackChange?: (toggledPhotoId?: number) => void;
   onDownload: (photo: Photo, e: React.MouseEvent) => void;
   selectedPhotos?: Set<number>;
   isSelectionMode?: boolean;
@@ -41,6 +44,11 @@ export interface BaseGalleryLayoutProps {
   onToggleSelectionMode?: () => void;
   onSelectMany?: (photoIds: number[]) => void;
   onDownloadSelected?: () => void | Promise<void>;
+  /**
+   * The whole selection as the download limit prices it, including photos a
+   * search hides from `photos` (they stay selected and are downloaded).
+   */
+  selectionQuotaPhotos?: QuotaPhoto[];
   eventName?: string;
   eventLogo?: string | null;
   eventDate?: string | null;
@@ -48,6 +56,8 @@ export interface BaseGalleryLayoutProps {
   allowDownloads?: boolean;
   /** #1160: folder-only root — render the shell, skip the empty message. */
   suppressEmptyState?: boolean;
+  /** The scope has photos, but the search or filters leave none on screen. */
+  emptyIsFiltered?: boolean;
   /**
    * Event-wide photo count (#1160), for stats a layout renders about the whole
    * gallery. `photos` is only the current folder scope and is empty at a
@@ -72,6 +82,13 @@ export interface BaseGalleryLayoutProps {
   // chrome: the selection, or the viewer's favourites. Hidden at zero.
   onCopyFilenames?: () => void;
   copyFilenamesCount?: number;
+  /**
+   * The nav heart of the full-page layouts: the gallery's "Liked" filter
+   * (the viewer's own likes), owned by the container so `photos` already
+   * arrives filtered. Absent, the heart is not a filter control.
+   */
+  likedOnly?: boolean;
+  onToggleLikedOnly?: () => void;
   // Resolution picker choices (#858). More than one entry means the gallery
   // offers a real choice, so bulk downloads must route through the modal
   // instead of calling downloadSelectedPhotos directly.
@@ -92,6 +109,9 @@ export interface BaseGalleryLayoutProps {
   };
   // Logout callback for full-page layouts
   onLogout?: () => void;
+  // Guest upload for full-page layouts, which have no gallery header: opens
+  // the container's upload dialog. Undefined when uploads are off.
+  onUploadClick?: () => void;
   // Client visibility controls (#172)
   isClient?: boolean;
   onToggleVisibility?: (photoId: number, currentVisibility: string) => void;

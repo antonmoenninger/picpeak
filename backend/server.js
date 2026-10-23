@@ -104,6 +104,7 @@ const {
 } = require('./src/utils/tokenUtils');
 const {
   LEGACY_TRUST_PROXY,
+  createProxyChainWarning,
   isTrustProxyUnset,
   parseTrustProxy,
   resolveListenHost,
@@ -179,6 +180,9 @@ app.use(cookieParser());
 // First, so every later middleware, route and the error handler can put the
 // same id in their logs and responses.
 app.use(require('./src/middleware/requestId'));
+
+// One trusted hop but another proxy in front of nginx: warn once per process.
+app.use(createProxyChainWarning({ trustProxy: app.get('trust proxy'), logger }));
 
 app.use((req, res, next) => {
   if (req.headers.authorization) {
@@ -280,16 +284,8 @@ app.use(require('./src/routes/portableRestoreShell').createRestoreShellRouter({ 
 // A restore keeps this process alive and busy on purpose. While one runs the
 // health probes answer 200 from memory, outside the request fence and without
 // touching the database, so a health-based restarter does not kill it halfway.
-app.get(['/health', '/api/health'], (req, res, next) => {
-  if (!restoreCoordinator.isFenced()) return next();
-  return res.json({
-    status: 'ok',
-    maintenance: restoreCoordinator.status().restartRequired ? 'restart_required' : 'restoring',
-    timestamp: new Date().toISOString(),
-    pid: process.pid,
-    uptime: process.uptime()
-  });
-});
+const healthHandlers = require('./src/services/healthCheck').createHealthHandlers({ db, restoreCoordinator, logger });
+app.get(['/health', '/api/health'], healthHandlers.duringRestore);
 // The fence is a flag in memory, refreshed by the coordinator's own watch;
 // an ordinary request never reads the control row.
 app.use(createApplicationWorkMiddleware({ enabled: () => restoreCoordinator.tracking() }));
@@ -310,8 +306,8 @@ app.use('/api/analytics/tracker', require('./src/routes/analyticsTrackerProxy'))
 app.use('/api/gallery', require('./src/routes/gallery/snipcartWebhook'));
 // PHOTO-SALES-EXTENSION END
 
-// Health check endpoint. `pid` + `uptime` let monitors (and the local E2E
-// watchdog) detect a silent process restart between two checks.
+// Health check endpoint. Public, so it answers only `status` (see
+// src/services/healthCheck.js).
 //
 // Served at BOTH paths: /health is the canonical one, /api/health exists
 // because probes reasonably assume the API lives under /api and otherwise
@@ -322,25 +318,7 @@ app.use('/api/gallery', require('./src/routes/gallery/snipcartWebhook'));
 // couple of seconds does not pay for — or pollute — the body parsers, the
 // request logger, the maintenance gate (/health is on its skip list anyway)
 // or the rate limiter's per-IP budget.
-app.get(['/health', '/api/health'], async (req, res) => {
-  try {
-    await db.raw('SELECT 1');
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      pid: process.pid,
-      uptime: process.uptime()
-    });
-  } catch (error) {
-    logger.error('Health check failed:', error);
-    res.status(503).json({
-      status: 'error',
-      timestamp: new Date().toISOString(),
-      pid: process.pid,
-      uptime: process.uptime()
-    });
-  }
-});
+app.get(['/health', '/api/health'], healthHandlers.ordinary);
 
 // Initialize rate limiters (they will be created dynamically)
 
@@ -512,6 +490,8 @@ async function handlePublicSiteRequest(req, res, next) {
     const payload = await getPublicSitePayload();
 
     if (!payload.enabled) {
+      // The root is crawlable (robotsTxtService), so say it here too.
+      res.setHeader('X-Robots-Tag', 'noindex');
       res.redirect(302, '/admin/login');
       return;
     }
@@ -520,7 +500,7 @@ async function handlePublicSiteRequest(req, res, next) {
     try {
       const seoRows = await db('app_settings')
         .where('setting_type', 'seo')
-        .whereIn('setting_key', ['seo_meta_noindex', 'seo_meta_nofollow', 'seo_meta_noai'])
+        .whereIn('setting_key', ['seo_allow_indexing', 'seo_meta_noindex', 'seo_meta_nofollow', 'seo_meta_noai'])
         .select('setting_key', 'setting_value');
       const seoSettings = {};
       for (const row of seoRows) {
@@ -538,7 +518,15 @@ async function handlePublicSiteRequest(req, res, next) {
     // link for self-hosted faces) or a SEO toggle must stop answering 304 to
     // clients that cached the previous HTML, or they keep it until a
     // settings change happens to move the payload hash.
-    const etag = `W/"${require('crypto').createHash('sha1').update(document).digest('hex')}"`;
+    //
+    // robots.txt lets crawlers fetch the root either way, so with indexing
+    // off the landing page has to refuse indexing itself. That is a header,
+    // not part of the document, so it goes into the validator as well and is
+    // sent on a 304 too: otherwise a crawler that cached the page while
+    // indexing was on keeps revalidating its indexable copy.
+    const noindex = payload.seoSettings?.seo_allow_indexing !== true;
+    if (noindex) res.setHeader('X-Robots-Tag', 'noindex');
+    const etag = `W/"${require('crypto').createHash('sha1').update(document).update(noindex ? 'noindex' : 'index').digest('hex')}"`;
     if (req.headers['if-none-match'] === etag) {
       res.status(304).end();
       return;
@@ -603,6 +591,11 @@ app.use(createAuthRateLimitGate(rateLimitService.getAuthLimiter));
 // body is already parsed, so the scoped parser must run first.
 // fallbackLimitBytes mirrors the 2mb parser right below: a body that fits it
 // never triggers the identity check.
+// A chunk body is raw bytes; refuse a mislabelled one before a parser reads it.
+{
+  const { requireOctetStreamChunk, CHUNK_ROUTE_PREFIXES } = require('./src/middleware/chunkBodyType');
+  app.use(CHUNK_ROUTE_PREFIXES, requireOctetStreamChunk);
+}
 app.use(['/api/admin', '/api/v1'], createLargeJsonBody({ limit: '50mb', fallbackLimitBytes: 2 * 1024 * 1024 }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
@@ -768,10 +761,11 @@ app.get('/og/transfer-upload/:token', handleTransferOgRequest('request'));
 //     in the rendered HTML points back at /s/<slug>, not the underlying
 //     gallery URL — so a re-share of the same short URL keeps the cache
 //     warm even if the underlying gallery slug rotates.
-//   - Browser → 302 to the stored target_path. The target_path was
-//     captured at create time from the event's slug + share_token + the
-//     global "Use short gallery URLs" setting, so it doesn't silently
-//     change later.
+//   - Browser → 302 to the gallery. The target_path's shape (slug or
+//     token form) was captured at create time from the global "Use short
+//     gallery URLs" setting, so a toggle flip doesn't move it; the slug or
+//     token itself is read off the current event, so a rename doesn't
+//     break the link (resolveTargetPath).
 //   - Soft-deleted → 410 Gone so the admin can tell their delete worked
 //     vs. a typo'd unknown slug (which returns 404).
 const galleryShortUrlService = require('./src/services/galleryShortUrlService');
@@ -804,6 +798,7 @@ app.get('/s/:shortSlug', async (req, res) => {
         meta.url = `${base}/s/${row.short_slug}`;
         res.set('Cache-Control', 'public, max-age=300');
         res.set('Content-Type', 'text/html; charset=utf-8');
+        res.set('X-Robots-Tag', 'noindex');
         res.send(renderOgHtml(meta));
         // Hit accounting is fire-and-forget — don't block the bot.
         galleryShortUrlService.recordHit(row.id).catch(() => {});
@@ -818,7 +813,8 @@ app.get('/s/:shortSlug', async (req, res) => {
     // Browser path: redirect, carrying the query along (issue 1733: a
     // `?photo=` link through the shortener). Hit accounting is fire-and-forget.
     galleryShortUrlService.recordHit(row.id).catch(() => {});
-    return res.redirect(302, galleryShortUrlService.redirectTarget(row.target_path, req.originalUrl));
+    const targetPath = await galleryShortUrlService.resolveTargetPath(row);
+    return res.redirect(302, galleryShortUrlService.redirectTarget(targetPath, req.originalUrl));
   } catch (err) {
     logger.error('Short URL resolver failed', { slug: req.params.shortSlug, error: err.message });
     return res.status(500).type('text/plain').send('Internal server error');
@@ -1078,6 +1074,9 @@ try {
     // revalidate so a redeploy is picked up, while the hashed assets below
     // cache immutably.
     const sendSpa = (res) => {
+      // Only the landing page is ever indexable; the app shell never is
+      // (nginx parity: `location = /index.html`).
+      res.setHeader('X-Robots-Tag', 'noindex');
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.type('html').send(spaHtml);
     };
@@ -1263,8 +1262,8 @@ async function startServerInternal() {
     await initializeDatabase();
     await require('./src/utils/authSecurity').assertAuthSecuritySchema();
 
-    // Warm the public-origin cache so the SYNCHRONOUS resolver (CORS headers,
-    // secureImageMiddleware) can see the general_site_url setting. Best-effort:
+    // Warm the public-origin cache so the SYNCHRONOUS resolver (CORS headers)
+    // can see the general_site_url setting. Best-effort:
     // the async resolver reads through on its own, and a cold cache only means
     // falling back to the environment.
     await primeSiteUrlCache().catch(() => {});
@@ -1284,6 +1283,10 @@ async function startServerInternal() {
     require('./src/services/chunkedUploadService').start();
     
     require('./src/utils/cleanupTempUploads').startTempUploadCleanup();
+
+    // A pre-zip build the process died in the middle of (reboot, OOM kill)
+    // leaves its partial zip in the tmp dir — on Docker, the container layer.
+    require('./src/services/downloadZipService').sweepStaleBuildDirs().catch(() => {});
 
     // Start file watcher
     startFileWatcher();
@@ -1305,6 +1308,9 @@ async function startServerInternal() {
     // Customer documents retention (#1444): delete long-rejected files and
     // remove the bytes of deleted ones once the retention window elapses.
     require('./src/services/customerDocumentRetentionService').startCustomerDocumentRetention();
+    // Photo trash (issue 1733): hourly, deletes for good what is past its
+    // retention.
+    require('./src/services/photoTrash').startPhotoTrashPurge();
     // Malware scanner for customer documents (#1444): clamd over TCP, only
     // when CLAMAV_HOST is set. Without it uploads stay pending until an admin
     // reviews them. The hourly re-scan picks up rows left pending while the
@@ -1536,11 +1542,23 @@ async function startServerInternal() {
       require('./src/modules/photoSales/promoDiscount').startupSync().catch(() => {});
     }, 5000);
     // PHOTO-SALES-EXTENSION END
+    // Scene tagging (issue 1733). Same shape: idle until the `autoTagging`
+    // feature flag is on, and it never contacts the sidecar before that.
+    require('./src/services/tagQueue').start();
 
     // Browser-playable video copies (issue 1430). Same shape as the face
     // queue: starts idle and re-reads the general_video_web_rendition
     // setting every tick, so nothing runs until an admin switches it on.
     require('./src/services/videoRenditionQueue').start();
+
+    // Adaptive streaming ladders (issue 1733). Idle in the same way until
+    // general_video_adaptive_streaming is switched on.
+    require('./src/services/videoHlsQueue').start();
+
+    // Renditions written before derived images were stripped of the source's
+    // EXIF (issue 2096) are regenerated once in the background, the public OG
+    // covers first. One replica runs it; it resumes after a restart.
+    require('./src/services/renditionRefresh').start();
 
     // Coordinated portable restore is optional. Where this host cannot run it
     // one startup line says why, the import answers 503 and nothing else

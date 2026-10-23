@@ -15,6 +15,7 @@
 
 const express = require('express');
 const { db } = require('../../database/db');
+const { livePhotos } = require('../../utils/photoVisibility');
 const { errorResponse } = require('../../utils/routeHelpers');
 const { isGalleryPriced } = require('../../modules/photoSales/priceRules');
 
@@ -33,7 +34,7 @@ router.get('/:slug/price-check', async (req, res) => {
     if (!Number.isFinite(photoId) || photoId <= 0) {
       return res.status(404).json({ error: 'Missing photoId' });
     }
-    const photo = await db('photos')
+    const photo = await livePhotos(db)
       .where({ id: photoId, event_id: event.id })
       .first('id');
     if (!photo) {
