@@ -38,6 +38,9 @@ permissions:
 
 jobs:
   build:
+    # Upstream publishes the updater image; publish needs this job. Forks only build their images
+    # (docker-build.yml) and run the tests (tests.yml).
+    if: github.repository == 'PicPeak/picpeak'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

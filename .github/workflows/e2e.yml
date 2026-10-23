@@ -26,6 +26,9 @@ concurrency:
 
 jobs:
   e2e:
+    # Upstream's nightly and pull-request browser suite. Forks only build their images
+    # (docker-build.yml) and run the tests (tests.yml).
+    if: github.repository == 'PicPeak/picpeak'
     name: ${{ github.event_name == 'pull_request' && 'e2e-smoke' || 'e2e-full' }}
     runs-on: ubuntu-latest
     # Image builds dominate; the full suite adds roughly as much again.

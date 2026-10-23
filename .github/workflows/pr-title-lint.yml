@@ -15,6 +15,9 @@ permissions:
 
 jobs:
   lint-pr-title:
+    # Upstream's release-please title check for its own pull requests. Forks only build their images
+    # (docker-build.yml) and run the tests (tests.yml).
+    if: github.repository == 'PicPeak/picpeak'
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR title is a Conventional Commit

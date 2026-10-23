@@ -25,6 +25,9 @@ permissions:
 
 jobs:
   size-gate:
+    # Upstream's self-merge size gate for its own pull requests. Forks only build their images
+    # (docker-build.yml) and run the tests (tests.yml).
+    if: github.repository == 'PicPeak/picpeak'
     runs-on: ubuntu-latest
     steps:
       - name: Compute PR size and report check status

@@ -33,6 +33,9 @@ permissions:
 
 jobs:
   merge-stable-release-pr:
+    # Upstream's stable release automation (hourly and daily schedule). Forks only build their images
+    # (docker-build.yml) and run the tests (tests.yml).
+    if: github.repository == 'PicPeak/picpeak'
     runs-on: ubuntu-latest
     steps:
       - name: Approve and enable auto-merge on the open stable release PR

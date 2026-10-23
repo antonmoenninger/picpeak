@@ -34,6 +34,9 @@ permissions:
 
 jobs:
   fresh-install:
+    # Upstream's required check for its own pull requests. Forks only build their images
+    # (docker-build.yml) and run the tests (tests.yml).
+    if: github.repository == 'PicPeak/picpeak'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
